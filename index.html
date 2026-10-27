@@ -153,6 +153,20 @@
     .bank-toast{margin:0 25px 19px;font-size:.83rem;line-height:1.65;color:#456854;min-height:17px}
     @media(max-width:760px){.bank-content{grid-template-columns:1fr}.bank-list-panel{border-right:0;border-bottom:1px solid #e1d7c4}.bank-list{max-height:230px}.bank-dialog{max-height:94dvh}.bank-head{padding:17px 16px}.bank-toolbar{padding:12px 16px}.bank-list-panel,.bank-edit-panel{padding:15px 16px}.bank-toast{margin:4px 16px 16px}}
     @media(max-width:400px){.option-editor,.editor-columns{grid-template-columns:1fr}.quiz-heading h3{font-size:1.1rem}.quiz-panel{padding:12px}.quiz-hint{font-size:.7rem}}
+    .history-panel{border:1px solid #e3d3ad;border-radius:13px;padding:15px 15px 12px;margin:0 0 22px;background:linear-gradient(140deg,#fff9eb,#f5ede0)}
+    .history-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.history-bar h3{font-size:1.07rem;margin:0}.history-bar .side-label{margin:0 0 5px}
+    .history-source{font-size:.86rem;font-weight:700;color:#7a512b;margin:0 0 10px}
+    .history-quote{border-left:3px solid #bd945c;padding:7px 12px;margin:0;color:#344452;line-height:1.85;font-size:.95rem;background:#fffdf7;min-height:40px}
+    .history-context{font-size:.85rem;color:#56616a;line-height:1.8;margin:11px 0}
+    #historyLink{font-size:.83rem;color:#775529;text-decoration:underline;text-underline-offset:3px}
+    .history-note{font-size:.7rem;color:#838078;line-height:1.6;margin:10px 0 0}
+    #polaris-layer text{fill:#ffe7b7;stroke:#1b3444;stroke-width:4;paint-order:stroke;font-size:22px;font-weight:700}
+    .login-dialog{border:1px solid #c9b79a;border-radius:15px;background:#fffcf5;color:var(--ink);width:min(465px,calc(100vw - 28px));padding:0;box-shadow:0 24px 60px #14263870}
+    .login-dialog::backdrop{background:#0d1d2d99;backdrop-filter:blur(4px)}
+    .login-form{display:grid;gap:14px;padding:19px 24px 24px}.login-form label{font-size:.9rem;font-weight:700;color:#56616a}
+    .login-form input{width:100%;padding:12px;border:1px solid #cfc3af;border-radius:8px;display:block;font:inherit;font-size:.93rem;margin-top:6px;background:white}
+    .login-status{margin:0;font-size:.83rem;line-height:1.65;color:#ad503f;min-height:22px}
+    @media(max-width:540px){.history-panel{padding:12px}.history-bar{align-items:start}.history-bar .outline-btn{font-size:.72rem;padding:7px 8px}#polaris-layer text{font-size:25px}.login-form{padding:16px}}
   </style>
 </head>
 <body>
@@ -171,7 +185,7 @@
       <div class="wheel-wrap">
         <svg id="skyWheel" viewBox="0 0 1000 1000" role="group" aria-labelledby="wheelTitle wheelDesc">
           <title id="wheelTitle">二十八宿圓盤與北斗七星</title>
-          <desc id="wheelDesc">上方是南方朱雀七宿，下方是北方玄武七宿，左方是東方青龍七宿，右方是西方白虎七宿；北斗以天樞為軸逆時針旋轉，瑤光指向停止的星宿。</desc>
+          <desc id="wheelDesc">上方是南方朱雀七宿，下方是北方玄武七宿，左方是東方青龍七宿，右方是西方白虎七宿；北極星固定中央，北斗繞北極星逆時針旋轉，斗口指極，瑤光指向停止的星宿。</desc>
           <defs>
             <radialGradient id="night" cx="50%" cy="45%" r="65%"><stop offset="0%" stop-color="#223f56"/><stop offset="100%" stop-color="#0f2030"/></radialGradient>
             <filter id="glow" x="-120%" y="-120%" width="340%" height="340%"><feGaussianBlur stdDeviation="4"/></filter>
@@ -187,12 +201,20 @@
             <circle cx="500" cy="500" r="296" stroke-dasharray="3 10"/>
           </g>
           <g id="rotating-geometry">
+            <path id="polarSightLine" fill="none" stroke="#91d2f0" stroke-width="2.6" stroke-dasharray="5 8" opacity=".8"/>
             <path id="dipperShape" fill="none" stroke="#ead7ac" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
             <path id="dipperBowl" fill="none" stroke="#ead7ac" stroke-width="3" opacity=".7"/>
             <line id="yaoguangPointer" stroke="#ecc078" stroke-width="4" stroke-dasharray="9 7" marker-end="url(#arrowTip)" stroke-linecap="round"/>
             <g id="star-dots"></g>
           </g>
           <g id="star-labels"></g>
+          <g id="polaris-layer" pointer-events="none" aria-label="北極星固定於圓盤中央">
+            <circle cx="500" cy="500" r="33" fill="#9cd2f9" opacity=".17" filter="url(#glow)"/>
+            <circle cx="500" cy="500" r="15" fill="#def4ff" opacity=".3"/>
+            <circle cx="500" cy="500" r="7.5" fill="#e7fbff" stroke="#82cbe3" stroke-width="2"/>
+            <path d="M500 468 V485 M500 515 V532 M468 500 H485 M515 500 H532" stroke="#a4d9ed" stroke-width="1.7" opacity=".9"/>
+            <text x="500" y="550" text-anchor="middle">北極星 · 天極示意</text>
+          </g>
           <g id="directions" pointer-events="none">
             <text x="500" y="35" text-anchor="middle" class="direction-text" fill="#b14f3f">南 · 朱雀</text>
             <text x="500" y="980" text-anchor="middle" class="direction-text" fill="#3e6897">北 · 玄武</text>
@@ -207,7 +229,7 @@
         <span class="key"><i class="swatch" style="background:#ac8538"></i>西方七宿</span>
         <span class="key"><i class="swatch" style="background:#4274a8"></i>北方七宿</span>
       </div>
-      <p class="wheel-footer">點選任一星宿即可練習該宿題庫；旋轉停止後由瑤光（破軍）指向本次挑戰星宿。</p>
+      <p class="wheel-footer">北極星固定天心；天璇、天樞斗口延長線指向北極星。北斗逆時針旋運，由瑤光（破軍）指向挑戰星宿。（位置為示意）</p>
     </section>
 
     <aside class="information" aria-label="星宿資訊與數術問答">
@@ -220,7 +242,15 @@
         <div class="detail"><div class="label">七曜 · 禽星</div><div class="value" id="starYao">木 · 蛟</div></div>
         <div class="detail"><div class="label">十二次 · 分野資料</div><div class="value" id="starDomain">壽星 · 辰</div></div>
       </div>
-      <p class="description" id="starDescription">青龍七宿之首。此處展示星宿位置；按下「抽宿挑戰」後，北斗將逆時針轉動並由瑤光指向隨機選中的星宿。</p>
+      <p class="description" id="starDescription">青龍七宿之首。此處展示星宿位置。</p>
+      <section class="history-panel" aria-labelledby="historyHeading">
+        <div class="history-bar"><div><p class="side-label">HISTORICAL ASTRONOMY · 原始史料</p><h3 id="historyHeading">史書天文文獻</h3></div><button id="historyNextBtn" class="outline-btn" type="button">換一則史料 ↻</button></div>
+        <p id="historySource" class="history-source"></p>
+        <blockquote id="historyQuote" class="history-quote"></blockquote>
+        <p id="historyContext" class="history-context"></p>
+        <a id="historyLink" href="#" target="_blank" rel="noopener noreferrer">查閱所引史書原文 ↗</a>
+        <p class="history-note">史料以符合目前星宿／方位者優先；「文獻原文」和「編者說明」分開標示。不是每部史書都逐宿記載。</p>
+      </section>
       <button class="primary" type="button" id="spinBtn">✦　抽宿挑戰</button>
       <section class="quiz-section" aria-labelledby="quizTitle">
         <div class="quiz-heading">
@@ -245,11 +275,21 @@
           <span class="quiz-hint">每個星宿有獨立題組；可自行增修</span>
         </div>
       </section>
-      <p class="notes">此為數術知識練習遊戲。題目與星宿的配置是互動設計，並不代表史料所記載的占驗對應；歡迎自行校訂題庫與附註。</p>
+      <p class="notes">此為數術知識練習遊戲。題目與星宿配對是互動設計；歷史文獻僅作閱讀參考，不等於現代的隨機占驗規則。</p>
     </aside>
   </main>
-  <footer class="page-foot">數術知識題庫為可編輯的學習素材，非史料引文。更改題庫後可匯出 JSON 更新 GitHub Pages 的 questions.json；星宿配屬與傳統文獻仍須逐項校核。</footer>
+  <footer class="page-foot">數術知識題庫為可編輯的學習素材，非史料引文。題庫管理採伺服器端權限控制。引用原始天文史料須分辨正文、古注與後代解釋；星宿圖為交互式示意，非精確天文觀測圖。</footer>
 </div>
+<dialog id="loginDialog" class="login-dialog" aria-labelledby="loginTitle">
+  <div class="bank-head"><div><p class="side-label">ADMIN ACCESS · 安全登入</p><h2 id="loginTitle">題庫管理員登入</h2><p class="bank-description">密碼由 Supabase Auth 伺服器驗證；網站原始碼不包含管理密碼或密碼雜湊。</p></div><button type="button" class="close-btn" id="closeLoginBtn" aria-label="關閉登入">✕</button></div>
+  <form id="loginForm" class="login-form">
+    <label>管理員電子郵件<input id="loginEmail" type="email" autocomplete="username" required placeholder="admin@example.com"></label>
+    <label>登入密碼<input id="loginPassword" type="password" autocomplete="current-password" required minlength="8" placeholder="請輸入帳號密碼"></label>
+    <button type="submit" id="loginSubmitBtn" class="primary">登入並驗證管理權限</button>
+    <p id="loginStatus" role="status" aria-live="polite" class="login-status"></p>
+    <p class="editor-help">管理員必須先在 Supabase 建立帳號，並列入資料庫的 quiz_admins 授權表。請勿將密碼、service_role／secret key 放進 GitHub。</p>
+  </form>
+</dialog>
 <dialog id="bankDialog" class="bank-dialog" aria-labelledby="bankTitle">
   <div class="bank-head">
     <div><p class="side-label">QUESTION BANK · 自訂學習內容</p><h2 id="bankTitle">數術題庫管理</h2><p class="bank-description" id="bankSourceInfo">可增刪改題、匯入與匯出 JSON。</p></div>
@@ -262,7 +302,7 @@
     <label class="import-label" for="importMode">匯入方式</label>
     <select id="importMode" aria-label="匯入方式"><option value="merge">合併題庫</option><option value="replace">取代題庫</option></select>
     <input type="file" id="bankFileInput" accept=".json,application/json" hidden>
-    <button type="button" class="text-btn" id="resetBankBtn">恢復網站預設題庫</button>
+    <button type="button" class="text-btn" id="resetBankBtn">恢復網站預設題庫</button><button type="button" class="text-btn" id="logoutBtn">安全登出</button>
   </div>
   <div class="bank-content">
     <section class="bank-list-panel" aria-labelledby="listHeading">
@@ -288,11 +328,12 @@
         <label>答案說明／文獻備註（選填）<textarea id="editExplanation" rows="3" maxlength="1600" placeholder="建議填入來源或解釋；不要杜撰引文"></textarea></label>
         <div class="editor-actions"><button type="submit" class="primary editor-save" id="saveQuestionBtn">儲存題目</button><button type="button" class="outline-btn" id="cancelEditBtn">清除表單</button></div>
       </form>
-      <p class="editor-help">管理操作儲存於目前瀏覽器。若希望所有訪客共用更新，請將「匯出 JSON」所得檔案以 <code>questions.json</code> 名稱覆蓋 GitHub 儲存庫同名檔案。</p>
+      <p class="editor-help">已登入的授權管理員可直接更新 Supabase 雲端題庫（訪客即可讀取）；匯出 JSON 可另存備份。未設定安全後端時，管理功能將鎖定。</p>
     </section>
   </div>
   <p id="bankToast" class="bank-toast" role="status" aria-live="polite"></p>
 </dialog>
+<script src="./config.js"></script>
 <script>
 'use strict';
 
@@ -308,6 +349,7 @@ const MANSIONS = mansionGroups.flatMap(g => g.names.map((name, i) => ({
   name, quad:g.quad, kind:g.kind, color:g.color, pale:g.pale,
   yao:`${name[1]} · ${name.slice(2)}`, domain:g.domains[i], desc:g.descriptions[i]
 })));
+const el=id=>document.getElementById(id);
 const svgNS = 'http://www.w3.org/2000/svg';
 const svgEl = (tag, attrs={}, text='') => {
   const el=document.createElementNS(svgNS,tag);
@@ -345,16 +387,16 @@ MANSIONS.forEach((m,i)=>{
   sectorNodes.push(g);
 });
 
-// 座標以天樞為原點；七星為斗口→斗柄的連續星序。
+// 2026新版：北極星固定於盤心，北斗繞北極星逆時針旋動；斗口朝向北極星。
 // 此為便於互動閱讀的示意幾何，不是精確赤經／赤緯測繪。
 const STARS=[
-  {name:'天樞',x:0,y:0},
-  {name:'天璇',x:-112,y:48},
-  {name:'天璣',x:-112,y:140},
-  {name:'天權',x:-12,y:144},
-  {name:'玉衡',x:65,y:188},
-  {name:'開陽',x:140,y:202},
-  {name:'瑤光',x:223,y:174}
+  {name:'天樞',x:-94,y:40},
+  {name:'天璇',x:-206,y:88},
+  {name:'天璣',x:-206,y:180},
+  {name:'天權',x:-106,y:184},
+  {name:'玉衡',x:-29,y:228},
+  {name:'開陽',x:46,y:242},
+  {name:'瑤光',x:129,y:214}
 ];
 const yaoguang=STARS[6];
 const rayLength=Math.hypot(yaoguang.x,yaoguang.y);
@@ -365,6 +407,8 @@ const textNodes=[];
 const pathThrough = points => points.map((p,i)=>`${i?'L':'M'} ${CENTER+p.x} ${CENTER+p.y}`).join(' ');
 document.getElementById('dipperShape').setAttribute('d',pathThrough(STARS));
 document.getElementById('dipperBowl').setAttribute('d',pathThrough([STARS[3],STARS[0]]));
+// 天璇→天樞→北極星的直線，是定向示意，不是對實測星距的承諾。
+document.getElementById('polarSightLine').setAttribute('d',pathThrough([STARS[1], STARS[0], {x:0,y:0}]));
 const pointer=document.getElementById('yaoguangPointer');
 pointer.setAttribute('x1',CENTER+yaoguang.x);
 pointer.setAttribute('y1',CENTER+yaoguang.y);
@@ -389,8 +433,7 @@ function renderRotation(angle){
   STARS.forEach((p,i)=>{
     const v=rotated(p,angle), len=Math.hypot(v.x,v.y);
     let tx,ty;
-    if(!i){tx=CENTER+26;ty=CENTER-15;}
-    else {
+    {
       // 文字保持水平；斗柄末星標籤朝盤心移動，避免壓到星宿扇區。
       const inward = i===6?39:21;
       const perp=i===6?9:13;
@@ -419,6 +462,42 @@ function setStatus(message,type=''){
   node.className=`result-status ${type}`;
   node.textContent=message;
 }
+// 可核對的五種正史天文文獻摘要／短句；未核實逐字者只作「編者說明」。
+// scope: all / mansion initials / group direction. 每次切換星宿或點「換一則」均重新抽選。
+const HISTORIES=[
+ {book:'《史記》卷二十七〈天官書〉',scope:['東'],quote:'東宮蒼龍，房、心',context:'正文以房、心標識東宮蒼龍；這是東方星區的相關說明，並不表示東方七宿僅有房、心二宿。',url:'https://zh.wikisource.org/wiki/史記/卷027'},
+ {book:'《史記》卷二十七〈天官書〉',scope:['北'],quote:'北宮玄武，虚、危',context:'正文將虛、危列為北宮玄武的重要星宿；原文「虚」為異體寫法，這裡未任意改動原文。',url:'https://zh.wikisource.org/wiki/史記/卷027'},
+ {book:'《史記》卷二十七〈天官書〉',scope:['all'],quote:'斗爲帝車，運於中央',context:'描述北斗與四時節度的關聯。請注意《史記》正文與〈索隱〉注所載七星名應區分。',url:'https://zh.wikisource.org/wiki/史記/卷027'},
+ {book:'《漢書》卷二十六〈天文志〉',scope:['all'],quote:'斗為帝車，運于中央，臨制四海。',context:'將北斗置於天文秩序與王權象徵的脈絡；不是盤面隨機抽題的古代根據。',url:'https://zh.wikisource.org/wiki/漢書/卷026'},
+ {book:'《漢書》卷二十六〈天文志〉',scope:['all'],quote:'中宮天極星，其一明者，泰一之常居也。',context:'屬中宮天極星的敘述。天極星及今日所稱北極星的歷史辨認與時代天極位置不可逕行等同。',url:'https://zh.wikisource.org/wiki/漢書/卷026'},
+ {book:'《後漢書》志第十〈天文上〉',scope:['all'],quote:'二十八宿各布列，下應十二子。',context:'〈天文上〉開篇將星官與二十八宿放在天象、地分的制度性論述中。此志出自司馬彪《續漢書》，劉昭補注後附入今本《後漢書》。',url:'https://www.shidianguji.com/zh/book/LS0003/chapter/1j7lpp5enssv9_275'},
+ {book:'《後漢書》志第十〈天文上〉',scope:['all'],quote:null,context:'此志以王莽至東漢末年的天文變異紀錄為重，不能把它誤說成逐一解釋二十八宿寓意的星官全書。',url:'https://www.shidianguji.com/zh/book/LS0003/chapter/1j7lpp5enssv9_275'},
+ {book:'《晉書》卷十一〈天文上·中宮〉',scope:['all'],quote:'其紐星，天之樞也。',context:'〈中宮〉論及北極諸星與天樞之象。此處「樞」不應直接等同北斗第一星「天樞」的現代星圖位置。',url:'https://zh.wikisource.org/wiki/晉書/卷011'},
+ {book:'《晉書》卷十一〈天文上·二十八舍〉',scope:['all'],quote:null,context:'〈天文上〉獨設「二十八舍」、「十二次度數」、「州郡躔次」等段落，適合進一步考察宿度和分野系統。',url:'https://zh.wikisource.org/wiki/晉書/卷011'},
+ {book:'《宋書》卷二十三〈天文一〉',scope:['all'],quote:'南北二極規二十八宿，北斗極星',context:'宋文帝元嘉十三年，詔錢樂之更鑄渾儀；這段材料涉及天文儀器上的二十八宿、北斗與極星標示。',url:'https://zh.wikisource.org/zh-hant/宋書/卷23'},
+ {book:'《宋書》卷二十三〈天文一〉',scope:['北','南'],quote:null,context:'該卷記述渾天儀中的南北極、黃赤道與二十八宿配置，並比較古代不同天體結構理論。它並非本網頁互動圓盤的歷史原型。',url:'https://zh.wikisource.org/zh-hant/宋書/卷23'},
+ {book:'《宋書》卷二十三〈天文一〉',scope:['all'],quote:null,context:'《宋書》記載元嘉十七年再製小渾天，並於儀器上安置二十八宿中外宮和日月五星；可供追索南朝天文儀象實踐。',url:'https://zh.wikisource.org/zh-hant/宋書/卷23'},
+ {book:'《宋史》卷四十八〈天文一·極度〉',scope:['all'],quote:null,context:'〈極度〉分辨北極與極星，並記述歷代測量發現兩者並非完全重合；本頁固定中心是便於操作的天極示意。',url:'https://zh.wikisource.org/zh-hant/宋史/卷048'},
+ {book:'《宋史》卷四十八〈天文一·黃赤道〉',scope:['all'],quote:'以二十八宿為綱維，分列四方',context:'〈黃赤道〉以二十八宿為區分天區的綱維，並論黃道、赤道與極距。',url:'https://zh.wikisource.org/zh-hant/宋史/卷048'},
+ {book:'《元史》卷四十八〈天文一〉',scope:['all'],quote:null,context:'〈天文一〉詳述郭守敬簡儀等測量器具與宿度測驗，屬天文觀測儀器史材料，不能等同本頁的四方等分扇形。',url:'https://zh.wikisource.org/wiki/元史_(四庫全書本)/卷048'},
+ {book:'《明史》卷二十五〈天文〉',scope:['all'],quote:null,context:'〈天文〉比較歷代天文志取材取向，並提及明代曆算及儀器發展；正文亦指出《遼史》未立天文志，故不可將二十四史一概說成皆有天文志。',url:'https://zh.wikisource.org/wiki/明史_(四庫全書本)/卷025'}
+];
+let historyLast=-1, historyIndex=0;
+function showRandomHistory(index){
+  historyIndex=index;
+  const m=MANSIONS[index];
+  const candidates=HISTORIES.map((entry,i)=>({...entry,position:i})).filter(entry=>entry.scope.includes('all') || entry.scope.includes(m.quad[0]) || entry.scope.includes(m.name[0]));
+  const choices=candidates.length>1?candidates.filter(e=>e.position!==historyLast):candidates;
+  const entry=choices[fairRandomInt(choices.length)];
+  historyLast=entry.position;
+  el('historySource').textContent=entry.book;
+  el('historyQuote').textContent=entry.quote?'文獻原文：'+entry.quote:'此則採用編者摘要，未提供直接引文。';
+  el('historyContext').textContent='編者說明：'+entry.context;
+  el('historyLink').href=entry.url;
+  el('historyLink').textContent=`查閱 ${entry.book} 原文 ↗`;
+}
+el('historyNextBtn').addEventListener('click',()=>showRandomHistory(historyIndex));
+
 function renderInfo(index){
   const m=MANSIONS[index];
   document.getElementById('starName').textContent=m.name;
@@ -427,6 +506,7 @@ function renderInfo(index){
   document.getElementById('starYao').textContent=m.yao;
   document.getElementById('starDomain').textContent=m.domain;
   document.getElementById('starDescription').textContent=m.desc;
+  showRandomHistory(index);
 }
 function inspectMansion(index){
   inspection=index;
@@ -439,7 +519,6 @@ renderInfo(0);
 
 const FALLBACK_QUESTIONS = [{"id":"star-01","mansion":"角木蛟","category":"二十八宿","prompt":"東方青龍七宿的第一宿是哪一宿？","options":["角宿","亢宿","箕宿","井宿"],"answer":0,"explanation":"東方青龍七宿依次為角、亢、氐、房、心、尾、箕。"},{"id":"star-02","mansion":"亢金龍","category":"二十八宿","prompt":"在東方青龍七宿中，亢宿緊接在哪一宿之後？","options":["心宿","角宿","尾宿","氐宿"],"answer":1,"explanation":"東方七宿次序是角、亢、氐、房、心、尾、箕。"},{"id":"star-03","mansion":"氐土貉","category":"二十八宿","prompt":"東方青龍七宿的第三宿是？","options":["房宿","氐宿","心宿","箕宿"],"answer":1,"explanation":"依東方七宿順序，第三宿為氐。"},{"id":"star-04","mansion":"房日兔","category":"二十八宿","prompt":"東方七宿中，房宿之後緊接哪一宿？","options":["角宿","氐宿","心宿","箕宿"],"answer":2,"explanation":"房之後為心。"},{"id":"star-05","mansion":"心月狐","category":"二十八宿","prompt":"東方青龍七宿的第五宿是？","options":["心宿","尾宿","房宿","亢宿"],"answer":0,"explanation":"東方七宿第五宿為心。"},{"id":"star-06","mansion":"尾火虎","category":"二十八宿","prompt":"四象與五行的常見配屬中，東方青龍屬哪一行？","options":["火","金","水","木"],"answer":3,"explanation":"四象配五行的常見體系中，東方屬木。"},{"id":"star-07","mansion":"箕水豹","category":"二十八宿","prompt":"東方青龍七宿的最後一宿是？","options":["亢宿","箕宿","井宿","尾宿"],"answer":1,"explanation":"箕為東方七宿之末。"},{"id":"star-08","mansion":"井木犴","category":"二十八宿","prompt":"南方朱雀七宿的第一宿是？","options":["井宿","翼宿","柳宿","鬼宿"],"answer":0,"explanation":"南方七宿為井、鬼、柳、星、張、翼、軫。"},{"id":"star-09","mansion":"鬼金羊","category":"二十八宿","prompt":"南方七宿中，鬼宿之前是哪一宿？","options":["星宿","柳宿","井宿","軫宿"],"answer":2,"explanation":"井宿之後為鬼宿。"},{"id":"star-10","mansion":"柳土獐","category":"二十八宿","prompt":"南方朱雀七宿的第三宿是？","options":["柳宿","星宿","張宿","鬼宿"],"answer":0,"explanation":"南方七宿第三宿為柳。"},{"id":"star-11","mansion":"星日馬","category":"二十八宿","prompt":"南方朱雀七宿的第四宿是哪一宿？","options":["軫宿","翼宿","星宿","柳宿"],"answer":2,"explanation":"南方七宿第四宿名為星宿。"},{"id":"star-12","mansion":"張月鹿","category":"二十八宿","prompt":"南方朱雀七宿的第五宿是？","options":["張宿","翼宿","星宿","軫宿"],"answer":0,"explanation":"南方七宿次序為井、鬼、柳、星、張、翼、軫。"},{"id":"star-13","mansion":"翼火蛇","category":"二十八宿","prompt":"南方朱雀七宿中，翼宿之後是哪一宿？","options":["鬼宿","張宿","軫宿","星宿"],"answer":2,"explanation":"翼宿之後為軫宿。"},{"id":"star-14","mansion":"軫水蚓","category":"二十八宿","prompt":"南方朱雀七宿的最後一宿是？","options":["井宿","柳宿","翼宿","軫宿"],"answer":3,"explanation":"軫為南方七宿之末。"},{"id":"star-15","mansion":"奎木狼","category":"二十八宿","prompt":"西方白虎七宿的第一宿是？","options":["奎宿","胃宿","畢宿","參宿"],"answer":0,"explanation":"西方七宿依次是奎、婁、胃、昴、畢、觜、參。"},{"id":"star-16","mansion":"婁金狗","category":"二十八宿","prompt":"西方白虎七宿的第二宿是？","options":["觜宿","奎宿","婁宿","昴宿"],"answer":2,"explanation":"婁是西方七宿第二宿。"},{"id":"star-17","mansion":"胃土雉","category":"二十八宿","prompt":"西方七宿中，胃宿之前緊接哪一宿？","options":["婁宿","奎宿","畢宿","昴宿"],"answer":0,"explanation":"婁宿之後是胃宿。"},{"id":"star-18","mansion":"昴日雞","category":"二十八宿","prompt":"在「昴日雞」的七曜禽星稱名中，所對應的曜是？","options":["月","火","木","日"],"answer":3,"explanation":"「昴日雞」中的「日」是七曜稱名的一部分。"},{"id":"star-19","mansion":"畢月烏","category":"二十八宿","prompt":"西方白虎七宿的第五宿是？","options":["奎宿","畢宿","胃宿","觜宿"],"answer":1,"explanation":"西方七宿第五宿為畢。"},{"id":"star-20","mansion":"觜火猴","category":"二十八宿","prompt":"西方白虎七宿中，觜宿之後是哪一宿？","options":["參宿","畢宿","昴宿","婁宿"],"answer":0,"explanation":"西方七宿末二宿為觜、參。"},{"id":"star-21","mansion":"參水猿","category":"二十八宿","prompt":"四象與五行的常見配屬中，西方白虎屬哪一行？","options":["木","土","金","火"],"answer":2,"explanation":"西方白虎在四象配五行的常見體系中屬金。"},{"id":"star-22","mansion":"斗木獬","category":"二十八宿","prompt":"北方玄武的斗宿和北斗七星，是否為同一星官？","options":["完全相同","不是同一星官","斗宿只有一顆星","都屬南方七宿"],"answer":1,"explanation":"二十八宿中的斗宿（南斗）與北斗七星不是同一星官。"},{"id":"star-23","mansion":"牛金牛","category":"二十八宿","prompt":"北方玄武七宿中，牛宿前一宿是？","options":["女宿","斗宿","室宿","虛宿"],"answer":1,"explanation":"北方七宿依次為斗、牛、女、虛、危、室、壁。"},{"id":"star-24","mansion":"女土蝠","category":"二十八宿","prompt":"北方玄武七宿的第三宿是？","options":["斗宿","虛宿","女宿","危宿"],"answer":2,"explanation":"北方七宿第三宿為女。"},{"id":"star-25","mansion":"虛日鼠","category":"二十八宿","prompt":"在「虛日鼠」的七曜禽星稱名中，所對應的曜是？","options":["日","月","火","金"],"answer":0,"explanation":"「虛日鼠」中的「日」是七曜稱名的一部分。"},{"id":"star-26","mansion":"危月燕","category":"二十八宿","prompt":"北方玄武七宿中，危宿之前緊接哪一宿？","options":["壁宿","女宿","虛宿","室宿"],"answer":2,"explanation":"虛宿之後為危宿。"},{"id":"star-27","mansion":"室火豬","category":"二十八宿","prompt":"北方玄武七宿中，室宿之後是哪一宿？","options":["壁宿","斗宿","危宿","牛宿"],"answer":0,"explanation":"室宿之後為壁宿。"},{"id":"star-28","mansion":"壁水貐","category":"二十八宿","prompt":"北方玄武七宿的最後一宿是？","options":["室宿","牛宿","壁宿","女宿"],"answer":2,"explanation":"壁為北方七宿之末。"},{"id":"tech-01","mansion":"角木蛟","category":"干支","prompt":"十天干的第一個天干是？","options":["乙","甲","丙","子"],"answer":1,"explanation":"十天干依次為甲、乙、丙、丁、戊、己、庚、辛、壬、癸。"},{"id":"tech-02","mansion":"亢金龍","category":"五行","prompt":"常見天干五行配屬中，甲、乙屬哪一行？","options":["木","火","金","水"],"answer":0,"explanation":"甲乙屬木，丙丁屬火，戊己屬土，庚辛屬金，壬癸屬水。"},{"id":"tech-03","mansion":"氐土貉","category":"干支","prompt":"十二地支中，子之後接哪一支？","options":["寅","亥","辰","丑"],"answer":3,"explanation":"地支以子、丑、寅、卯……順序排列。"},{"id":"tech-04","mansion":"房日兔","category":"干支","prompt":"地支「子午相沖」中的午，所沖的是哪一支？","options":["卯","酉","子","申"],"answer":2,"explanation":"常見六沖關係有子午、丑未、寅申、卯酉、辰戌、巳亥。"},{"id":"tech-05","mansion":"心月狐","category":"五行","prompt":"常見天干五行配屬中，丙、丁屬哪一行？","options":["土","火","水","金"],"answer":1,"explanation":"丙丁配火。"},{"id":"tech-06","mansion":"尾火虎","category":"五行","prompt":"常見天干五行配屬中，戊、己屬哪一行？","options":["土","木","火","水"],"answer":0,"explanation":"戊己配土。"},{"id":"tech-07","mansion":"箕水豹","category":"五行","prompt":"常見天干五行配屬中，庚、辛屬哪一行？","options":["火","木","金","土"],"answer":2,"explanation":"庚辛配金。"},{"id":"tech-08","mansion":"井木犴","category":"五行","prompt":"常見天干五行配屬中，壬、癸屬哪一行？","options":["金","土","火","水"],"answer":3,"explanation":"壬癸配水。"},{"id":"tech-09","mansion":"鬼金羊","category":"八卦","prompt":"八卦中，乾卦的三爻構成是？","options":["三陰爻","三陽爻","上陰下二陽","上陽下二陰"],"answer":1,"explanation":"乾卦（☰）由三個陽爻構成。"},{"id":"tech-10","mansion":"柳土獐","category":"八卦","prompt":"八卦中，坤卦的三爻構成是？","options":["三陰爻","三陽爻","上陰下二陽","上陽下二陰"],"answer":0,"explanation":"坤卦（☷）由三個陰爻構成。"},{"id":"tech-11","mansion":"星日馬","category":"八卦","prompt":"依後天八卦常見方位配置，離卦位於？","options":["北","東","南","西"],"answer":2,"explanation":"後天八卦方位中，離居南。"},{"id":"tech-12","mansion":"張月鹿","category":"八卦","prompt":"依後天八卦常見方位配置，坎卦位於？","options":["西","南","東","北"],"answer":3,"explanation":"後天八卦方位中，坎居北。"},{"id":"tech-13","mansion":"翼火蛇","category":"八卦","prompt":"依後天八卦常見方位配置，震卦位於？","options":["東","西","北","南"],"answer":0,"explanation":"後天八卦方位中，震居東。"},{"id":"tech-14","mansion":"軫水蚓","category":"八卦","prompt":"依後天八卦常見方位配置，兌卦位於？","options":["東","南","西","北"],"answer":2,"explanation":"後天八卦方位中，兌居西。"},{"id":"tech-15","mansion":"奎木狼","category":"干支","prompt":"六十甲子的第一組干支是？","options":["乙丑","甲子","甲寅","癸亥"],"answer":1,"explanation":"六十甲子自甲子起。"},{"id":"tech-16","mansion":"婁金狗","category":"干支","prompt":"六十甲子中，「甲子」之後是哪一組？","options":["甲丑","丙寅","乙丑","癸亥"],"answer":2,"explanation":"甲子之後是乙丑。"},{"id":"tech-17","mansion":"胃土雉","category":"干支","prompt":"干支組合循環一週共有多少組？","options":["12","10","30","60"],"answer":3,"explanation":"十天干與十二地支按順序相配，最小共同週期為六十。"},{"id":"tech-18","mansion":"昴日雞","category":"九宮","prompt":"依常見洛書九宮數序，中宮是幾？","options":["五","一","九","三"],"answer":0,"explanation":"常見洛書九宮配置的中央為五。"},{"id":"tech-19","mansion":"畢月烏","category":"九宮","prompt":"依常見洛書九宮方位配置，南方為幾？","options":["一","九","七","三"],"answer":1,"explanation":"常見洛書配方位為南九、北一、東三、西七。"},{"id":"tech-20","mansion":"觜火猴","category":"九宮","prompt":"依常見洛書九宮方位配置，北方為幾？","options":["一","九","三","五"],"answer":0,"explanation":"常見洛書配方位為北一。"},{"id":"tech-21","mansion":"參水猿","category":"九宮","prompt":"依常見洛書九宮方位配置，東方為幾？","options":["七","五","三","九"],"answer":2,"explanation":"常見洛書配方位為東三。"},{"id":"tech-22","mansion":"斗木獬","category":"九宮","prompt":"依常見洛書九宮方位配置，西方為幾？","options":["三","九","一","七"],"answer":3,"explanation":"常見洛書配方位為西七。"},{"id":"tech-23","mansion":"牛金牛","category":"五行","prompt":"五行相生次序中，木生什麼？","options":["土","金","火","水"],"answer":2,"explanation":"常見五行相生序列為木生火、火生土、土生金、金生水、水生木。"},{"id":"tech-24","mansion":"女土蝠","category":"五行","prompt":"五行相生次序中，火生什麼？","options":["土","金","水","木"],"answer":0,"explanation":"火生土。"},{"id":"tech-25","mansion":"虛日鼠","category":"五行","prompt":"五行相生次序中，土生什麼？","options":["水","金","木","火"],"answer":1,"explanation":"土生金。"},{"id":"tech-26","mansion":"危月燕","category":"五行","prompt":"五行相生次序中，金生什麼？","options":["火","土","木","水"],"answer":3,"explanation":"金生水。"},{"id":"tech-27","mansion":"室火豬","category":"五行","prompt":"五行相生次序中，水生什麼？","options":["木","土","火","金"],"answer":0,"explanation":"水生木。"},{"id":"tech-28","mansion":"壁水貐","category":"五行","prompt":"五行相剋次序中，木剋什麼？","options":["火","金","土","水"],"answer":2,"explanation":"木剋土；相剋序列亦包括土剋水、水剋火、火剋金、金剋木。"}];
 // 各宿題庫屬現代教學用編排；不把隨機題目與星宿的配對說成歷史占法。
-const BANK_STORAGE_KEY = 'divination-monopoly-quiz-bank-v1';
 const ANSWER_LETTERS = ['A','B','C','D'];
 const MANSION_NAMES = MANSIONS.map(m=>m.name);
 let questionBank=FALLBACK_QUESTIONS.map(q=>({...q,options:[...q.options]}));
@@ -449,8 +528,6 @@ let activeQuestion=null;
 let questionAnswered=false;
 let answeredCount=0, correctCount=0;
 let editingQuestionId=null;
-const el=id=>document.getElementById(id);
-
 function fairRandomInt(limit){
   if(!Number.isSafeInteger(limit)||limit<=0) throw new Error('無效的抽樣上限');
   if(window.crypto && typeof window.crypto.getRandomValues==='function'){
@@ -483,45 +560,87 @@ function validBank(input){
     return {id,mansion,category:category||'其他',prompt,options:q.options.map(v=>String(v).trim()),answer,explanation};
   });
 }
+// Supabase Auth 與資料庫 RLS 才是真正權限邊界。公開的 URL / publishable key 不是密碼。
+const AUTH_CONFIG=window.QUIZ_AUTH_CONFIG||{};
+const SUPABASE_URL=String(AUTH_CONFIG.supabaseUrl||'').trim().replace(/\/$/,'');
+const SUPABASE_KEY=String(AUTH_CONFIG.publishableKey||'').trim();
+const CLOUD_READY=/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(SUPABASE_URL) && SUPABASE_KEY.length>15;
+let adminAccessToken=null, adminEmail=null;
+function cloudHeaders(authenticated=false){
+  const headers={'apikey':SUPABASE_KEY,'Accept':'application/json'};
+  if(authenticated && adminAccessToken)headers.Authorization='Bearer '+adminAccessToken;
+  else if(SUPABASE_KEY.startsWith('eyJ'))headers.Authorization='Bearer '+SUPABASE_KEY;
+  return headers;
+}
+async function cloudCall(path,opts={}, authenticated=false){
+  if(!CLOUD_READY)throw new Error('尚未設定 Supabase 安全後端，請參閱 README。');
+  const response=await fetch(SUPABASE_URL+path,{...opts,headers:{...cloudHeaders(authenticated),...(opts.headers||{})},cache:'no-store'});
+  if(!response.ok){
+    let body='';try{body=String((await response.json()).message||'');}catch(e){}
+    if(response.status===401||response.status===403)throw new Error('未獲授權或登入已失效，請重新登入。');
+    throw new Error(`伺服器回應 ${response.status}${body?'：'+body.slice(0,120):''}`);
+  }
+  if(response.status===204)return null;
+  const text=await response.text();return text?JSON.parse(text):null;
+}
+async function fetchCloudBank(){
+  const data=await cloudCall('/rest/v1/quiz_questions?select=id,mansion,category,prompt,options,answer,explanation&order=id.asc&limit=3000');
+  if(!Array.isArray(data))throw new Error('雲端題庫格式不正確');
+  return validBank(data);
+}
 async function loadHostedBank(){
+  if(CLOUD_READY){
+    try{
+      const data=await fetchCloudBank();
+      if(data.length)return {data,source:'Supabase 共享題庫（RLS）'};
+      return {data:[],source:'Supabase 題庫尚無資料；請先執行 seed.sql'};
+    }catch(error){
+      console.warn('公開題庫載入失敗',error);
+      return {data:[],source:'雲端題庫無法連線：'+error.message};
+    }
+  }
   try{
     const response=await fetch('./questions.json',{cache:'no-store'});
     if(!response.ok)throw new Error('HTTP '+response.status);
-    const data=validBank(await response.json());
-    return {data,source:'GitHub 網站題庫（questions.json）'};
+    return {data:validBank(await response.json()),source:'網站示範題庫（未啟用管理登入）'};
   }catch(error){
-    return {data:FALLBACK_QUESTIONS.map(q=>({...q,options:[...q.options]})),source:'內建備用題庫'};
+    return {data:FALLBACK_QUESTIONS.map(q=>({...q,options:[...q.options]})),source:'內建示範題庫（未啟用管理登入）'};
   }
 }
 async function initializeBank(){
   const hosted=await loadHostedBank();
   questionBank=hosted.data;
   questionSource=hosted.source;
-  try{
-    const custom=localStorage.getItem(BANK_STORAGE_KEY);
-    if(custom!==null){questionBank=validBank(JSON.parse(custom));questionSource='此瀏覽器的自訂題庫';}
-  }catch(error){
-    console.warn('本機題庫讀取失敗，已改用網站題庫。',error);
-    questionSource=hosted.source+'（本機資料讀取失敗）';
-  }
   refreshBankInterface();
   selectQuizForMansion(activeMansion);
 }
-function persistBank(){
-  try{
-    localStorage.setItem(BANK_STORAGE_KEY,JSON.stringify({version:1,questions:questionBank}));
-    questionSource='此瀏覽器的自訂題庫';
-    displayBankToast('題庫已儲存至目前瀏覽器。如要同步所有訪客，請匯出 JSON 更新 GitHub。');
-  }catch(error){
-    questionSource='暫存題庫（尚未成功儲存）';
-    displayBankToast('瀏覽器儲存失敗；目前修改僅在本頁有效，請立即匯出 JSON。');
-  }
-  refreshBankInterface();
-  selectQuizForMansion(activeMansion);
+async function persistBank(){
+  // 題庫不可僅在瀏覽器本地假裝受密碼保護；變更一律提交到有 RLS 的伺服器。
+  if(!adminAccessToken)throw new Error('請先完成管理員登入。');
+  questionBank=await fetchCloudBank();
+  questionSource='Supabase 共享題庫（已登入管理員）';
+  refreshBankInterface();selectQuizForMansion(activeMansion);
+}
+async function upsertCloud(questions){
+  await cloudCall('/rest/v1/quiz_questions?on_conflict=id',{
+    method:'POST',headers:{'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},
+    body:JSON.stringify(questions)
+  },true);
+}
+async function removeCloud(id){
+  await cloudCall('/rest/v1/quiz_questions?id=eq.'+encodeURIComponent(id),{
+    method:'DELETE',headers:{'Prefer':'return=minimal'}
+  },true);
+}
+async function replaceCloud(questions){
+  // RPC 在資料庫單一交易中執行刪除與新增，不會出現「刪除成功但匯入失敗」的半套狀態。
+  await cloudCall('/rest/v1/rpc/replace_quiz_bank',{
+    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({payload:questions})
+  },true);
 }
 function displayBankToast(message){el('bankToast').textContent=message;}
 function refreshBankInterface(){
-  el('bankSourceInfo').textContent=`${questionSource} · 共 ${questionBank.length} 題。可在此新增、修改、刪除，或匯出 JSON 備份。`;
+  el('bankSourceInfo').textContent=`${questionSource} · 共 ${questionBank.length} 題。管理員 ${adminEmail||''} 可編輯共享題庫、匯出 JSON 備份。`;
   renderBankList();
 }
 function selectQuizForMansion(index){
@@ -579,7 +698,7 @@ function answerQuestion(index){
   el('quizScore').textContent=`已答 ${answeredCount} 題 · 答對 ${correctCount} 題`;
 }
 
-// 北斗以天樞為幾何固定點，取樣均勻地選出二十八宿。
+// 北斗圍繞固定北極星逆時針旋運；瑤光的放射指向線與二十八宿扇區等角定位。
 const spinBtn=el('spinBtn');
 function finishSpin(targetIndex){
   spinning=false;
@@ -623,6 +742,53 @@ spinBtn.addEventListener('click',spin);
 el('nextQuestionBtn').addEventListener('click',()=>selectQuizForMansion(activeMansion));
 
 // 題庫管理介面：所有使用者新增的資料先存 localStorage；匯出 JSON 可供 GitHub 靜態部署更新。
+const loginDialog=el('loginDialog');
+function openLogin(){
+  el('loginStatus').textContent=CLOUD_READY?'請以管理員帳號登入。':'尚未完成安全後端設定。請依 README 設定 Supabase、SQL 及 config.js；為安全起見，管理功能目前鎖定。';
+  el('loginSubmitBtn').disabled=!CLOUD_READY;
+  if(typeof loginDialog.showModal==='function')loginDialog.showModal();else loginDialog.setAttribute('open','');
+}
+function closeLogin(){el('loginPassword').value='';if(typeof loginDialog.close==='function')loginDialog.close();else loginDialog.removeAttribute('open');}
+el('closeLoginBtn').addEventListener('click',closeLogin);
+loginDialog.addEventListener('click',e=>{if(e.target===loginDialog)closeLogin();});
+el('loginForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  if(!CLOUD_READY)return;
+  const btn=el('loginSubmitBtn');btn.disabled=true;el('loginStatus').textContent='正在透過伺服器驗證…';
+  let candidateToken=null;
+  try{
+    const email=el('loginEmail').value.trim(),password=el('loginPassword').value;
+    const session=await cloudCall('/auth/v1/token?grant_type=password',{
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})
+    });
+    candidateToken=session?.access_token;
+    if(!candidateToken)throw new Error('登入回應沒有有效憑證');
+    const old=adminAccessToken;adminAccessToken=candidateToken;
+    try{
+      const user=await cloudCall('/auth/v1/user',{},true);
+      if(!user?.id)throw new Error('無法取得帳號驗證資訊');
+      const memberships=await cloudCall('/rest/v1/quiz_admins?select=user_id&user_id=eq.'+encodeURIComponent(user.id)+'&limit=1',{},true);
+      if(!Array.isArray(memberships)||memberships.length!==1)throw new Error('帳號已驗證，但不是授權管理員。');
+      adminEmail=email;
+    }catch(err){adminAccessToken=old;throw err;}
+    closeLogin();
+    el('manageBankBtn').textContent='管理題庫 · 已登入';
+    el('loginStatus').textContent='';
+    openBank();
+  }catch(error){
+    adminAccessToken=null;adminEmail=null;
+    el('loginStatus').textContent='登入失敗：'+(error.message||'帳密錯誤、權限不足或網路異常。');
+  }finally{btn.disabled=false;el('loginPassword').value='';}
+});
+async function logout(){
+  const old=adminAccessToken;
+  adminAccessToken=null;adminEmail=null;
+  if(old)try{const resp=await fetch(SUPABASE_URL+'/auth/v1/logout',{method:'POST',headers:{...cloudHeaders(),Authorization:'Bearer '+old}});if(!resp.ok)console.warn('登出請求回應',resp.status);}catch(e){console.warn('登出時網路連線中斷',e);}
+  el('manageBankBtn').textContent='管理題庫';
+  closeBank();
+}
+el('logoutBtn').addEventListener('click',logout);
+
 const dialog=el('bankDialog');
 function buildMansionChoices(){
   for(const m of MANSION_NAMES){
@@ -633,6 +799,7 @@ function buildMansionChoices(){
 }
 buildMansionChoices();
 function openBank(){
+  if(!adminAccessToken){openLogin();return;}
   if(typeof dialog.showModal==='function')dialog.showModal();else dialog.setAttribute('open','');
   refreshBankInterface();
 }
@@ -664,12 +831,11 @@ function editQuestion(id){
   el('editPrompt').focus();
   el('editPrompt').scrollIntoView({block:'nearest',behavior:'smooth'});
 }
-function removeQuestion(id){
+async function removeQuestion(id){
   const q=questionBank.find(q=>q.id===id);if(!q)return;
-  if(!window.confirm(`確定刪除「${q.mansion}」的這一道題目嗎？\n${q.prompt}`))return;
-  questionBank=questionBank.filter(q=>q.id!==id);
-  if(editingQuestionId===id)clearEditor();
-  persistBank();
+  if(!window.confirm(`確定從共享題庫刪除「${q.mansion}」的這一道題目嗎？\n${q.prompt}`))return;
+  try{await removeCloud(id);await persistBank();if(editingQuestionId===id)clearEditor();displayBankToast('已從共享題庫刪除題目。');}
+  catch(error){displayBankToast('刪除失敗：'+error.message);}
 }
 function renderBankList(){
   const list=el('bankList'),selected=el('bankFilter').value;
@@ -692,7 +858,7 @@ el('bankFilter').addEventListener('change',renderBankList);
 el('bankSearch').addEventListener('input',renderBankList);
 el('newQuestionBtn').addEventListener('click',()=>{clearEditor();el('editPrompt').focus();el('editPrompt').scrollIntoView({block:'nearest'});});
 el('cancelEditBtn').addEventListener('click',clearEditor);
-el('questionForm').addEventListener('submit',event=>{
+el('questionForm').addEventListener('submit',async event=>{
   event.preventDefault();
   const proposed={
     id:editingQuestionId||('custom-'+(window.crypto&&crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random().toString(36).slice(2))),
@@ -703,11 +869,15 @@ el('questionForm').addEventListener('submit',event=>{
   if(!proposed.prompt||proposed.options.some(option=>!option)){
     displayBankToast('請填寫題目及四個選項。');return;
   }
-  const at=questionBank.findIndex(q=>q.id===editingQuestionId);
-  if(at>=0)questionBank.splice(at,1,proposed);
-  else questionBank.push(proposed);
-  try{questionBank=validBank(questionBank);}catch(error){displayBankToast(error.message);return;}
-  persistBank();clearEditor();
+  try{
+    validBank([proposed]);
+    el('saveQuestionBtn').disabled=true;
+    await upsertCloud([proposed]);
+    await persistBank();
+    clearEditor();
+    displayBankToast('題目已儲存至共用題庫。');
+  }catch(error){displayBankToast('儲存失敗：'+error.message);}
+  finally{el('saveQuestionBtn').disabled=false;}
 });
 function downloadBank(){
   const content=JSON.stringify({version:1,questions:questionBank},null,2);
@@ -715,7 +885,7 @@ function downloadBank(){
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download='questions.json';document.body.appendChild(a);a.click();a.remove();
   window.setTimeout(()=>URL.revokeObjectURL(url),1000);
-  displayBankToast(`已匯出 ${questionBank.length} 題至 questions.json；請將檔案更新到 GitHub 以供所有訪客使用。`);
+  displayBankToast(`已將 ${questionBank.length} 題匯出成 JSON 備份。`);
 }
 el('exportBankBtn').addEventListener('click',downloadBank);
 el('importBankBtn').addEventListener('click',()=>el('bankFileInput').click());
@@ -726,24 +896,22 @@ el('bankFileInput').addEventListener('change',async event=>{
     const imported=validBank(JSON.parse(await file.text()));
     const replace=el('importMode').value==='replace';
     if(replace&&!window.confirm(`將以匯入的 ${imported.length} 題取代目前的 ${questionBank.length} 題，是否繼續？`))return;
-    if(replace)questionBank=imported;
-    else{
-      const combined=new Map(questionBank.map(q=>[q.id,q]));
-      imported.forEach(q=>combined.set(q.id,q));
-      questionBank=validBank([...combined.values()]);
-    }
-    persistBank();clearEditor();
-    displayBankToast(`匯入成功：${imported.length} 題，題庫目前共 ${questionBank.length} 題。`);
+    if(replace)await replaceCloud(imported);
+    else await upsertCloud(imported);
+    await persistBank();clearEditor();
+    displayBankToast(`已匯入 ${imported.length} 題；共享題庫目前共 ${questionBank.length} 題。`);
   }catch(error){displayBankToast(`匯入失敗：${error.message}`);}
   finally{event.target.value='';}
 });
 el('resetBankBtn').addEventListener('click',async()=>{
-  if(!window.confirm('要捨棄目前瀏覽器中的題庫修改，恢復網站預設題庫嗎？請先匯出備份。'))return;
-  const hosted=await loadHostedBank();
-  questionBank=hosted.data;questionSource=hosted.source;
-  try{localStorage.removeItem(BANK_STORAGE_KEY);}catch(error){displayBankToast('清除瀏覽器備份失敗；請先檢查瀏覽器的儲存空間。');return;}
-  refreshBankInterface();selectQuizForMansion(activeMansion);clearEditor();
-  displayBankToast(`已恢復網站題庫，共 ${questionBank.length} 題。`);
+  if(!window.confirm('這將以 GitHub 預設 questions.json 取代所有人的共享題庫！請先匯出備份。確定繼續嗎？'))return;
+  try{
+    const response=await fetch('./questions.json',{cache:'no-store'});
+    if(!response.ok)throw new Error('無法下載預設 questions.json');
+    const defaults=validBank(await response.json());
+    await replaceCloud(defaults);await persistBank();clearEditor();
+    displayBankToast(`已將 ${defaults.length} 題發佈成共享題庫。`);
+  }catch(error){displayBankToast('恢復失敗：'+error.message);}
 });
 clearEditor();
 initializeBank();
