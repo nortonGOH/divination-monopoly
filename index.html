@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#f5f0e4">
-  <meta name="description" content="二十八宿圓盤與北斗七星互動展示。以天樞為軸逆時針旋轉，由瑤光（破軍）指向隨機抽定的星宿。">
-  <title>二十八宿周天圓盤｜斗衡定極・破軍指宿</title>
+  <meta name="description" content="數術知識大挑戰：二十八宿圓盤抽題、數術問答與自訂題庫管理。">
+  <title>數術知識大挑戰｜二十八宿問答轉盤</title>
   <style>
     :root {
       color-scheme: light;
@@ -88,15 +88,80 @@
     @media(max-width:940px){.layout{grid-template-columns:1fr}.wheel-card{max-width:900px;margin:auto;width:100%}.information{max-width:900px;width:100%;margin:auto}.shell{width:min(900px,calc(100% - 26px));padding-top:20px}}
     @media(max-width:540px){.site-head{padding-bottom:14px;margin-bottom:15px}.head-seal{width:52px;height:52px;font-size:.75rem}.wheel-card{padding:5px 3px 12px;border-radius:12px}.wheel-header{font-size:.7rem;padding:9px 10px 0}.information{padding:19px 16px}.details{gap:9px}.detail{padding:11px 8px}.detail .value{font-size:.88rem}.quad-legend{gap:7px 10px;font-size:.69rem}.wheel-footer{font-size:.72rem}.full-name{display:none}.mansion-sector .short-name{display:block;font-size:47px}.sector-index{display:none}.direction-text{font-size:33px}#star-labels .star-name{display:none}#star-labels .star-number{display:block;font-size:31px}}
     @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+    /* 數術問答與題庫編修 */
+    .quiz-section{border-top:1px solid var(--stroke);margin-top:24px;padding-top:19px}
+    .quiz-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+    .quiz-heading .side-label{margin-bottom:5px}
+    .quiz-heading h3{font-size:1.25rem;letter-spacing:.1em;margin:0}
+    .outline-btn,.secondary-btn,.text-btn,.close-btn{border:1px solid #cbbd9e;border-radius:9px;background:#fffaf0;color:#2a3944;cursor:pointer;padding:10px 13px;font:inherit;font-size:.84rem;white-space:nowrap}
+    .outline-btn:hover,.secondary-btn:hover{background:#f0e6d2;border-color:#b99562}
+    .text-btn{border:none;color:#845c32;background:transparent;text-decoration:underline;text-underline-offset:3px}
+    .quiz-topline{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px 12px;color:#71726e;font-size:.77rem;margin-bottom:11px}
+    .quiz-panel{border:1px solid #dcd4c3;background:linear-gradient(145deg,#fffdf8,#f7f0e1);border-radius:13px;padding:16px 16px 14px}
+    .quiz-tags{display:flex;flex-wrap:wrap;gap:7px}
+    .quiz-tag{display:inline-block;border-radius:20px;padding:5px 10px;background:#e5efe9;color:#36695e;font-size:.76rem;font-weight:700}
+    .quiz-tag-subtle{color:#826944;background:#f0e7d4}
+    .question-title{margin:16px 0 14px;font-weight:700;letter-spacing:.025em;font-size:1.05rem;line-height:1.75;min-height:38px}
+    .answer-options{display:grid;gap:9px}
+    .answer-btn{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:1px solid #d6c9af;border-radius:10px;padding:12px 13px;background:#fffdf7;cursor:pointer;color:#26313a;line-height:1.5;font-size:.93rem}
+    .answer-btn:not(:disabled):hover{background:#f7e7c7;border-color:#ad884c}
+    .answer-btn:disabled{cursor:default;opacity:1}
+    .answer-letter{flex:none;width:26px;height:26px;display:grid;place-items:center;background:#ece6da;border-radius:7px;color:#7b6041;font-family:system-ui,sans-serif;font-size:.75rem;font-weight:800}
+    .answer-btn.correct{border-color:#48866f;background:#eaf5ee;color:#295a48}
+    .answer-btn.wrong{border-color:#b45c56;background:#fbe8e2;color:#8c3e37}
+    .answer-btn.correct .answer-letter{background:#418269;color:white}
+    .answer-btn.wrong .answer-letter{background:#ae615b;color:white}
+    .answer-feedback{font-size:.85rem;line-height:1.85;color:#45614b;white-space:pre-wrap;margin:13px 0 0}
+    .answer-feedback:empty{display:none}
+    .quiz-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:12px}
+    .quiz-hint{font-size:.74rem;color:#7b7974;text-align:right;line-height:1.5}
+    .bank-dialog{width:min(1100px,calc(100vw - 24px));max-height:min(94vh,1100px);padding:0;border:1px solid #d3c7b0;border-radius:17px;background:#fffaf0;color:var(--ink);box-shadow:0 28px 90px #17243566;overflow:auto}
+    .bank-dialog::backdrop{background:rgba(14,28,39,.64);backdrop-filter:blur(3px)}
+    .bank-head{padding:22px 25px 15px;border-bottom:1px solid #e1d7c4;display:flex;gap:16px;align-items:start;justify-content:space-between}
+    .bank-head h2{font-size:1.55rem;margin:0 0 6px;letter-spacing:.06em}
+    .bank-description{font-size:.78rem;color:#68717a;line-height:1.6;margin:0}
+    .close-btn{padding:8px 11px;font-size:1rem}
+    .bank-toolbar{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:14px 25px;border-bottom:1px solid #e1d7c4}
+    .bank-toolbar select{max-width:130px}
+    .bank-toolbar .import-label{font-size:.76rem;color:#72736d;margin-left:6px}
+    .bank-content{display:grid;grid-template-columns:minmax(245px,.86fr) minmax(310px,1.14fr);min-height:430px}
+    .bank-list-panel,.bank-edit-panel{padding:20px 23px;min-width:0}
+    .bank-list-panel{border-right:1px solid #e1d7c4;background:#fbf7ed}
+    .bank-content h3{font-size:1.06rem;margin:0 0 15px}
+    .bank-list-heading h3 span{font-weight:400;color:#888078;font-size:.77rem;margin-left:6px}
+    .bank-filters{display:grid;grid-template-columns:1fr;gap:5px;margin-bottom:12px}
+    .bank-filters label,.bank-edit-panel label{font-size:.82rem;font-weight:700;color:#62635b}
+    .bank-dialog input[type="file"][hidden]{display:none!important}
+    .bank-dialog input,.bank-dialog select,.bank-dialog textarea{display:block;width:100%;font:inherit;font-size:.84rem;color:#303a42;background:#fffdfa;border:1px solid #d7cbb4;border-radius:8px;padding:10px;margin-top:6px;min-width:0}
+    .bank-dialog textarea{resize:vertical;line-height:1.65}
+    .bank-list{display:grid;align-content:start;gap:8px;max-height:560px;overflow:auto;padding:2px 3px 3px 0}
+    .bank-item{padding:11px;border:1px solid #e5dac7;background:#fffefa;border-radius:10px;display:grid;gap:7px}
+    .bank-item-top{display:flex;justify-content:space-between;align-items:center;gap:10px;color:#826d47;font-size:.74rem}
+    .bank-item-question{font-size:.85rem;line-height:1.5;font-weight:700}
+    .bank-item-actions{display:flex;gap:7px;justify-content:flex-end}
+    .bank-item-actions button{border:1px solid #d7c6ac;background:#fbf5e9;color:#54483b;border-radius:7px;padding:5px 12px;cursor:pointer;font-size:.77rem}
+    .bank-item-actions .delete{color:#a84b43;border-color:#e7bfb4}
+    .bank-list-empty{padding:20px 6px;font-size:.85rem;color:#7c756b;line-height:1.7}
+    #questionForm{display:grid;gap:13px}
+    #questionForm>label{display:block}
+    .editor-columns{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+    .option-editor{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .editor-actions{display:flex;gap:8px;align-items:center}
+    .editor-save{width:auto;padding:11px 22px;font-size:.9rem;letter-spacing:.03em}
+    .editor-help{font-size:.76rem;line-height:1.8;color:#77736e;background:#f2ebdf;padding:12px;border-radius:8px;margin:13px 0 0}
+    .bank-toast{margin:0 25px 19px;font-size:.83rem;line-height:1.65;color:#456854;min-height:17px}
+    @media(max-width:760px){.bank-content{grid-template-columns:1fr}.bank-list-panel{border-right:0;border-bottom:1px solid #e1d7c4}.bank-list{max-height:230px}.bank-dialog{max-height:94dvh}.bank-head{padding:17px 16px}.bank-toolbar{padding:12px 16px}.bank-list-panel,.bank-edit-panel{padding:15px 16px}.bank-toast{margin:4px 16px 16px}}
+    @media(max-width:400px){.option-editor,.editor-columns{grid-template-columns:1fr}.quiz-heading h3{font-size:1.1rem}.quiz-panel{padding:12px}.quiz-hint{font-size:.7rem}}
   </style>
 </head>
 <body>
 <div class="shell">
   <header class="site-head">
     <div>
-      <p class="eyebrow">古天文意象 · 互動式圓盤</p>
-      <h1>二十八宿周天圓盤</h1>
-      <p class="subtitle">斗衡定極 · 破軍指宿｜天樞為軸，北斗逆時針旋運</p>
+      <p class="eyebrow">二十八宿星盤 · 數術知識問答</p>
+      <h1>數術知識大挑戰</h1>
+      <p class="subtitle">轉動北斗，尋得星宿，挑戰數術知識</p>
     </div>
     <div class="head-seal" aria-hidden="true">斗宿</div>
   </header>
@@ -142,12 +207,12 @@
         <span class="key"><i class="swatch" style="background:#ac8538"></i>西方七宿</span>
         <span class="key"><i class="swatch" style="background:#4274a8"></i>北方七宿</span>
       </div>
-      <p class="wheel-footer">點選任一星宿可查閱資料；擲爻後以瑤光（破軍）所指的扇區為結果。</p>
+      <p class="wheel-footer">點選任一星宿即可練習該宿題庫；旋轉停止後由瑤光（破軍）指向本次挑戰星宿。</p>
     </section>
 
-    <aside class="information" aria-label="擲爻與星宿資訊">
+    <aside class="information" aria-label="星宿資訊與數術問答">
       <p class="side-label">周天定位 · 星宿詳情</p>
-      <div id="status" class="result-status" role="status">尚未擲爻 · 初始示意</div>
+      <div id="status" class="result-status" role="status">選擇星宿，開始挑戰</div>
       <div class="star-heading">
         <h2 id="starName">角木蛟</h2><span id="starQuadrant">東方青龍</span>
       </div>
@@ -155,26 +220,79 @@
         <div class="detail"><div class="label">七曜 · 禽星</div><div class="value" id="starYao">木 · 蛟</div></div>
         <div class="detail"><div class="label">十二次 · 分野資料</div><div class="value" id="starDomain">壽星 · 辰</div></div>
       </div>
-      <p class="description" id="starDescription">青龍七宿之首。此處展示星宿位置；按下「擲爻旋運」後，北斗將逆時針轉動並由瑤光指向隨機選中的星宿。</p>
-      <button class="primary" type="button" id="spinBtn">✦　擲爻旋運</button>
-      <p class="action-meta">每次進行六次三錢模擬擲爻，利用隨機位元等機率選出二十八宿之一；星宿圓盤固定，只有北斗逆時針旋轉。</p>
-      <section class="yao-section" aria-label="擲爻記錄">
-        <h3>本次六爻記錄</h3>
-        <p class="yao-explainer">由下往上為初爻至上爻。6 老陰、7 少陽、8 少陰、9 老陽；僅記錄擲爻，不推算卦辭。</p>
-        <div id="yaoRows"><p class="yao-placeholder">尚無擲爻記錄</p></div>
+      <p class="description" id="starDescription">青龍七宿之首。此處展示星宿位置；按下「抽宿挑戰」後，北斗將逆時針轉動並由瑤光指向隨機選中的星宿。</p>
+      <button class="primary" type="button" id="spinBtn">✦　抽宿挑戰</button>
+      <section class="quiz-section" aria-labelledby="quizTitle">
+        <div class="quiz-heading">
+          <div>
+            <p class="side-label">QUIZ · 數術知識題庫</p>
+            <h3 id="quizTitle">數術問答</h3>
+          </div>
+          <button class="outline-btn" type="button" id="manageBankBtn">管理題庫</button>
+        </div>
+        <div class="quiz-topline">
+          <span id="quizScope">目前星宿：角木蛟</span>
+          <span id="quizScore">已答 0 題 · 答對 0 題</span>
+        </div>
+        <div class="quiz-panel">
+          <div class="quiz-tags"><span class="quiz-tag" id="quizCategory">載入題庫中</span><span class="quiz-tag quiz-tag-subtle" id="quizAvailable"></span></div>
+          <h4 class="question-title" id="questionText">正在準備數術知識題目…</h4>
+          <div class="answer-options" id="answerOptions" role="group" aria-label="選擇題答案"></div>
+          <p class="answer-feedback" id="answerFeedback" role="status" aria-live="polite"></p>
+        </div>
+        <div class="quiz-foot">
+          <button class="secondary-btn" type="button" id="nextQuestionBtn">換一題 <span aria-hidden="true">↻</span></button>
+          <span class="quiz-hint">每個星宿有獨立題組；可自行增修</span>
+        </div>
       </section>
-      <p class="legend-title">北斗七星 · 傳統星名</p>
-      <div class="dipper-key" aria-label="斗魁與斗杓星序">
-        <span><b>斗魁①</b> 天樞</span><span><b>斗魁②</b> 天璇</span>
-        <span><b>斗魁③</b> 天璣</span><span><b>斗魁④</b> 天權</span>
-        <span><b>斗杓⑤</b> 玉衡</span><span><b>斗杓⑥</b> 開陽</span>
-        <span><b>斗杓⑦</b> 瑤光（破軍）</span>
-      </div>
-      <p class="notes">文獻說明：本介面中的「六次三錢擲爻 → 二十八宿」映射是為互動展示設計，<strong>不宣稱是古代占法的史料重建</strong>。星宿方位採題定示意配置，不應當作真實天體在某時某地的星圖。</p>
+      <p class="notes">此為數術知識練習遊戲。題目與星宿的配置是互動設計，並不代表史料所記載的占驗對應；歡迎自行校訂題庫與附註。</p>
     </aside>
   </main>
-  <footer class="page-foot">二十八宿星名、七曜禽星與十二次資料沿用原站表列；具體配屬、字形異寫及歷史解說仍須據原始文獻逐項考證。頁面為純 HTML／CSS／JavaScript，可直接部署至 GitHub Pages。</footer>
+  <footer class="page-foot">數術知識題庫為可編輯的學習素材，非史料引文。更改題庫後可匯出 JSON 更新 GitHub Pages 的 questions.json；星宿配屬與傳統文獻仍須逐項校核。</footer>
 </div>
+<dialog id="bankDialog" class="bank-dialog" aria-labelledby="bankTitle">
+  <div class="bank-head">
+    <div><p class="side-label">QUESTION BANK · 自訂學習內容</p><h2 id="bankTitle">數術題庫管理</h2><p class="bank-description" id="bankSourceInfo">可增刪改題、匯入與匯出 JSON。</p></div>
+    <button class="close-btn" type="button" id="closeBankBtn" aria-label="關閉題庫管理">✕</button>
+  </div>
+  <div class="bank-toolbar">
+    <button type="button" class="outline-btn" id="newQuestionBtn">＋ 新增題目</button>
+    <button type="button" class="outline-btn" id="exportBankBtn">↓ 匯出 JSON</button>
+    <button type="button" class="outline-btn" id="importBankBtn">↑ 匯入 JSON</button>
+    <label class="import-label" for="importMode">匯入方式</label>
+    <select id="importMode" aria-label="匯入方式"><option value="merge">合併題庫</option><option value="replace">取代題庫</option></select>
+    <input type="file" id="bankFileInput" accept=".json,application/json" hidden>
+    <button type="button" class="text-btn" id="resetBankBtn">恢復網站預設題庫</button>
+  </div>
+  <div class="bank-content">
+    <section class="bank-list-panel" aria-labelledby="listHeading">
+      <div class="bank-list-heading"><h3 id="listHeading">題目列表 <span id="bankListCount"></span></h3></div>
+      <div class="bank-filters">
+        <label for="bankFilter">篩選星宿</label>
+        <select id="bankFilter"><option value="all">全部二十八宿</option></select>
+        <label for="bankSearch">搜尋題目</label>
+        <input type="search" id="bankSearch" placeholder="搜尋題目、分類、說明">
+      </div>
+      <div id="bankList" class="bank-list" aria-live="polite"></div>
+    </section>
+    <section class="bank-edit-panel" aria-labelledby="editorHeading">
+      <h3 id="editorHeading">新增題目</h3>
+      <form id="questionForm">
+        <div class="editor-columns">
+          <label>對應星宿<select id="editMansion" required></select></label>
+          <label>數術分類<select id="editCategory" required><option>二十八宿</option><option>干支</option><option>五行</option><option>八卦</option><option>九宮</option><option>奇門遁甲</option><option>六壬</option><option>太乙</option><option>其他</option></select></label>
+        </div>
+        <label>題目內容<textarea id="editPrompt" rows="3" maxlength="300" required placeholder="請輸入可明確判定正誤的問題"></textarea></label>
+        <div class="option-editor"><label>A 選項<input id="editOption0" required maxlength="120"></label><label>B 選項<input id="editOption1" required maxlength="120"></label><label>C 選項<input id="editOption2" required maxlength="120"></label><label>D 選項<input id="editOption3" required maxlength="120"></label></div>
+        <label>正確答案<select id="editAnswer" required><option value="0">A 選項</option><option value="1">B 選項</option><option value="2">C 選項</option><option value="3">D 選項</option></select></label>
+        <label>答案說明／文獻備註（選填）<textarea id="editExplanation" rows="3" maxlength="1600" placeholder="建議填入來源或解釋；不要杜撰引文"></textarea></label>
+        <div class="editor-actions"><button type="submit" class="primary editor-save" id="saveQuestionBtn">儲存題目</button><button type="button" class="outline-btn" id="cancelEditBtn">清除表單</button></div>
+      </form>
+      <p class="editor-help">管理操作儲存於目前瀏覽器。若希望所有訪客共用更新，請將「匯出 JSON」所得檔案以 <code>questions.json</code> 名稱覆蓋 GitHub 儲存庫同名檔案。</p>
+    </section>
+  </div>
+  <p id="bankToast" class="bank-toast" role="status" aria-live="polite"></p>
+</dialog>
 <script>
 'use strict';
 
@@ -313,76 +431,182 @@ function renderInfo(index){
 function inspectMansion(index){
   inspection=index;
   renderInfo(index);
-  setStatus(index===lastResult && lastResult!==null?'本次擲得 · 瑤光所指':'資料查閱 · 非本次落點', index===lastResult && lastResult!==null?'live':'');
+  setStatus(index===lastResult && lastResult!==null?'本次抽中 · 瑤光所指':'星宿查閱 · 可練習此宿題組', index===lastResult && lastResult!==null?'live':'');
+  selectQuizForMansion(index);
 }
 setActive(0);
 renderInfo(0);
 
-// 18 個公平隨機位元＝六次擲爻，每爻三枚錢（2 或 3）；以拒絕取樣保證各宿等機率。
-function castSixLines(){
-  const capacity=2**18;
-  const validLimit=Math.floor(capacity/MANSIONS.length)*MANSIONS.length;
-  let raw;
-  do {
-    const a=new Uint32Array(1);
-    if(window.crypto && typeof window.crypto.getRandomValues==='function'){
-      window.crypto.getRandomValues(a);raw=a[0] & (capacity-1);
-    } else {
-      raw=Math.floor(Math.random()*capacity);
-    }
-  } while(raw>=validLimit);
-  const lines=Array.from({length:6},(_,i)=>{
-    const bits=(raw>>(i*3))&7;
-    const heads=(bits&1)+((bits>>1)&1)+((bits>>2)&1);
-    return 6+heads;
-  });
-  return {index:raw%MANSIONS.length,lines};
+const FALLBACK_QUESTIONS = [{"id":"star-01","mansion":"角木蛟","category":"二十八宿","prompt":"東方青龍七宿的第一宿是哪一宿？","options":["角宿","亢宿","箕宿","井宿"],"answer":0,"explanation":"東方青龍七宿依次為角、亢、氐、房、心、尾、箕。"},{"id":"star-02","mansion":"亢金龍","category":"二十八宿","prompt":"在東方青龍七宿中，亢宿緊接在哪一宿之後？","options":["心宿","角宿","尾宿","氐宿"],"answer":1,"explanation":"東方七宿次序是角、亢、氐、房、心、尾、箕。"},{"id":"star-03","mansion":"氐土貉","category":"二十八宿","prompt":"東方青龍七宿的第三宿是？","options":["房宿","氐宿","心宿","箕宿"],"answer":1,"explanation":"依東方七宿順序，第三宿為氐。"},{"id":"star-04","mansion":"房日兔","category":"二十八宿","prompt":"東方七宿中，房宿之後緊接哪一宿？","options":["角宿","氐宿","心宿","箕宿"],"answer":2,"explanation":"房之後為心。"},{"id":"star-05","mansion":"心月狐","category":"二十八宿","prompt":"東方青龍七宿的第五宿是？","options":["心宿","尾宿","房宿","亢宿"],"answer":0,"explanation":"東方七宿第五宿為心。"},{"id":"star-06","mansion":"尾火虎","category":"二十八宿","prompt":"四象與五行的常見配屬中，東方青龍屬哪一行？","options":["火","金","水","木"],"answer":3,"explanation":"四象配五行的常見體系中，東方屬木。"},{"id":"star-07","mansion":"箕水豹","category":"二十八宿","prompt":"東方青龍七宿的最後一宿是？","options":["亢宿","箕宿","井宿","尾宿"],"answer":1,"explanation":"箕為東方七宿之末。"},{"id":"star-08","mansion":"井木犴","category":"二十八宿","prompt":"南方朱雀七宿的第一宿是？","options":["井宿","翼宿","柳宿","鬼宿"],"answer":0,"explanation":"南方七宿為井、鬼、柳、星、張、翼、軫。"},{"id":"star-09","mansion":"鬼金羊","category":"二十八宿","prompt":"南方七宿中，鬼宿之前是哪一宿？","options":["星宿","柳宿","井宿","軫宿"],"answer":2,"explanation":"井宿之後為鬼宿。"},{"id":"star-10","mansion":"柳土獐","category":"二十八宿","prompt":"南方朱雀七宿的第三宿是？","options":["柳宿","星宿","張宿","鬼宿"],"answer":0,"explanation":"南方七宿第三宿為柳。"},{"id":"star-11","mansion":"星日馬","category":"二十八宿","prompt":"南方朱雀七宿的第四宿是哪一宿？","options":["軫宿","翼宿","星宿","柳宿"],"answer":2,"explanation":"南方七宿第四宿名為星宿。"},{"id":"star-12","mansion":"張月鹿","category":"二十八宿","prompt":"南方朱雀七宿的第五宿是？","options":["張宿","翼宿","星宿","軫宿"],"answer":0,"explanation":"南方七宿次序為井、鬼、柳、星、張、翼、軫。"},{"id":"star-13","mansion":"翼火蛇","category":"二十八宿","prompt":"南方朱雀七宿中，翼宿之後是哪一宿？","options":["鬼宿","張宿","軫宿","星宿"],"answer":2,"explanation":"翼宿之後為軫宿。"},{"id":"star-14","mansion":"軫水蚓","category":"二十八宿","prompt":"南方朱雀七宿的最後一宿是？","options":["井宿","柳宿","翼宿","軫宿"],"answer":3,"explanation":"軫為南方七宿之末。"},{"id":"star-15","mansion":"奎木狼","category":"二十八宿","prompt":"西方白虎七宿的第一宿是？","options":["奎宿","胃宿","畢宿","參宿"],"answer":0,"explanation":"西方七宿依次是奎、婁、胃、昴、畢、觜、參。"},{"id":"star-16","mansion":"婁金狗","category":"二十八宿","prompt":"西方白虎七宿的第二宿是？","options":["觜宿","奎宿","婁宿","昴宿"],"answer":2,"explanation":"婁是西方七宿第二宿。"},{"id":"star-17","mansion":"胃土雉","category":"二十八宿","prompt":"西方七宿中，胃宿之前緊接哪一宿？","options":["婁宿","奎宿","畢宿","昴宿"],"answer":0,"explanation":"婁宿之後是胃宿。"},{"id":"star-18","mansion":"昴日雞","category":"二十八宿","prompt":"在「昴日雞」的七曜禽星稱名中，所對應的曜是？","options":["月","火","木","日"],"answer":3,"explanation":"「昴日雞」中的「日」是七曜稱名的一部分。"},{"id":"star-19","mansion":"畢月烏","category":"二十八宿","prompt":"西方白虎七宿的第五宿是？","options":["奎宿","畢宿","胃宿","觜宿"],"answer":1,"explanation":"西方七宿第五宿為畢。"},{"id":"star-20","mansion":"觜火猴","category":"二十八宿","prompt":"西方白虎七宿中，觜宿之後是哪一宿？","options":["參宿","畢宿","昴宿","婁宿"],"answer":0,"explanation":"西方七宿末二宿為觜、參。"},{"id":"star-21","mansion":"參水猿","category":"二十八宿","prompt":"四象與五行的常見配屬中，西方白虎屬哪一行？","options":["木","土","金","火"],"answer":2,"explanation":"西方白虎在四象配五行的常見體系中屬金。"},{"id":"star-22","mansion":"斗木獬","category":"二十八宿","prompt":"北方玄武的斗宿和北斗七星，是否為同一星官？","options":["完全相同","不是同一星官","斗宿只有一顆星","都屬南方七宿"],"answer":1,"explanation":"二十八宿中的斗宿（南斗）與北斗七星不是同一星官。"},{"id":"star-23","mansion":"牛金牛","category":"二十八宿","prompt":"北方玄武七宿中，牛宿前一宿是？","options":["女宿","斗宿","室宿","虛宿"],"answer":1,"explanation":"北方七宿依次為斗、牛、女、虛、危、室、壁。"},{"id":"star-24","mansion":"女土蝠","category":"二十八宿","prompt":"北方玄武七宿的第三宿是？","options":["斗宿","虛宿","女宿","危宿"],"answer":2,"explanation":"北方七宿第三宿為女。"},{"id":"star-25","mansion":"虛日鼠","category":"二十八宿","prompt":"在「虛日鼠」的七曜禽星稱名中，所對應的曜是？","options":["日","月","火","金"],"answer":0,"explanation":"「虛日鼠」中的「日」是七曜稱名的一部分。"},{"id":"star-26","mansion":"危月燕","category":"二十八宿","prompt":"北方玄武七宿中，危宿之前緊接哪一宿？","options":["壁宿","女宿","虛宿","室宿"],"answer":2,"explanation":"虛宿之後為危宿。"},{"id":"star-27","mansion":"室火豬","category":"二十八宿","prompt":"北方玄武七宿中，室宿之後是哪一宿？","options":["壁宿","斗宿","危宿","牛宿"],"answer":0,"explanation":"室宿之後為壁宿。"},{"id":"star-28","mansion":"壁水貐","category":"二十八宿","prompt":"北方玄武七宿的最後一宿是？","options":["室宿","牛宿","壁宿","女宿"],"answer":2,"explanation":"壁為北方七宿之末。"},{"id":"tech-01","mansion":"角木蛟","category":"干支","prompt":"十天干的第一個天干是？","options":["乙","甲","丙","子"],"answer":1,"explanation":"十天干依次為甲、乙、丙、丁、戊、己、庚、辛、壬、癸。"},{"id":"tech-02","mansion":"亢金龍","category":"五行","prompt":"常見天干五行配屬中，甲、乙屬哪一行？","options":["木","火","金","水"],"answer":0,"explanation":"甲乙屬木，丙丁屬火，戊己屬土，庚辛屬金，壬癸屬水。"},{"id":"tech-03","mansion":"氐土貉","category":"干支","prompt":"十二地支中，子之後接哪一支？","options":["寅","亥","辰","丑"],"answer":3,"explanation":"地支以子、丑、寅、卯……順序排列。"},{"id":"tech-04","mansion":"房日兔","category":"干支","prompt":"地支「子午相沖」中的午，所沖的是哪一支？","options":["卯","酉","子","申"],"answer":2,"explanation":"常見六沖關係有子午、丑未、寅申、卯酉、辰戌、巳亥。"},{"id":"tech-05","mansion":"心月狐","category":"五行","prompt":"常見天干五行配屬中，丙、丁屬哪一行？","options":["土","火","水","金"],"answer":1,"explanation":"丙丁配火。"},{"id":"tech-06","mansion":"尾火虎","category":"五行","prompt":"常見天干五行配屬中，戊、己屬哪一行？","options":["土","木","火","水"],"answer":0,"explanation":"戊己配土。"},{"id":"tech-07","mansion":"箕水豹","category":"五行","prompt":"常見天干五行配屬中，庚、辛屬哪一行？","options":["火","木","金","土"],"answer":2,"explanation":"庚辛配金。"},{"id":"tech-08","mansion":"井木犴","category":"五行","prompt":"常見天干五行配屬中，壬、癸屬哪一行？","options":["金","土","火","水"],"answer":3,"explanation":"壬癸配水。"},{"id":"tech-09","mansion":"鬼金羊","category":"八卦","prompt":"八卦中，乾卦的三爻構成是？","options":["三陰爻","三陽爻","上陰下二陽","上陽下二陰"],"answer":1,"explanation":"乾卦（☰）由三個陽爻構成。"},{"id":"tech-10","mansion":"柳土獐","category":"八卦","prompt":"八卦中，坤卦的三爻構成是？","options":["三陰爻","三陽爻","上陰下二陽","上陽下二陰"],"answer":0,"explanation":"坤卦（☷）由三個陰爻構成。"},{"id":"tech-11","mansion":"星日馬","category":"八卦","prompt":"依後天八卦常見方位配置，離卦位於？","options":["北","東","南","西"],"answer":2,"explanation":"後天八卦方位中，離居南。"},{"id":"tech-12","mansion":"張月鹿","category":"八卦","prompt":"依後天八卦常見方位配置，坎卦位於？","options":["西","南","東","北"],"answer":3,"explanation":"後天八卦方位中，坎居北。"},{"id":"tech-13","mansion":"翼火蛇","category":"八卦","prompt":"依後天八卦常見方位配置，震卦位於？","options":["東","西","北","南"],"answer":0,"explanation":"後天八卦方位中，震居東。"},{"id":"tech-14","mansion":"軫水蚓","category":"八卦","prompt":"依後天八卦常見方位配置，兌卦位於？","options":["東","南","西","北"],"answer":2,"explanation":"後天八卦方位中，兌居西。"},{"id":"tech-15","mansion":"奎木狼","category":"干支","prompt":"六十甲子的第一組干支是？","options":["乙丑","甲子","甲寅","癸亥"],"answer":1,"explanation":"六十甲子自甲子起。"},{"id":"tech-16","mansion":"婁金狗","category":"干支","prompt":"六十甲子中，「甲子」之後是哪一組？","options":["甲丑","丙寅","乙丑","癸亥"],"answer":2,"explanation":"甲子之後是乙丑。"},{"id":"tech-17","mansion":"胃土雉","category":"干支","prompt":"干支組合循環一週共有多少組？","options":["12","10","30","60"],"answer":3,"explanation":"十天干與十二地支按順序相配，最小共同週期為六十。"},{"id":"tech-18","mansion":"昴日雞","category":"九宮","prompt":"依常見洛書九宮數序，中宮是幾？","options":["五","一","九","三"],"answer":0,"explanation":"常見洛書九宮配置的中央為五。"},{"id":"tech-19","mansion":"畢月烏","category":"九宮","prompt":"依常見洛書九宮方位配置，南方為幾？","options":["一","九","七","三"],"answer":1,"explanation":"常見洛書配方位為南九、北一、東三、西七。"},{"id":"tech-20","mansion":"觜火猴","category":"九宮","prompt":"依常見洛書九宮方位配置，北方為幾？","options":["一","九","三","五"],"answer":0,"explanation":"常見洛書配方位為北一。"},{"id":"tech-21","mansion":"參水猿","category":"九宮","prompt":"依常見洛書九宮方位配置，東方為幾？","options":["七","五","三","九"],"answer":2,"explanation":"常見洛書配方位為東三。"},{"id":"tech-22","mansion":"斗木獬","category":"九宮","prompt":"依常見洛書九宮方位配置，西方為幾？","options":["三","九","一","七"],"answer":3,"explanation":"常見洛書配方位為西七。"},{"id":"tech-23","mansion":"牛金牛","category":"五行","prompt":"五行相生次序中，木生什麼？","options":["土","金","火","水"],"answer":2,"explanation":"常見五行相生序列為木生火、火生土、土生金、金生水、水生木。"},{"id":"tech-24","mansion":"女土蝠","category":"五行","prompt":"五行相生次序中，火生什麼？","options":["土","金","水","木"],"answer":0,"explanation":"火生土。"},{"id":"tech-25","mansion":"虛日鼠","category":"五行","prompt":"五行相生次序中，土生什麼？","options":["水","金","木","火"],"answer":1,"explanation":"土生金。"},{"id":"tech-26","mansion":"危月燕","category":"五行","prompt":"五行相生次序中，金生什麼？","options":["火","土","木","水"],"answer":3,"explanation":"金生水。"},{"id":"tech-27","mansion":"室火豬","category":"五行","prompt":"五行相生次序中，水生什麼？","options":["木","土","火","金"],"answer":0,"explanation":"水生木。"},{"id":"tech-28","mansion":"壁水貐","category":"五行","prompt":"五行相剋次序中，木剋什麼？","options":["火","金","土","水"],"answer":2,"explanation":"木剋土；相剋序列亦包括土剋水、水剋火、火剋金、金剋木。"}];
+// 各宿題庫屬現代教學用編排；不把隨機題目與星宿的配對說成歷史占法。
+const BANK_STORAGE_KEY = 'divination-monopoly-quiz-bank-v1';
+const ANSWER_LETTERS = ['A','B','C','D'];
+const MANSION_NAMES = MANSIONS.map(m=>m.name);
+let questionBank=FALLBACK_QUESTIONS.map(q=>({...q,options:[...q.options]}));
+let questionSource='內建備用題庫';
+let activeMansion=0;
+let activeQuestion=null;
+let questionAnswered=false;
+let answeredCount=0, correctCount=0;
+let editingQuestionId=null;
+const el=id=>document.getElementById(id);
+
+function fairRandomInt(limit){
+  if(!Number.isSafeInteger(limit)||limit<=0) throw new Error('無效的抽樣上限');
+  if(window.crypto && typeof window.crypto.getRandomValues==='function'){
+    const range=2**32, upper=Math.floor(range/limit)*limit;
+    const buffer=new Uint32Array(1);
+    do{window.crypto.getRandomValues(buffer);}while(buffer[0]>=upper);
+    return buffer[0]%limit;
+  }
+  return Math.floor(Math.random()*limit);
 }
-function renderLines(lines){
-  const names=['初爻','二爻','三爻','四爻','五爻','上爻'];
-  const meaning={6:'老陰 ×',7:'少陽',8:'少陰',9:'老陽 ○'};
-  const container=document.getElementById('yaoRows');container.replaceChildren();
-  for(let i=5;i>=0;i--){
-    const row=document.createElement('div');row.className='yao-row';
-    const mark=document.createElement('div');mark.className=`yao-mark ${(lines[i]%2)?'yang':'yin'}`;
-    const a=document.createElement('span');mark.appendChild(a);
-    if(lines[i]%2===0) mark.appendChild(document.createElement('span'));
-    const n=document.createElement('span');n.className='yao-pos';n.textContent=names[i];
-    const v=document.createElement('span');v.className='yao-value';v.textContent=`${lines[i]} ${meaning[lines[i]]}`;
-    row.append(n,mark,v);container.appendChild(row);
+function validBank(input){
+  const list=Array.isArray(input)?input:input&&input.questions;
+  if(!Array.isArray(list)||list.length>3000) throw new Error('JSON 必須是題目陣列或含 questions 的物件，且不得超過 3000 題。');
+  const seen=new Set();
+  return list.map((q,i)=>{
+    if(!q || typeof q!=='object') throw new Error(`第 ${i+1} 題格式不正確。`);
+    const id=String(q.id||`import-${i+1}`).trim();
+    if(!id||id.length>120||seen.has(id))throw new Error(`第 ${i+1} 題的 id 缺漏、太長或重複。`);
+    seen.add(id);
+    const mansion=String(q.mansion||'');
+    if(!MANSION_NAMES.includes(mansion)) throw new Error(`第 ${i+1} 題的對應星宿不存在。`);
+    const prompt=String(q.prompt||'').trim();
+    if(!prompt||prompt.length>300) throw new Error(`第 ${i+1} 題的題目不得為空且最多 300 字。`);
+    if(!Array.isArray(q.options)||q.options.length!==4||q.options.some(v=>!String(v||'').trim()||String(v).length>120))throw new Error(`第 ${i+1} 題須有四個非空選項。`);
+    const answer=Number(q.answer);
+    if(!Number.isInteger(answer)||answer<0||answer>3)throw new Error(`第 ${i+1} 題的答案必須是 0～3。`);
+    const category=String(q.category||'其他').trim();
+    const explanation=String(q.explanation||'').trim();
+    if(category.length>40||explanation.length>1600)throw new Error(`第 ${i+1} 題的分類或說明過長。`);
+    return {id,mansion,category:category||'其他',prompt,options:q.options.map(v=>String(v).trim()),answer,explanation};
+  });
+}
+async function loadHostedBank(){
+  try{
+    const response=await fetch('./questions.json',{cache:'no-store'});
+    if(!response.ok)throw new Error('HTTP '+response.status);
+    const data=validBank(await response.json());
+    return {data,source:'GitHub 網站題庫（questions.json）'};
+  }catch(error){
+    return {data:FALLBACK_QUESTIONS.map(q=>({...q,options:[...q.options]})),source:'內建備用題庫'};
   }
 }
-const spinBtn=document.getElementById('spinBtn');
-function finishSpin(outcome){
+async function initializeBank(){
+  const hosted=await loadHostedBank();
+  questionBank=hosted.data;
+  questionSource=hosted.source;
+  try{
+    const custom=localStorage.getItem(BANK_STORAGE_KEY);
+    if(custom!==null){questionBank=validBank(JSON.parse(custom));questionSource='此瀏覽器的自訂題庫';}
+  }catch(error){
+    console.warn('本機題庫讀取失敗，已改用網站題庫。',error);
+    questionSource=hosted.source+'（本機資料讀取失敗）';
+  }
+  refreshBankInterface();
+  selectQuizForMansion(activeMansion);
+}
+function persistBank(){
+  try{
+    localStorage.setItem(BANK_STORAGE_KEY,JSON.stringify({version:1,questions:questionBank}));
+    questionSource='此瀏覽器的自訂題庫';
+    displayBankToast('題庫已儲存至目前瀏覽器。如要同步所有訪客，請匯出 JSON 更新 GitHub。');
+  }catch(error){
+    questionSource='暫存題庫（尚未成功儲存）';
+    displayBankToast('瀏覽器儲存失敗；目前修改僅在本頁有效，請立即匯出 JSON。');
+  }
+  refreshBankInterface();
+  selectQuizForMansion(activeMansion);
+}
+function displayBankToast(message){el('bankToast').textContent=message;}
+function refreshBankInterface(){
+  el('bankSourceInfo').textContent=`${questionSource} · 共 ${questionBank.length} 題。可在此新增、修改、刪除，或匯出 JSON 備份。`;
+  renderBankList();
+}
+function selectQuizForMansion(index){
+  activeMansion=index;
+  const mansion=MANSIONS[index].name;
+  const pool=questionBank.filter(q=>q.mansion===mansion);
+  el('quizScope').textContent=`目前星宿：${mansion}`;
+  el('quizScore').textContent=`已答 ${answeredCount} 題 · 答對 ${correctCount} 題`;
+  el('quizAvailable').textContent=`本宿共 ${pool.length} 題`;
+  if(pool.length===0){
+    activeQuestion=null;questionAnswered=false;
+    el('quizCategory').textContent='尚無題目';
+    el('questionText').textContent=`${mansion} 尚未建立問答題目，請到「管理題庫」新增。`;
+    el('answerOptions').replaceChildren();
+    el('answerFeedback').textContent='';
+    el('nextQuestionBtn').disabled=true;
+    return;
+  }
+  // 「換一題」避免連續顯示同一道題；若本宿僅一題則允許重複。
+  const alternatives=pool.length>1?pool.filter(q=>q.id!==activeQuestion?.id):pool;
+  const choices=alternatives.length?alternatives:pool;
+  showQuestion(choices[fairRandomInt(choices.length)],pool.length);
+}
+function showQuestion(question,poolSize){
+  activeQuestion=question;
+  questionAnswered=false;
+  el('quizCategory').textContent=question.category;
+  el('quizAvailable').textContent=`本宿共 ${poolSize} 題`;
+  el('questionText').textContent=question.prompt;
+  el('answerFeedback').textContent='';
+  const wrap=el('answerOptions');wrap.replaceChildren();
+  question.options.forEach((option,index)=>{
+    const btn=document.createElement('button');btn.type='button';btn.className='answer-btn';
+    const letter=document.createElement('span');letter.className='answer-letter';letter.textContent=ANSWER_LETTERS[index];
+    const content=document.createElement('span');content.textContent=option;
+    btn.append(letter,content);
+    btn.addEventListener('click',()=>answerQuestion(index));
+    wrap.appendChild(btn);
+  });
+  el('nextQuestionBtn').disabled=false;
+}
+function answerQuestion(index){
+  if(!activeQuestion||questionAnswered||spinning)return;
+  questionAnswered=true;answeredCount++;
+  const correct=index===activeQuestion.answer;
+  if(correct)correctCount++;
+  const buttons=[...el('answerOptions').children];
+  buttons.forEach((b,i)=>{
+    b.disabled=true;
+    if(i===activeQuestion.answer)b.classList.add('correct');
+    else if(i===index)b.classList.add('wrong');
+  });
+  const correctText=`${ANSWER_LETTERS[activeQuestion.answer]}. ${activeQuestion.options[activeQuestion.answer]}`;
+  el('answerFeedback').textContent=(correct?'✓ 回答正確！':'✕ 再加油！正確答案：'+correctText)+(activeQuestion.explanation?'\n'+activeQuestion.explanation:'');
+  el('quizScore').textContent=`已答 ${answeredCount} 題 · 答對 ${correctCount} 題`;
+}
+
+// 北斗以天樞為幾何固定點，取樣均勻地選出二十八宿。
+const spinBtn=el('spinBtn');
+function finishSpin(targetIndex){
   spinning=false;
-  lastResult=outcome.index;
+  lastResult=targetIndex;
   inspection=null;
-  setActive(lastResult);
-  renderInfo(lastResult);
-  renderLines(outcome.lines);
-  setStatus('本次擲得 · 瑤光所指','live');
+  setActive(targetIndex);
+  renderInfo(targetIndex);
+  selectQuizForMansion(targetIndex);
+  setStatus('本次抽中 · 瑤光所指','live');
   spinBtn.disabled=false;
-  spinBtn.textContent='✦　再次擲爻旋運';
+  spinBtn.textContent='✦　再次抽宿挑戰';
 }
 function spin(){
-  if(spinning) return;
+  if(spinning)return;
   spinning=true;
   spinBtn.disabled=true;
   spinBtn.textContent='北斗旋運中…';
-  setStatus('擲爻完成 · 逆時針旋運中','spin');
-  const outcome=castSixLines();
-  const target=normalize(sectorCenter(outcome.index)-POINTER_NATIVE);
+  setStatus('正在抽取星宿 · 北斗逆時針旋運中','spin');
+  const targetIndex=fairRandomInt(MANSIONS.length);
+  const target=normalize(sectorCenter(targetIndex)-POINTER_NATIVE);
   const current=normalize(currentRotation);
   const antiClockwiseDelta=normalize(current-target);
-  const laps=4+Math.floor(Math.random()*2);
+  const laps=4+fairRandomInt(2);
   const total=360*laps+antiClockwiseDelta;
-  const start=currentRotation, end=start-total;
+  const start=currentRotation,end=start-total;
   const duration=window.matchMedia('(prefers-reduced-motion: reduce)').matches?0:4900;
-  const done=()=>{
-    currentRotation=normalize(end);
-    renderRotation(currentRotation);
-    finishSpin(outcome);
-  };
+  const done=()=>{currentRotation=normalize(end);renderRotation(currentRotation);finishSpin(targetIndex);};
   if(!duration){done();return;}
   let startTime;
   const animate=now=>{
@@ -396,6 +620,133 @@ function spin(){
   window.requestAnimationFrame(animate);
 }
 spinBtn.addEventListener('click',spin);
+el('nextQuestionBtn').addEventListener('click',()=>selectQuizForMansion(activeMansion));
+
+// 題庫管理介面：所有使用者新增的資料先存 localStorage；匯出 JSON 可供 GitHub 靜態部署更新。
+const dialog=el('bankDialog');
+function buildMansionChoices(){
+  for(const m of MANSION_NAMES){
+    for(const select of [el('editMansion'),el('bankFilter')]){
+      const opt=document.createElement('option');opt.value=m;opt.textContent=m;select.appendChild(opt);
+    }
+  }
+}
+buildMansionChoices();
+function openBank(){
+  if(typeof dialog.showModal==='function')dialog.showModal();else dialog.setAttribute('open','');
+  refreshBankInterface();
+}
+function closeBank(){if(typeof dialog.close==='function')dialog.close();else dialog.removeAttribute('open');}
+el('manageBankBtn').addEventListener('click',openBank);
+el('closeBankBtn').addEventListener('click',closeBank);
+dialog.addEventListener('click',event=>{if(event.target===dialog)closeBank();});
+function clearEditor(){
+  editingQuestionId=null;el('questionForm').reset();
+  el('editorHeading').textContent='新增題目';
+  el('saveQuestionBtn').textContent='新增到題庫';
+  el('editMansion').value=MANSIONS[activeMansion].name;
+}
+function editQuestion(id){
+  const q=questionBank.find(q=>q.id===id);if(!q)return;
+  editingQuestionId=id;
+  el('editorHeading').textContent='編輯題目';
+  el('saveQuestionBtn').textContent='儲存修改';
+  el('editMansion').value=q.mansion;
+  el('editCategory').value=q.category;
+  if(el('editCategory').value!==q.category){
+    const option=document.createElement('option');option.value=q.category;option.textContent=q.category;
+    el('editCategory').appendChild(option);el('editCategory').value=q.category;
+  }
+  el('editPrompt').value=q.prompt;
+  q.options.forEach((v,i)=>el('editOption'+i).value=v);
+  el('editAnswer').value=String(q.answer);
+  el('editExplanation').value=q.explanation;
+  el('editPrompt').focus();
+  el('editPrompt').scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+function removeQuestion(id){
+  const q=questionBank.find(q=>q.id===id);if(!q)return;
+  if(!window.confirm(`確定刪除「${q.mansion}」的這一道題目嗎？\n${q.prompt}`))return;
+  questionBank=questionBank.filter(q=>q.id!==id);
+  if(editingQuestionId===id)clearEditor();
+  persistBank();
+}
+function renderBankList(){
+  const list=el('bankList'),selected=el('bankFilter').value;
+  const query=el('bankSearch').value.trim().toLowerCase();
+  list.replaceChildren();
+  const rows=questionBank.filter(q=>(selected==='all'||q.mansion===selected)&&(!query||[q.prompt,q.category,q.explanation,q.mansion].join(' ').toLowerCase().includes(query)));
+  el('bankListCount').textContent=`${rows.length} / ${questionBank.length} 題`;
+  if(!rows.length){const p=document.createElement('p');p.className='bank-list-empty';p.textContent='找不到符合的題目；可點選「新增題目」。';list.appendChild(p);return;}
+  for(const q of rows){
+    const item=document.createElement('article');item.className='bank-item';
+    const top=document.createElement('div');top.className='bank-item-top';top.textContent=`${q.mansion} · ${q.category}`;
+    const prompt=document.createElement('div');prompt.className='bank-item-question';prompt.textContent=q.prompt;
+    const buttons=document.createElement('div');buttons.className='bank-item-actions';
+    const edit=document.createElement('button');edit.type='button';edit.textContent='編輯';edit.addEventListener('click',()=>editQuestion(q.id));
+    const del=document.createElement('button');del.type='button';del.className='delete';del.textContent='刪除';del.addEventListener('click',()=>removeQuestion(q.id));
+    buttons.append(edit,del);item.append(top,prompt,buttons);list.append(item);
+  }
+}
+el('bankFilter').addEventListener('change',renderBankList);
+el('bankSearch').addEventListener('input',renderBankList);
+el('newQuestionBtn').addEventListener('click',()=>{clearEditor();el('editPrompt').focus();el('editPrompt').scrollIntoView({block:'nearest'});});
+el('cancelEditBtn').addEventListener('click',clearEditor);
+el('questionForm').addEventListener('submit',event=>{
+  event.preventDefault();
+  const proposed={
+    id:editingQuestionId||('custom-'+(window.crypto&&crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random().toString(36).slice(2))),
+    mansion:el('editMansion').value,category:el('editCategory').value,
+    prompt:el('editPrompt').value.trim(),options:[0,1,2,3].map(i=>el('editOption'+i).value.trim()),
+    answer:Number(el('editAnswer').value),explanation:el('editExplanation').value.trim()
+  };
+  if(!proposed.prompt||proposed.options.some(option=>!option)){
+    displayBankToast('請填寫題目及四個選項。');return;
+  }
+  const at=questionBank.findIndex(q=>q.id===editingQuestionId);
+  if(at>=0)questionBank.splice(at,1,proposed);
+  else questionBank.push(proposed);
+  try{questionBank=validBank(questionBank);}catch(error){displayBankToast(error.message);return;}
+  persistBank();clearEditor();
+});
+function downloadBank(){
+  const content=JSON.stringify({version:1,questions:questionBank},null,2);
+  const blob=new Blob([content],{type:'application/json;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='questions.json';document.body.appendChild(a);a.click();a.remove();
+  window.setTimeout(()=>URL.revokeObjectURL(url),1000);
+  displayBankToast(`已匯出 ${questionBank.length} 題至 questions.json；請將檔案更新到 GitHub 以供所有訪客使用。`);
+}
+el('exportBankBtn').addEventListener('click',downloadBank);
+el('importBankBtn').addEventListener('click',()=>el('bankFileInput').click());
+el('bankFileInput').addEventListener('change',async event=>{
+  const file=event.target.files&&event.target.files[0];if(!file)return;
+  try{
+    if(file.size>2*1024*1024)throw new Error('檔案不得超過 2 MB。');
+    const imported=validBank(JSON.parse(await file.text()));
+    const replace=el('importMode').value==='replace';
+    if(replace&&!window.confirm(`將以匯入的 ${imported.length} 題取代目前的 ${questionBank.length} 題，是否繼續？`))return;
+    if(replace)questionBank=imported;
+    else{
+      const combined=new Map(questionBank.map(q=>[q.id,q]));
+      imported.forEach(q=>combined.set(q.id,q));
+      questionBank=validBank([...combined.values()]);
+    }
+    persistBank();clearEditor();
+    displayBankToast(`匯入成功：${imported.length} 題，題庫目前共 ${questionBank.length} 題。`);
+  }catch(error){displayBankToast(`匯入失敗：${error.message}`);}
+  finally{event.target.value='';}
+});
+el('resetBankBtn').addEventListener('click',async()=>{
+  if(!window.confirm('要捨棄目前瀏覽器中的題庫修改，恢復網站預設題庫嗎？請先匯出備份。'))return;
+  const hosted=await loadHostedBank();
+  questionBank=hosted.data;questionSource=hosted.source;
+  try{localStorage.removeItem(BANK_STORAGE_KEY);}catch(error){displayBankToast('清除瀏覽器備份失敗；請先檢查瀏覽器的儲存空間。');return;}
+  refreshBankInterface();selectQuizForMansion(activeMansion);clearEditor();
+  displayBankToast(`已恢復網站題庫，共 ${questionBank.length} 題。`);
+});
+clearEditor();
+initializeBank();
 </script>
 </body>
 </html>
