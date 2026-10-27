@@ -1,559 +1,401 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
+<!doctype html>
+<html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>二十八禽星靈臺周天圖</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f5f0e4">
+  <meta name="description" content="二十八宿圓盤與北斗七星互動展示。以天樞為軸逆時針旋轉，由瑤光（破軍）指向隨機抽定的星宿。">
+  <title>二十八宿周天圓盤｜斗衡定極・破軍指宿</title>
   <style>
     :root {
-      --bg-color: #f7f3e8;
-      --paper-card: #fdfbf7;
-      --ink-base: #242424;
-      --ink-muted: #595757;
-      --border-dark: #3a3833;
-      --border-light: #d8ceba;
-      --gold-line: #a67c37;
-      --red-accent: #9e2a2b;
-      --spring-wood: #2d5a3f;
-      --summer-fire: #a93226;
-      --autumn-metal: #7d6608;
-      --winter-water: #1b4f72;
+      color-scheme: light;
+      --paper:#f5f0e4;--paper-light:#fffaf0;--ink:#26313a;--muted:#68717a;
+      --stroke:#d9cfb9;--gold:#b08548;--jade:#376d64;--red:#a34c3e;
+      --navy:#13263a;--focus:#c38429;
+      font-family:"Noto Serif TC","Source Han Serif TC","PingFang TC","Microsoft JhengHei",serif;
     }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      background-color: var(--bg-color);
-      color: var(--ink-base);
-      font-family: "PingFang TC", "Noto Serif TC", "Source Han Serif TC", "Songti TC", serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-      padding: 16px;
-    }
-
-    header {
-      text-align: center;
-      margin-bottom: 12px;
-    }
-
-    header h1 {
-      font-size: 1.8rem;
-      letter-spacing: 0.35rem;
-      color: var(--ink-base);
-      border-bottom: 2px solid var(--border-dark);
-      padding-bottom: 4px;
-      margin-bottom: 6px;
-    }
-
-    header p {
-      font-size: 0.9rem;
-      color: var(--ink-muted);
-      letter-spacing: 0.15rem;
-    }
-
-    .astronomy-orientation-tip {
-      font-size: 0.75rem;
-      color: var(--gold-line);
-      margin-top: 2px;
-    }
-
-    #board-container {
-      position: relative;
-      width: min(92vw, 680px);
-      height: min(92vw, 680px);
-      margin: 10px auto;
-      border: 3px double var(--border-dark);
-      background: var(--paper-card);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-    }
-
-    .grid-board {
-      display: grid;
-      grid-template-columns: repeat(8, 1fr);
-      grid-template-rows: repeat(8, 1fr);
-      width: 100%;
-      height: 100%;
-    }
-
-    .cell {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      border: 1px solid var(--border-light);
-      background: #faf7f0;
-      cursor: pointer;
-      user-select: none;
-      transition: background 0.3s, box-shadow 0.3s;
-      padding: 2px;
-    }
-
-    .cell.targeted {
-      background-color: #faeccf !important;
-      box-shadow: inset 0 0 0 2px var(--gold-line);
-    }
-
-    .cell.spring { border-left: 3px solid var(--spring-wood); }
-    .cell.summer { border-top: 3px solid var(--summer-fire); }
-    .cell.autumn { border-right: 3px solid var(--autumn-metal); }
-    .cell.winter { border-bottom: 3px solid var(--winter-water); }
-
-    .cell-title {
-      writing-mode: vertical-rl;
-      text-orientation: upright;
-      letter-spacing: 0.1rem;
-      font-size: 0.82rem;
-      font-weight: 700;
-      line-height: 1.1;
-    }
-
-    .cell.spring .cell-title { color: var(--spring-wood); }
-    .cell.summer .cell-title { color: var(--summer-fire); }
-    .cell.autumn .cell-title { color: var(--autumn-metal); }
-    .cell.winter .cell-title { color: var(--winter-water); }
-
-    .player-token {
-      position: absolute;
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background: var(--red-accent);
-      border: 2px solid #fff;
-      box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
-      bottom: 4px;
-      right: 4px;
-      display: none;
-      z-index: 5;
-    }
-
-    .cell.has-token .player-token {
-      display: block;
-    }
-
-    .center-stage {
-      grid-column: 2 / span 6;
-      grid-row: 2 / span 6;
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      border: 1px dashed var(--border-light);
-      background: radial-gradient(circle at center, #ffffff 0%, #f5efe3 100%);
-      overflow: hidden;
-    }
-
-    .compass-bg {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-    }
-
-    .compass-dir {
-      position: absolute;
-      font-size: 0.8rem;
-      font-weight: bold;
-      color: var(--ink-muted);
-      letter-spacing: 0.1rem;
-    }
-    .compass-dir.top { top: 6px; }
-    .compass-dir.bottom { bottom: 6px; }
-    .compass-dir.left { left: 8px; }
-    .compass-dir.right { right: 8px; }
-
-    #dipper-canvas {
-      position: absolute;
-      width: 86%;
-      height: 86%;
-      pointer-events: none;
-    }
-
-    .spin-trigger-btn {
-      position: absolute;
-      bottom: 24px;
-      background: var(--paper-card);
-      border: 2px solid var(--border-dark);
-      padding: 8px 18px;
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: var(--ink-base);
-      letter-spacing: 0.2rem;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-      transition: background 0.2s, transform 0.1s;
-      z-index: 10;
-    }
-
-    .spin-trigger-btn:hover {
-      background: #ebdcc3;
-    }
-
-    .spin-trigger-btn:active {
-      transform: scale(0.96);
-    }
-
-    .spin-trigger-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    #dialog-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(20, 20, 20, 0.5);
-      backdrop-filter: blur(2px);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-
-    #dialog-overlay.active {
-      display: flex;
-    }
-
-    .dialog-card {
-      background: var(--paper-card);
-      border: 2px solid var(--border-dark);
-      width: min(90vw, 480px);
-      padding: 24px 20px;
-      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.25);
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      animation: dialogPop 0.25s ease-out;
-    }
-
-    @keyframes dialogPop {
-      0% { transform: scale(0.9); opacity: 0; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    .dialog-header {
-      border-bottom: 2px solid var(--border-dark);
-      padding-bottom: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-    }
-
-    .dialog-star-name {
-      font-size: 1.5rem;
-      font-weight: 800;
-      color: var(--ink-base);
-      letter-spacing: 0.15rem;
-    }
-
-    .dialog-quadrant {
-      font-size: 0.9rem;
-      font-weight: 700;
-    }
-
-    .dialog-body {
-      font-size: 0.95rem;
-      line-height: 1.6;
-      color: var(--ink-base);
-      max-height: 50vh;
-      overflow-y: auto;
-      padding-right: 4px;
-    }
-
-    .dialog-meta {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 6px;
-      background: #f2ebd9;
-      padding: 8px 10px;
-      font-size: 0.85rem;
-      margin-bottom: 10px;
-    }
-
-    .dialog-footer {
-      display: flex;
-      justify-content: flex-end;
-      padding-top: 10px;
-      border-top: 1px solid var(--border-light);
-    }
-
-    .dialog-close-btn {
-      background: var(--ink-base);
-      color: #fff;
-      border: none;
-      padding: 8px 24px;
-      font-size: 0.9rem;
-      letter-spacing: 0.15rem;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .dialog-close-btn:hover {
-      background: var(--red-accent);
-    }
+    *,*::before,*::after{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:radial-gradient(circle at 15% 0%,#fffaf1 0%,var(--paper) 60%,#eae2d2 100%);color:var(--ink);min-height:100vh}
+    body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.27;background-image:repeating-linear-gradient(0deg,transparent 0,transparent 3px,rgba(85,78,60,.028) 4px);z-index:-1}
+    button{font:inherit}
+    button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+    .shell{width:min(1460px,calc(100% - 42px));margin:0 auto;padding:28px 0 36px}
+    .site-head{border-bottom:1px solid var(--stroke);display:flex;justify-content:space-between;align-items:end;gap:22px;padding-bottom:19px;margin-bottom:24px}
+    .eyebrow{color:#967340;font-size:.75rem;font-weight:700;letter-spacing:.29em;margin:0 0 10px}
+    h1{font-size:clamp(1.6rem,3.2vw,2.75rem);letter-spacing:.13em;margin:0;font-weight:700;line-height:1.28}
+    .subtitle{margin:10px 0 0;color:var(--muted);font-size:.93rem;letter-spacing:.08em}
+    .head-seal{border:1px solid var(--gold);color:#856637;border-radius:50%;width:69px;height:69px;flex:none;display:grid;place-items:center;font-size:1rem;letter-spacing:.1em;transform:rotate(-8deg)}
+    .layout{display:grid;grid-template-columns:minmax(0,1.54fr) minmax(310px,.86fr);gap:22px;align-items:start}
+    .wheel-card,.information{background:rgba(255,252,245,.9);border:1px solid var(--stroke);border-radius:17px;box-shadow:0 10px 32px #4d412710}
+    .wheel-card{padding:12px 12px 16px;min-width:0}
+    .wheel-header{display:flex;justify-content:space-between;align-items:center;padding:9px 12px 0;color:var(--muted);font-size:.8rem;gap:10px}
+    .wheel-header strong{color:#6a5534;font-weight:700;letter-spacing:.07em}
+    .wheel-wrap{width:100%;max-width:850px;margin:0 auto;position:relative}
+    .wheel-wrap svg{display:block;width:100%;height:auto;touch-action:manipulation;overflow:visible}
+    .wheel-footer{font-size:.79rem;color:var(--muted);text-align:center;margin:2px 8px 0;line-height:1.7}
+    .quad-legend{display:flex;flex-wrap:wrap;gap:8px 20px;justify-content:center;margin:4px 10px 0;font-size:.82rem}
+    .quad-legend .key{display:inline-flex;gap:6px;align-items:center;white-space:nowrap}
+    .swatch{width:9px;height:9px;border-radius:50%;display:inline-block}
+    .information{padding:26px;min-width:0}
+    .side-label{font-size:.76rem;letter-spacing:.18em;font-weight:700;color:#947043;margin:0 0 10px}
+    .result-status{display:inline-flex;align-items:center;gap:8px;font-size:.81rem;letter-spacing:.07em;color:#7a623d;background:#f7eddb;padding:7px 12px;border-radius:20px;margin-bottom:13px}
+    .result-status::before{content:"";width:7px;height:7px;background:#c58a46;border-radius:50%}
+    .result-status.live{color:#287568;background:#e8f4ed}
+    .result-status.live::before{background:#35a287}
+    .result-status.spin{color:#a34c3e;background:#fae7df}
+    .result-status.spin::before{background:#bb624b}
+    .star-heading{display:flex;align-items:baseline;justify-content:space-between;gap:9px;border-bottom:1px solid var(--stroke);padding-bottom:12px}
+    #starName{font-size:clamp(1.85rem,3vw,2.4rem);letter-spacing:.17em;font-weight:700;margin:0}
+    #starQuadrant{font-size:.9rem;white-space:nowrap;font-weight:700}
+    .details{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:17px 0}
+    .detail{border:1px solid #e6ddcb;border-radius:9px;padding:13px 12px;background:#fffcf6}
+    .detail .label{font-size:.75rem;color:#848078;margin-bottom:7px}
+    .detail .value{font-size:1rem;font-weight:700;color:#39404b}
+    .description{color:#4a555e;font-size:.94rem;line-height:1.9;margin:9px 0 22px;min-height:48px}
+    .primary{width:100%;border:0;border-radius:10px;background:var(--navy);color:#fff;padding:17px 20px;cursor:pointer;letter-spacing:.17em;font-size:1.06rem;font-weight:700;box-shadow:0 6px 12px #1b2d3e20;transition:transform .15s,background .15s}
+    .primary:hover:not(:disabled){background:#1d4260;transform:translateY(-1px)}
+    .primary:disabled{opacity:.7;cursor:progress}
+    .action-meta{font-size:.76rem;color:var(--muted);margin:10px 1px 0;line-height:1.65}
+    .yao-section{border-top:1px solid var(--stroke);margin-top:22px;padding-top:17px}
+    .yao-section h3{font-size:.99rem;letter-spacing:.08em;margin:0 0 6px}
+    .yao-explainer{color:var(--muted);font-size:.77rem;line-height:1.75;margin:0 0 10px}
+    #yaoRows{display:grid;gap:7px;min-height:156px}
+    .yao-row{display:flex;gap:13px;align-items:center;min-height:19px;font-size:.78rem;color:#6a6d71}
+    .yao-pos{width:31px;text-align:right;flex:none}
+    .yao-mark{height:12px;width:min(172px,48%);display:flex;justify-content:space-between;gap:14px}
+    .yao-mark span{height:100%;background:#455766;border-radius:2px;flex:1}
+    .yao-mark.yang span{flex:1}
+    .yao-value{color:#735a37;font-weight:600;min-width:70px}
+    .yao-placeholder{color:#96948f;font-size:.84rem;border:1px dashed #ddd4c3;border-radius:8px;padding:22px 14px;text-align:center;margin:14px 0}
+    .legend-title{font-size:.83rem;letter-spacing:.08em;color:#6e6250;font-weight:700;margin-top:24px;margin-bottom:12px}
+    .dipper-key{display:flex;flex-wrap:wrap;gap:7px 10px;font-size:.78rem;line-height:1.8}
+    .dipper-key span{background:#f4efe4;border-radius:5px;padding:2px 7px}
+    .dipper-key b{font-weight:700;color:#946c32}
+    .notes{font-size:.77rem;color:var(--muted);line-height:1.8;margin:23px 0 0;border-top:1px solid var(--stroke);padding-top:13px}
+    .page-foot{font-size:.76rem;color:#78776f;line-height:1.75;margin:20px 4px 0}
+    .mansion-sector{cursor:pointer;outline:none}
+    .mansion-sector path{transition:fill .16s,stroke .16s;stroke:#fff9ef;stroke-width:2;vector-effect:non-scaling-stroke}
+    .mansion-sector:hover path,.mansion-sector:focus-visible path{fill:#f7dcaa !important;stroke:#765a26;stroke-width:3}
+    .mansion-sector.active path{fill:#e4b66a !important;stroke:#86612a;stroke-width:3.5}
+    .mansion-sector text{pointer-events:none;font-weight:700;fill:#233c4a;font-size:25px;letter-spacing:1px}
+    .short-name{display:none}
+    #star-labels .star-number{display:none}
+    .mansion-sector.active text{fill:#583418}
+    .sector-index{font-size:12px !important;opacity:.55;letter-spacing:0 !important}
+    #star-labels text{fill:#fae9c6;font-size:18px;font-weight:700;paint-order:stroke;stroke:#14263a;stroke-width:4px;stroke-linejoin:round;pointer-events:none}
+    .direction-text{font-size:22px;font-weight:700;letter-spacing:1px}
+    @media(max-width:940px){.layout{grid-template-columns:1fr}.wheel-card{max-width:900px;margin:auto;width:100%}.information{max-width:900px;width:100%;margin:auto}.shell{width:min(900px,calc(100% - 26px));padding-top:20px}}
+    @media(max-width:540px){.site-head{padding-bottom:14px;margin-bottom:15px}.head-seal{width:52px;height:52px;font-size:.75rem}.wheel-card{padding:5px 3px 12px;border-radius:12px}.wheel-header{font-size:.7rem;padding:9px 10px 0}.information{padding:19px 16px}.details{gap:9px}.detail{padding:11px 8px}.detail .value{font-size:.88rem}.quad-legend{gap:7px 10px;font-size:.69rem}.wheel-footer{font-size:.72rem}.full-name{display:none}.mansion-sector .short-name{display:block;font-size:47px}.sector-index{display:none}.direction-text{font-size:33px}#star-labels .star-name{display:none}#star-labels .star-number{display:block;font-size:31px}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
   </style>
 </head>
 <body>
-
-  <header>
-    <h1>二十八禽星周天圖</h1>
-    <p>斗衡定極 · 破軍指宿</p>
-    <div class="astronomy-orientation-tip">【古天文象：上南朱雀、下北玄武、左東青龍、右西白虎】</div>
+<div class="shell">
+  <header class="site-head">
+    <div>
+      <p class="eyebrow">古天文意象 · 互動式圓盤</p>
+      <h1>二十八宿周天圓盤</h1>
+      <p class="subtitle">斗衡定極 · 破軍指宿｜天樞為軸，北斗逆時針旋運</p>
+    </div>
+    <div class="head-seal" aria-hidden="true">斗宿</div>
   </header>
-
-  <div id="board-container">
-    <div class="grid-board" id="board">
-      <div class="center-stage">
-        <svg class="compass-bg" viewBox="0 0 300 300">
-          <circle cx="150" cy="150" r="140" fill="none" stroke="#e8dfcb" stroke-width="1.5" stroke-dasharray="4,4"/>
-          <circle cx="150" cy="150" r="100" fill="none" stroke="#e8dfcb" stroke-width="1"/>
-          <circle cx="150" cy="150" r="50" fill="none" stroke="#e8dfcb" stroke-width="0.8"/>
-        </svg>
-
-        <span class="compass-dir top">南（朱雀）</span>
-        <span class="compass-dir bottom">北（玄武）</span>
-        <span class="compass-dir left">東（青龍）</span>
-        <span class="compass-dir right">西（白虎）</span>
-
-        <svg id="dipper-canvas" viewBox="0 0 300 300">
-          <!-- 貫通天璣-極星-天衡(玉衡)之子午樞紐直線（此直線不動） -->
-          <line x1="150" y1="40" x2="150" y2="260" stroke="#a67c37" stroke-width="1" stroke-dasharray="2,3" opacity="0.6"/>
-
-          <!-- 旋轉天盤：北斗七星繞不動之天極太乙旋動 -->
-          <g id="rotary-plate">
-            <!-- 天權與天璣不連線；斗魁連線：天樞-天璇-天璣，天樞-天權 -->
-            <polyline points="110,65 85,115 150,115" fill="none" stroke="#4a4843" stroke-width="2"/>
-            <line x1="110" y1="65" x2="150" y2="65" stroke="#4a4843" stroke-width="2"/>
-
-            <!-- 斗杓連線：天權-天衡(玉衡)-開陽-搖光 -->
-            <polyline points="150,65 150,185 175,230 215,265" fill="none" stroke="#4a4843" stroke-width="2"/>
-
-            <!-- 搖光(破軍)指向光矢 -->
-            <line x1="215" y1="265" x2="245" y2="295" stroke="#9e2a2b" stroke-width="2.5" stroke-dasharray="3,3"/>
-            <circle cx="245" cy="295" r="3" fill="#9e2a2b"/>
-
-            <!-- 北斗七星星體 -->
-            <!-- 斗魁 -->
-            <circle cx="110" cy="65" r="4" fill="#242424"/><text x="96" y="60" font-size="10" fill="#595757">天樞</text>
-            <circle cx="85" cy="115" r="4" fill="#242424"/><text x="60" y="120" font-size="10" fill="#595757">天璇</text>
-            <circle cx="150" cy="115" r="4.5" fill="#a67c37"/><text x="156" y="118" font-size="10" fill="#a67c37" font-weight="bold">天璣</text>
-            <circle cx="150" cy="65" r="4" fill="#242424"/><text x="156" y="62" font-size="10" fill="#595757">天權</text>
-
-            <!-- 斗杓 -->
-            <circle cx="150" cy="185" r="4.5" fill="#a67c37"/><text x="156" y="190" font-size="10" fill="#a67c37" font-weight="bold">天衡</text>
-            <circle cx="175" cy="230" r="4" fill="#242424"/><text x="182" y="234" font-size="10" fill="#595757">開陽</text>
-            <circle cx="215" cy="265" r="5" fill="#9e2a2b"/><text x="210" y="285" font-size="11" fill="#9e2a2b" font-weight="bold">搖光·破軍</text>
+  <main class="layout">
+    <section class="wheel-card" aria-label="二十八星宿與北斗七星互動圓盤">
+      <div class="wheel-header"><span>四象二十八宿 · 圓周等分</span><strong>上南　下北　左東　右西</strong></div>
+      <div class="wheel-wrap">
+        <svg id="skyWheel" viewBox="0 0 1000 1000" role="group" aria-labelledby="wheelTitle wheelDesc">
+          <title id="wheelTitle">二十八宿圓盤與北斗七星</title>
+          <desc id="wheelDesc">上方是南方朱雀七宿，下方是北方玄武七宿，左方是東方青龍七宿，右方是西方白虎七宿；北斗以天樞為軸逆時針旋轉，瑤光指向停止的星宿。</desc>
+          <defs>
+            <radialGradient id="night" cx="50%" cy="45%" r="65%"><stop offset="0%" stop-color="#223f56"/><stop offset="100%" stop-color="#0f2030"/></radialGradient>
+            <filter id="glow" x="-120%" y="-120%" width="340%" height="340%"><feGaussianBlur stdDeviation="4"/></filter>
+            <marker id="arrowTip" markerWidth="10" markerHeight="10" refX="7" refY="5" orient="auto"><path d="M1 1 L9 5 L1 9 Z" fill="#ecc078"/></marker>
+          </defs>
+          <circle cx="500" cy="500" r="474" fill="#f6f0e4" stroke="#bdab8d" stroke-width="2"/>
+          <g id="sectors"></g>
+          <circle cx="500" cy="500" r="326" fill="url(#night)" stroke="#b88d53" stroke-width="3"/>
+          <g id="night-dots" opacity=".6" aria-hidden="true"></g>
+          <g fill="none" stroke="#8a8e83" opacity=".16" stroke-width="1.3" pointer-events="none">
+            <circle cx="500" cy="500" r="95" stroke-dasharray="4 10"/>
+            <circle cx="500" cy="500" r="213"/>
+            <circle cx="500" cy="500" r="296" stroke-dasharray="3 10"/>
           </g>
-
-          <!-- 北極星：居天心中宮，恆定不動，天璣(150,115)、天衡(150,185)與北極星(150,150)呈一直線 -->
-          <g id="polaris">
-            <line x1="150" y1="138" x2="150" y2="162" stroke="#a67c37" stroke-width="1.5"/>
-            <line x1="138" y1="150" x2="162" y2="150" stroke="#a67c37" stroke-width="1.5"/>
-            <circle cx="150" cy="150" r="5" fill="#9e2a2b" stroke="#fdfbf7" stroke-width="1.5"/>
-            <text x="158" y="154" font-size="10" fill="#9e2a2b" font-weight="bold">極星</text>
+          <g id="rotating-geometry">
+            <path id="dipperShape" fill="none" stroke="#ead7ac" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path id="dipperBowl" fill="none" stroke="#ead7ac" stroke-width="3" opacity=".7"/>
+            <line id="yaoguangPointer" stroke="#ecc078" stroke-width="4" stroke-dasharray="9 7" marker-end="url(#arrowTip)" stroke-linecap="round"/>
+            <g id="star-dots"></g>
+          </g>
+          <g id="star-labels"></g>
+          <g id="directions" pointer-events="none">
+            <text x="500" y="35" text-anchor="middle" class="direction-text" fill="#b14f3f">南 · 朱雀</text>
+            <text x="500" y="980" text-anchor="middle" class="direction-text" fill="#3e6897">北 · 玄武</text>
+            <text x="20" y="505" text-anchor="middle" class="direction-text" fill="#276f63" transform="rotate(-90 20 505)">東 · 青龍</text>
+            <text x="980" y="505" text-anchor="middle" class="direction-text" fill="#a28038" transform="rotate(90 980 505)">西 · 白虎</text>
           </g>
         </svg>
-
-        <button class="spin-trigger-btn" id="spinBtn" onclick="divineStep()">擲爻旋運</button>
       </div>
-    </div>
-  </div>
-
-  <!-- 跳出式資訊視窗 -->
-  <div id="dialog-overlay">
-    <div class="dialog-card">
-      <div class="dialog-header">
-        <span class="dialog-star-name" id="diagStarName">角木蛟</span>
-        <span class="dialog-quadrant" id="diagQuadrant">東方青龍</span>
+      <div class="quad-legend" aria-hidden="true">
+        <span class="key"><i class="swatch" style="background:#2b7668"></i>東方七宿</span>
+        <span class="key"><i class="swatch" style="background:#ba5948"></i>南方七宿</span>
+        <span class="key"><i class="swatch" style="background:#ac8538"></i>西方七宿</span>
+        <span class="key"><i class="swatch" style="background:#4274a8"></i>北方七宿</span>
       </div>
-      <div class="dialog-meta">
-        <div><strong>七曜宿相：</strong><span id="diagYao">木 · 蛟</span></div>
-        <div><strong>古分野次：</strong><span id="diagDomain">壽星 · 辰</span></div>
+      <p class="wheel-footer">點選任一星宿可查閱資料；擲爻後以瑤光（破軍）所指的扇區為結果。</p>
+    </section>
+
+    <aside class="information" aria-label="擲爻與星宿資訊">
+      <p class="side-label">周天定位 · 星宿詳情</p>
+      <div id="status" class="result-status" role="status">尚未擲爻 · 初始示意</div>
+      <div class="star-heading">
+        <h2 id="starName">角木蛟</h2><span id="starQuadrant">東方青龍</span>
       </div>
-      <div class="dialog-body" id="diagContent">
-        二十八宿之首，其形若角，主生長春榮、號令萬物。
+      <div class="details">
+        <div class="detail"><div class="label">七曜 · 禽星</div><div class="value" id="starYao">木 · 蛟</div></div>
+        <div class="detail"><div class="label">十二次 · 分野資料</div><div class="value" id="starDomain">壽星 · 辰</div></div>
       </div>
-      <div class="dialog-footer">
-        <button class="dialog-close-btn" onclick="closeDialog()">結束收合</button>
+      <p class="description" id="starDescription">青龍七宿之首。此處展示星宿位置；按下「擲爻旋運」後，北斗將逆時針轉動並由瑤光指向隨機選中的星宿。</p>
+      <button class="primary" type="button" id="spinBtn">✦　擲爻旋運</button>
+      <p class="action-meta">每次進行六次三錢模擬擲爻，利用隨機位元等機率選出二十八宿之一；星宿圓盤固定，只有北斗逆時針旋轉。</p>
+      <section class="yao-section" aria-label="擲爻記錄">
+        <h3>本次六爻記錄</h3>
+        <p class="yao-explainer">由下往上為初爻至上爻。6 老陰、7 少陽、8 少陰、9 老陽；僅記錄擲爻，不推算卦辭。</p>
+        <div id="yaoRows"><p class="yao-placeholder">尚無擲爻記錄</p></div>
+      </section>
+      <p class="legend-title">北斗七星 · 傳統星名</p>
+      <div class="dipper-key" aria-label="斗魁與斗杓星序">
+        <span><b>斗魁①</b> 天樞</span><span><b>斗魁②</b> 天璇</span>
+        <span><b>斗魁③</b> 天璣</span><span><b>斗魁④</b> 天權</span>
+        <span><b>斗杓⑤</b> 玉衡</span><span><b>斗杓⑥</b> 開陽</span>
+        <span><b>斗杓⑦</b> 瑤光（破軍）</span>
       </div>
-    </div>
-  </div>
+      <p class="notes">文獻說明：本介面中的「六次三錢擲爻 → 二十八宿」映射是為互動展示設計，<strong>不宣稱是古代占法的史料重建</strong>。星宿方位採題定示意配置，不應當作真實天體在某時某地的星圖。</p>
+    </aside>
+  </main>
+  <footer class="page-foot">二十八宿星名、七曜禽星與十二次資料沿用原站表列；具體配屬、字形異寫及歷史解說仍須據原始文獻逐項考證。頁面為純 HTML／CSS／JavaScript，可直接部署至 GitHub Pages。</footer>
+</div>
+<script>
+'use strict';
 
-  <script>
-    // 依古天文排盤配置 28 禽星（8x8 網格周長為 28 格）
-    // 仰觀：左東（青龍）、上南（朱雀）、右西（白虎）、下北（玄武）
-    const MANSIONS = [
-      // 左邊：東方青龍（下至上，共7格）
-      { name: "角木蛟", quad: "東方青龍", type: "spring", yao: "木 · 蛟", domain: "壽星 · 辰", desc: "青龍角首，三春生發之機。《步天歌》云：『南北兩星正直著，中有平道上天田。』主號令雷霆，萬物始萌。" },
-      { name: "亢金龍", quad: "東方青龍", type: "spring", yao: "金 · 龍", domain: "壽星 · 辰", desc: "青龍之頸，風行電掣。《星經》謂其受制於綱紀，主天下法度、審察奸邪。" },
-      { name: "氐土貉", quad: "東方青龍", type: "spring", yao: "土 · 貉", domain: "大火 · 卯", desc: "青龍之胸乳，根基穩固。《步天歌》：『四星似斗天之根。』主宗室社稷之屏障。" },
-      { name: "房日兔", quad: "東方青龍", type: "spring", yao: "日 · 兔", domain: "大火 · 卯", desc: "青龍之腹，為天府天駟。為明堂布政之位，其象通達，日臨房宿，百福駢臻。" },
-      { name: "心月狐", quad: "東方青龍", type: "spring", yao: "月 · 狐", domain: "大火 · 卯", desc: "青龍之策，天王正位，內含大火中星。《天官書》警惕熒惑守心，主王者明德修身之驗。" },
-      { name: "尾火虎", quad: "東方青龍", type: "spring", yao: "火 · 虎", domain: "析木 · 寅", desc: "青龍之尾，天江交會，九星蜿蜒。主武庫出師、後宮繼嗣，其象威猛熾盛。" },
-      { name: "箕水豹", quad: "東方青龍", type: "spring", yao: "水 · 豹", domain: "析木 · 寅", desc: "青龍尾末，八風之府。好出風埃，主播殖揚簸、農時風調，利於收聚與開拓。" },
+// 配列按圓周順序：東（左下→左上）、南（左上→右上）、西（右上→右下）、北（右下→左下）。
+// 各組佔 90°，中心分別在左、上、右、下，符合上南下北、左東右西。
+const mansionGroups = [
+  { quad:'東方青龍', short:'東', kind:'east', color:'#2b7668', pale:'#e7f1e9', names:['角木蛟','亢金龍','氐土貉','房日兔','心月狐','尾火虎','箕水豹'], domains:['壽星 · 辰','壽星 · 辰','大火 · 卯','大火 · 卯','大火 · 卯','析木 · 寅','析木 · 寅'], descriptions:['青龍之角，為東方七宿之首。','青龍之頸，為東方七宿第二宿。','青龍之胸，為東方七宿第三宿。','青龍之腹，為東方七宿第四宿。','青龍之心，為東方七宿第五宿。','青龍之尾，為東方七宿第六宿。','青龍之末，為東方七宿第七宿。'] },
+  { quad:'南方朱雀', short:'南', kind:'south', color:'#ba5948', pale:'#f7e8df', names:['井木犴','鬼金羊','柳土獐','星日馬','張月鹿','翼火蛇','軫水蚓'], domains:['鶉首 · 未','鶉首 · 未','鶉火 · 午','鶉火 · 午','鶉火 · 午','鶉尾 · 巳','鶉尾 · 巳'], descriptions:['朱雀七宿之首，屬南方星區。','朱雀第二宿，名為鬼。','朱雀第三宿，名為柳。','朱雀第四宿，名為星。','朱雀第五宿，名為張。','朱雀第六宿，名為翼。','朱雀第七宿，名為軫。'] },
+  { quad:'西方白虎', short:'西', kind:'west', color:'#a28038', pale:'#f3eddb', names:['奎木狼','婁金狗','胃土雉','昴日雞','畢月烏','觜火猴','參水猿'], domains:['降婁 · 戌','降婁 · 戌','大梁 · 酉','大梁 · 酉','大梁 · 酉','實沈 · 申','實沈 · 申'], descriptions:['白虎七宿之首，屬西方星區。','白虎第二宿，名為婁。','白虎第三宿，名為胃。','白虎第四宿，名為昴。','白虎第五宿，名為畢。','白虎第六宿，名為觜。','白虎第七宿，名為參。'] },
+  { quad:'北方玄武', short:'北', kind:'north', color:'#4274a8', pale:'#e6edf5', names:['斗木獬','牛金牛','女土蝠','虛日鼠','危月燕','室火豬','壁水貐'], domains:['星紀 · 丑','星紀 · 丑','玄枵 · 子','玄枵 · 子','玄枵 · 子','娵訾 · 亥','娵訾 · 亥'], descriptions:['玄武七宿之首；斗宿與北斗七星不是同一星官。','玄武第二宿，名為牛。','玄武第三宿，名為女。','玄武第四宿，名為虛。','玄武第五宿，名為危。','玄武第六宿，名為室。','玄武第七宿，名為壁。'] }
+];
+const MANSIONS = mansionGroups.flatMap(g => g.names.map((name, i) => ({
+  name, quad:g.quad, kind:g.kind, color:g.color, pale:g.pale,
+  yao:`${name[1]} · ${name.slice(2)}`, domain:g.domains[i], desc:g.descriptions[i]
+})));
+const svgNS = 'http://www.w3.org/2000/svg';
+const svgEl = (tag, attrs={}, text='') => {
+  const el=document.createElementNS(svgNS,tag);
+  for (const [key,value] of Object.entries(attrs)) el.setAttribute(key,String(value));
+  if(text) el.textContent=text;
+  return el;
+};
+const CENTER=500, INNER=326, OUTER=461, SLOT=360/28;
+// SVG 螢幕座標：0° 指右，90° 指下；角度增加為順時針。
+// 第 0 宿角木蛟置於左下，之後依次沿圓周順時針排列。
+const sectorStart = i => 135 + i*SLOT;
+const sectorCenter = i => sectorStart(i) + SLOT/2;
+const toXY = (r, deg) => ({x:CENTER+r*Math.cos(deg*Math.PI/180), y:CENTER+r*Math.sin(deg*Math.PI/180)});
+const polygonWedge = (start,end,r1=INNER,r2=OUTER) => {
+  const a=toXY(r2,start),b=toXY(r2,end),c=toXY(r1,end),d=toXY(r1,start);
+  return `M ${a.x.toFixed(3)} ${a.y.toFixed(3)} A ${r2} ${r2} 0 0 1 ${b.x.toFixed(3)} ${b.y.toFixed(3)} L ${c.x.toFixed(3)} ${c.y.toFixed(3)} A ${r1} ${r1} 0 0 0 ${d.x.toFixed(3)} ${d.y.toFixed(3)} Z`;
+};
 
-      // 上邊：南方朱雀（左至右，共7格）
-      { name: "井木犴", quad: "南方朱雀", type: "summer", yao: "木 · 犴", domain: "鶉首 · 未", desc: "朱雀之首冠，天泉甘露。主法令清正、平準水利，星明則天下平定、財泉周流。" },
-      { name: "鬼金羊", quad: "南方朱雀", type: "summer", yao: "金 · 羊", domain: "鶉首 · 未", desc: "朱雀之目，內具積尸氣。主察幽明、祭祀鬼神，修善德以遠殃咎。" },
-      { name: "柳土獐", quad: "南方朱雀", type: "summer", yao: "土 · 獐", domain: "鶉火 · 午", desc: "朱雀之嗉嘴，號稱天庫。主雷雨之會、調和五味，備物致用以應夏長。" },
-      { name: "星日馬", quad: "南方朱雀", type: "summer", yao: "日 · 馬", domain: "鶉火 · 午", desc: "朱雀之頸頸，天之七星。《天官書》載其主衣裳文繡、賢良效職，曜氣凌空。" },
-      { name: "張月鹿", quad: "南方朱雀", type: "summer", yao: "月 · 鹿", domain: "鶉火 · 午", desc: "朱雀之嗉羽，張席納客之象。主賓客燕享、賜宴宗親，禮樂齊全。" },
-      { name: "翼火蛇", quad: "南方朱雀", type: "summer", yao: "火 · 蛇", domain: "鶉尾 · 巳", desc: "朱雀雙翼，二十二星羅列。主天下禮樂、百工呈藝，翼展如雲，聲明遠布。" },
-      { name: "軫水蚓", quad: "南方朱雀", type: "summer", yao: "水 · 蚓", domain: "鶉尾 · 巳", desc: "朱雀之尾車，亦主行旅出征。旁附左轄右轄，掌天下喪車軍旅之法度。" },
+const sectorLayer=document.getElementById('sectors');
+const sectorNodes=[];
+let spinning=false, lastResult=null, inspection=null, currentRotation=0;
+MANSIONS.forEach((m,i)=>{
+  const g=svgEl('g',{class:'mansion-sector',tabindex:'0',role:'button','aria-label':`查閱${m.quad}${m.name}`});
+  const start=sectorStart(i), end=start+SLOT, angle=sectorCenter(i);
+  g.appendChild(svgEl('path',{d:polygonWedge(start,end),fill:m.pale}));
+  const pos=toXY(398,angle);
+  g.appendChild(svgEl('text',{x:pos.x,y:pos.y+8,'text-anchor':'middle',class:'full-name'},m.name));
+  g.appendChild(svgEl('text',{x:pos.x,y:pos.y+15,'text-anchor':'middle',class:'short-name'},m.name[0]));
+  const tiny=toXY(438,angle);
+  g.appendChild(svgEl('text',{x:tiny.x,y:tiny.y+5,'text-anchor':'middle',class:'sector-index'},String((i%7)+1).padStart(2,'0')));
+  const show=()=>{ if(!spinning) inspectMansion(i); };
+  g.addEventListener('click',show);
+  g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();show();}});
+  sectorLayer.appendChild(g);
+  sectorNodes.push(g);
+});
 
-      // 右邊：西方白虎（上至下，共7格）
-      { name: "奎木狼", quad: "西方白虎", type: "autumn", yao: "木 · 狼", domain: "降婁 · 戌", desc: "白虎之尾，天之府庫，形如製鞋。主文章興盛、科名鼎盛，《孝經》謂其主圖書府庫。" },
-      { name: "婁金狗", quad: "西方白虎", type: "autumn", yao: "金 · 狗", domain: "降婁 · 戌", desc: "白虎之軀，三星聚眾。主修治苑囿、聚斂農殖，祈祀豐收之星。" },
-      { name: "胃土雉", quad: "西方白虎", type: "autumn", yao: "土 · 雉", domain: "大梁 · 酉", desc: "白虎之胃腑，天之大倉。主五穀蓄藏、國阜民安，金匱蓄積之司。" },
-      { name: "昴日雞", quad: "西方白虎", type: "autumn", yao: "日 · 雞", domain: "大梁 · 酉", desc: "白虎之膺胸，白虎正位。西方正曜，主刑獄典章、邊境武備，肅殺以立規矩。" },
-      { name: "畢月烏", quad: "西方白虎", type: "autumn", yao: "月 · 烏", domain: "實沈 · 申", desc: "白虎之右肋，形如天街。《詩經》：『月離於畢，俾滂沱矣。』主膏雨與邊關之安靖。" },
-      { name: "觜火猴", quad: "西方白虎", type: "autumn", yao: "火 · 猴", domain: "實沈 · 申", desc: "白虎之首頂，三星相湊。三星狹小，主管收斂、運送軍需，慎謀而後動。" },
-      { name: "參水猿", quad: "西方白虎", type: "autumn", yao: "水 · 猿", domain: "實沈 · 申", desc: "白虎雙肩與足，七曜並立。將軍威武，與東方心宿遙相對應，定金石征討之功。" },
-
-      // 下邊：北方玄武（右至左，共7格）
-      { name: "斗木獬", quad: "北方玄武", type: "winter", yao: "木 · 獬", domain: "星紀 · 丑", desc: "玄武之首，北斗之相稱。天之廟堂，主壽命官祿、量度量衡，為萬法宗源。" },
-      { name: "牛金牛", quad: "北方玄武", type: "winter", yao: "金 · 牛", domain: "星紀 · 丑", desc: "玄武之身，牽牛之宿。主管耕稼田疇、橋梁津渡，堅忍任重以成大業。" },
-      { name: "女土蝠", quad: "北方玄武", type: "winter", yao: "土 · 蝠", domain: "玄枵 · 子", desc: "玄武之龜首，主裁縫織女之職。掌布帛寶玉、配偶婚姻，以靜治動。" },
-      { name: "虛日鼠", quad: "北方玄武", type: "winter", yao: "日 · 鼠", domain: "玄枵 · 子", desc: "玄武正位，空曠冥極。主祈求風雪、察民間疾苦，虛心以受至理。" },
-      { name: "危月燕", quad: "北方玄武", type: "winter", yao: "月 · 燕", domain: "玄枵 · 子", desc: "玄武之棟宇，天府之顛。主架構宗廟、宗廟防範，思患而預防之象。" },
-      { name: "室火豬", quad: "北方玄武", type: "winter", yao: "火 · 豬", domain: "娵訾 · 亥", desc: "玄武之室壘，營室主工師。秋暮定星南中，主興造土木、啟行天下之律。" },
-      { name: "壁水貐", quad: "北方玄武", type: "winter", yao: "水 · 貐", domain: "娵訾 · 亥", desc: "玄武尾部，東壁圖書。主秘書典籍、文教弘開，與西奎相銜，周天道圓。" }
-    ];
-
-    // 8x8 網格周圍 28 個外圍單元格的座標映射 (row, col)
-    const GRID_COORDINATES = [
-      // 左邊（下往上，col: 1）
-      { r: 7, c: 1 }, { r: 6, c: 1 }, { r: 5, c: 1 }, { r: 4, c: 1 }, { r: 3, c: 1 }, { r: 2, c: 1 }, { r: 1, c: 1 },
-      // 上邊（左往右，row: 1）
-      { r: 1, c: 2 }, { r: 1, c: 3 }, { r: 1, c: 4 }, { r: 1, c: 5 }, { r: 1, c: 6 }, { r: 1, c: 7 }, { r: 1, c: 8 },
-      // 右邊（上往下，col: 8）
-      { r: 2, c: 8 }, { r: 3, c: 8 }, { r: 4, c: 8 }, { r: 5, c: 8 }, { r: 6, c: 8 }, { r: 7, c: 8 }, { r: 8, c: 8 },
-      // 下邊（右往左，row: 8）
-      { r: 8, c: 7 }, { r: 8, c: 6 }, { r: 8, c: 5 }, { r: 8, c: 4 }, { r: 8, c: 3 }, { r: 8, c: 2 }, { r: 8, c: 1 }
-    ];
-
-    let currentIndex = 0;
-    let currentRotation = 0;
-    let isSpinning = false;
-
-    // 棋盤建構
-    const boardEl = document.getElementById("board");
-    const cellElements = [];
-
-    MANSIONS.forEach((m, idx) => {
-      const cell = document.createElement("div");
-      cell.className = `cell ${m.type}`;
-      cell.style.gridRow = GRID_COORDINATES[idx].r;
-      cell.style.gridColumn = GRID_COORDINATES[idx].c;
-
-      const title = document.createElement("div");
-      title.className = "cell-title";
-      title.innerText = m.name;
-      cell.appendChild(title);
-
-      const token = document.createElement("div");
-      token.className = "player-token";
-      cell.appendChild(token);
-
-      cell.onclick = () => showMansionModal(idx);
-      boardEl.appendChild(cell);
-      cellElements.push(cell);
-    });
-
-    cellElements[0].classList.add("has-token");
-
-    // 計算各星宿格子相對於盤心的精確幾何角度
-    function getCellTargetAngle(index) {
-      const coord = GRID_COORDINATES[index];
-      // 網格中心設在 row: 4.5, col: 4.5
-      const dy = coord.r - 4.5;
-      const dx = coord.c - 4.5;
-      let rad = Math.atan2(dy, dx);
-      let deg = rad * (180 / Math.PI);
-      return deg;
+// 座標以天樞為原點；七星為斗口→斗柄的連續星序。
+// 此為便於互動閱讀的示意幾何，不是精確赤經／赤緯測繪。
+const STARS=[
+  {name:'天樞',x:0,y:0},
+  {name:'天璇',x:-112,y:48},
+  {name:'天璣',x:-112,y:140},
+  {name:'天權',x:-12,y:144},
+  {name:'玉衡',x:65,y:188},
+  {name:'開陽',x:140,y:202},
+  {name:'瑤光',x:223,y:174}
+];
+const yaoguang=STARS[6];
+const rayLength=Math.hypot(yaoguang.x,yaoguang.y);
+const POINTER_NATIVE=Math.atan2(yaoguang.y,yaoguang.x)*180/Math.PI;
+const starGroup=document.getElementById('star-dots');
+const starLabels=document.getElementById('star-labels');
+const textNodes=[];
+const pathThrough = points => points.map((p,i)=>`${i?'L':'M'} ${CENTER+p.x} ${CENTER+p.y}`).join(' ');
+document.getElementById('dipperShape').setAttribute('d',pathThrough(STARS));
+document.getElementById('dipperBowl').setAttribute('d',pathThrough([STARS[3],STARS[0]]));
+const pointer=document.getElementById('yaoguangPointer');
+pointer.setAttribute('x1',CENTER+yaoguang.x);
+pointer.setAttribute('y1',CENTER+yaoguang.y);
+pointer.setAttribute('x2',CENTER+yaoguang.x/rayLength*352);
+pointer.setAttribute('y2',CENTER+yaoguang.y/rayLength*352);
+STARS.forEach((star,i)=>{
+  if(i===6) starGroup.appendChild(svgEl('circle',{cx:CENTER+star.x,cy:CENTER+star.y,r:13,fill:'#e9af60',opacity:'.35',filter:'url(#glow)'}));
+  starGroup.appendChild(svgEl('circle',{cx:CENTER+star.x,cy:CENTER+star.y,r:i===0?10:(i===6?9:7.5),fill:i===6?'#f6be6f':'#fff5d8',stroke:'#967144','stroke-width':i===0?3:1.5}));
+  const t=svgEl('text',{'text-anchor':'middle',class:'star-name'},star.name);
+  const n=svgEl('text',{'text-anchor':'middle',class:'star-number'},String(i+1));
+  starLabels.append(t,n);
+  textNodes.push([t,n]);
+});
+const rotatingGroup=document.getElementById('rotating-geometry');
+const normalize = deg => ((deg%360)+360)%360;
+const rotated = (p,deg) => {
+  const a=deg*Math.PI/180,c=Math.cos(a),s=Math.sin(a);
+  return {x:p.x*c-p.y*s,y:p.x*s+p.y*c};
+};
+function renderRotation(angle){
+  rotatingGroup.setAttribute('transform',`rotate(${angle} ${CENTER} ${CENTER})`);
+  STARS.forEach((p,i)=>{
+    const v=rotated(p,angle), len=Math.hypot(v.x,v.y);
+    let tx,ty;
+    if(!i){tx=CENTER+26;ty=CENTER-15;}
+    else {
+      // 文字保持水平；斗柄末星標籤朝盤心移動，避免壓到星宿扇區。
+      const inward = i===6?39:21;
+      const perp=i===6?9:13;
+      tx=CENTER+v.x-v.x/len*inward-v.y/len*perp;
+      ty=CENTER+v.y-v.y/len*inward+v.x/len*perp+6;
     }
-
-    // 擲爻啟動天盤逆時鐘旋運
-    function divineStep() {
-      if (isSpinning) return;
-      isSpinning = true;
-      document.getElementById("spinBtn").disabled = true;
-
-      // 隨機決定落點星宿
-      const targetIndex = Math.floor(Math.random() * 28);
-      
-      // 計算目標格子的幾何中心角度
-      const targetMansionAngle = getCellTargetAngle(targetIndex);
-
-      // 破軍指針相對於天盤群組中心之原生方位角約為 45 度（x:245, y:295 對於 150,150）
-      const pointerNativeAngle = 45;
-      
-      // 計算使得破軍指針剛好指著 targetMansionAngle 的群組旋轉角度
-      let desiredAngle = targetMansionAngle - pointerNativeAngle;
-      
-      // 規範化當前旋轉角度
-      let normalizedCurrent = currentRotation % 360;
-      let diff = desiredAngle - normalizedCurrent;
-      
-      // 術數天道左旋：斗柄必須「逆時鐘旋轉」（角度持續負向遞減）
-      while (diff > 0) {
-        diff -= 360;
-      }
-      
-      // 至少逆轉 3 整圈以上再煞停
-      const extraLaps = 3 * 360;
-      currentRotation = currentRotation + diff - extraLaps;
-
-      const rotaryPlate = document.getElementById("rotary-plate");
-      rotaryPlate.style.transition = "transform 3.2s cubic-bezier(0.18, 0.89, 0.32, 1)";
-      rotaryPlate.style.transformOrigin = "150px 150px";
-      rotaryPlate.style.transform = `rotate(${currentRotation}deg)`;
-
-      setTimeout(() => {
-        // 更新玩家棋子位置
-        cellElements.forEach(c => {
-          c.classList.remove("has-token");
-          c.classList.remove("targeted");
-        });
-        
-        currentIndex = targetIndex;
-        cellElements[currentIndex].classList.add("has-token");
-        cellElements[currentIndex].classList.add("targeted");
-
-        isSpinning = false;
-        document.getElementById("spinBtn").disabled = false;
-
-        // 旋運停定，啟動對話框顯示該宿詳情
-        showMansionModal(currentIndex);
-      }, 3300);
+    for(const text of textNodes[i]){
+      text.setAttribute('x',tx.toFixed(2));
+      text.setAttribute('y',ty.toFixed(2));
     }
+  });
+}
 
-    // 開啟星宿詳情對話框
-    function showMansionModal(index) {
-      const data = MANSIONS[index];
-      document.getElementById("diagStarName").innerText = data.name;
-      document.getElementById("diagQuadrant").innerText = data.quad;
-      document.getElementById("diagYao").innerText = data.yao;
-      document.getElementById("diagDomain").innerText = data.domain;
-      document.getElementById("diagContent").innerText = data.desc;
+// 固定示例指向角木蛟。真正的占得之宿由擲爻後更新。
+currentRotation=normalize(sectorCenter(0)-POINTER_NATIVE);
+renderRotation(currentRotation);
+function setActive(index){
+  sectorNodes.forEach((g,i)=>{
+    g.classList.toggle('active',i===index);
+    if(i===index) g.setAttribute('aria-current','true');
+    else g.removeAttribute('aria-current');
+  });
+}
+function setStatus(message,type=''){
+  const node=document.getElementById('status');
+  node.className=`result-status ${type}`;
+  node.textContent=message;
+}
+function renderInfo(index){
+  const m=MANSIONS[index];
+  document.getElementById('starName').textContent=m.name;
+  document.getElementById('starQuadrant').textContent=m.quad;
+  document.getElementById('starQuadrant').style.color=m.color;
+  document.getElementById('starYao').textContent=m.yao;
+  document.getElementById('starDomain').textContent=m.domain;
+  document.getElementById('starDescription').textContent=m.desc;
+}
+function inspectMansion(index){
+  inspection=index;
+  renderInfo(index);
+  setStatus(index===lastResult && lastResult!==null?'本次擲得 · 瑤光所指':'資料查閱 · 非本次落點', index===lastResult && lastResult!==null?'live':'');
+}
+setActive(0);
+renderInfo(0);
 
-      document.getElementById("dialog-overlay").classList.add("active");
+// 18 個公平隨機位元＝六次擲爻，每爻三枚錢（2 或 3）；以拒絕取樣保證各宿等機率。
+function castSixLines(){
+  const capacity=2**18;
+  const validLimit=Math.floor(capacity/MANSIONS.length)*MANSIONS.length;
+  let raw;
+  do {
+    const a=new Uint32Array(1);
+    if(window.crypto && typeof window.crypto.getRandomValues==='function'){
+      window.crypto.getRandomValues(a);raw=a[0] & (capacity-1);
+    } else {
+      raw=Math.floor(Math.random()*capacity);
     }
-
-    // 關閉對話框
-    function closeDialog() {
-      document.getElementById("dialog-overlay").classList.remove("active");
-    }
-  </script>
+  } while(raw>=validLimit);
+  const lines=Array.from({length:6},(_,i)=>{
+    const bits=(raw>>(i*3))&7;
+    const heads=(bits&1)+((bits>>1)&1)+((bits>>2)&1);
+    return 6+heads;
+  });
+  return {index:raw%MANSIONS.length,lines};
+}
+function renderLines(lines){
+  const names=['初爻','二爻','三爻','四爻','五爻','上爻'];
+  const meaning={6:'老陰 ×',7:'少陽',8:'少陰',9:'老陽 ○'};
+  const container=document.getElementById('yaoRows');container.replaceChildren();
+  for(let i=5;i>=0;i--){
+    const row=document.createElement('div');row.className='yao-row';
+    const mark=document.createElement('div');mark.className=`yao-mark ${(lines[i]%2)?'yang':'yin'}`;
+    const a=document.createElement('span');mark.appendChild(a);
+    if(lines[i]%2===0) mark.appendChild(document.createElement('span'));
+    const n=document.createElement('span');n.className='yao-pos';n.textContent=names[i];
+    const v=document.createElement('span');v.className='yao-value';v.textContent=`${lines[i]} ${meaning[lines[i]]}`;
+    row.append(n,mark,v);container.appendChild(row);
+  }
+}
+const spinBtn=document.getElementById('spinBtn');
+function finishSpin(outcome){
+  spinning=false;
+  lastResult=outcome.index;
+  inspection=null;
+  setActive(lastResult);
+  renderInfo(lastResult);
+  renderLines(outcome.lines);
+  setStatus('本次擲得 · 瑤光所指','live');
+  spinBtn.disabled=false;
+  spinBtn.textContent='✦　再次擲爻旋運';
+}
+function spin(){
+  if(spinning) return;
+  spinning=true;
+  spinBtn.disabled=true;
+  spinBtn.textContent='北斗旋運中…';
+  setStatus('擲爻完成 · 逆時針旋運中','spin');
+  const outcome=castSixLines();
+  const target=normalize(sectorCenter(outcome.index)-POINTER_NATIVE);
+  const current=normalize(currentRotation);
+  const antiClockwiseDelta=normalize(current-target);
+  const laps=4+Math.floor(Math.random()*2);
+  const total=360*laps+antiClockwiseDelta;
+  const start=currentRotation, end=start-total;
+  const duration=window.matchMedia('(prefers-reduced-motion: reduce)').matches?0:4900;
+  const done=()=>{
+    currentRotation=normalize(end);
+    renderRotation(currentRotation);
+    finishSpin(outcome);
+  };
+  if(!duration){done();return;}
+  let startTime;
+  const animate=now=>{
+    if(startTime===undefined)startTime=now;
+    const t=Math.min(1,(now-startTime)/duration);
+    const eased=1-Math.pow(1-t,3.5);
+    renderRotation(start-total*eased);
+    if(t<1)window.requestAnimationFrame(animate);
+    else done();
+  };
+  window.requestAnimationFrame(animate);
+}
+spinBtn.addEventListener('click',spin);
+</script>
 </body>
 </html>
