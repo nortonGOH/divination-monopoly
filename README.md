@@ -1,56 +1,68 @@
-# 數術知識大挑戰 — 二十八宿互動問答
+# 數術知識大挑戰 · 第三版
 
-**技術形式**：原生 HTML / CSS / JavaScript + JSON 題庫，適用 GitHub Pages，不需後端與外部 JavaScript 套件。
+GitHub Pages 靜態站（`index.html` + `config.js` + `questions.json`），題庫管理員認證與跨訪客資料讀寫使用 **Supabase Auth + PostgreSQL Row Level Security (RLS)**。
 
-## 使用者提出的四項介面修改
+## 這版修改
 
-1. 將「本次六爻記錄」取代為「數術問答」：本次抽中哪一宿，就從該宿題組隨機出題，提供四選一作答、即時判定、答案解說、答題計數與換題功能。
-2. 已取消右側欄的「北斗七星 · 傳統星名」區塊；盤上的北斗星名保留。北斗依天樞、天璇、天璣、天權、玉衡、開陽、瑤光的順序標示。
-3. 已移除原本「每次進行六次三錢模擬擲爻……」的文字與六爻演算法，改採 28 宿等機率抽選。動畫維持天樞固定、北斗逆時針旋轉、瑤光（破軍）指宿。
-4. 主標題更改為「數術知識大挑戰」。
+1. **安全管理員登入**：公開網頁不寫密碼、密碼雜湊、Supabase secret/service_role 密鑰。管理員登入憑證送往 Supabase Auth（HTTPS），經由資料庫 `quiz_admins` 及 RLS 確認有權新增、刪除、更新題目。
+2. **史書天文資料輪播**：目前有《史記》《漢書》《後漢書》《晉書》《宋書》《宋史》《元史》《明史》共八部正史的短引文或明確標為「編者說明」的摘要。依星宿所屬方位優先抽選，亦有跨星宿通用資料。每則附卷次、原始文字網址。**不是二十四史全部都有天文志，也不是所有章節逐宿記錄。**
+3. **北極星與北斗**：固定北極星於圓心，天璇—天樞—北極星成指極示意線，北斗繞圓心逆時針轉動，瑤光指針指向所選二十八宿。示意星距與圓盤扇區不是實測天象。
 
-## 題庫
+## 部署與初始管理員設定（必要）
 
-- 預設 **56 題**：每宿兩題，分別是一道與該宿相關的二十八宿題，以及一道人為分派的數術基礎題。
-- 基礎題涵蓋：二十八宿、干支、五行、八卦與九宮。
-- 每個星宿都可以各自擴充多道題目。若刪除某宿全部題目，該宿會顯示「尚無題目」，不會顯示其他宿的題目。
-- 在右側「管理題庫」可以：**新增、編輯、刪除、依星宿篩選、搜尋、匯出 JSON、匯入 JSON（合併或取代）、恢復網站預設題庫**。
-- 每道題包含：`id`（唯一字串）、`mansion`（28 宿名稱之一）、`category`（類別）、`prompt`（題目）、`options`（四個選項）、`answer`（0～3 的正確選項索引）、`explanation`（解說或文獻註記）。
+> **注意：GitHub Pages 不提供後端密碼驗證。** 本站未設定安全後端時可公開答題與閱讀，但點「管理題庫」只會顯示設定提示，**不提供可繞過的前端管理密碼**。
 
-**重要：** 這是教學題目和星宿之間的現代遊戲性關聯，**不宣稱是傳統星占或術數占法的史料重建**。示例題目需由研究者根據版本與原始文獻核對；此題庫不提供虛構出處。
+1. 到 [Supabase](https://supabase.com/) 建立專案，記下 `Project URL` 與 **Publishable key**（舊專案可用 legacy `anon` key）。**不要用** `secret` 或 `service_role` key。
+2. 在 Supabase **SQL Editor** 先執行 `setup.sql`，建立 `quiz_admins`、`quiz_questions` 兩表，四種操作的 RLS 規則及原子性題庫取代 RPC。
+3. 在同一 SQL Editor 執行 `seed.sql`，匯入初始 56 題。此腳本只增修相同 ID 的題目。
+4. 在 Supabase **Authentication → Users** 新增管理員電子郵件／密碼使用者（建議使用強密碼、電子郵件驗證及 MFA，並關閉對外自由註冊），複製該使用者 **UID**。**在私人的 SQL Editor** 執行：
 
-## GitHub Pages 部署
+   ```sql
+   insert into public.quiz_admins(user_id)
+   values ('此處替換為實際的管理員 UID');
+   ```
 
-在 <https://github.com/nortonGOH/divination-monopoly> 的根目錄上傳／覆蓋：
+   此 UID 不含密碼；請勿將實際帳號資訊或密鑰提交 GitHub。
+5. 修改 `config.js`（只有兩項**可公開**的設定）：
 
-- `index.html` — 網站、圓盤與題庫管理功能。
-- `questions.json` — 網站預設題庫，可持續擴充。
-- `README.md` — 使用說明（選用）。
+   ```js
+   window.QUIZ_AUTH_CONFIG = {
+     supabaseUrl: 'https://你的專案.supabase.co',
+     publishableKey: 'sb_publishable_你的公開金鑰'
+   };
+   ```
 
-若已開啟 GitHub Pages，提交 commit 後造訪 <https://nortongoh.github.io/divination-monopoly/>，必要時強制重新整理。
+   Supabase 專案請保持正確的 API 權限及允許網站來源的設定。真正的資料修改權限由 SQL RLS 控制，**不是** `config.js` 隱藏。
+6. 將 `index.html`、`config.js`、`questions.json` 放在 GitHub Pages 的網站根目錄。`setup.sql` 和 `seed.sql` 是方便部署的文件，不會在公開網站自動執行。可將 SQL 放入私人管理資料夾，不必公開上傳。
+7. 打開 `https://nortongoh.github.io/divination-monopoly/`，按「管理題庫」以管理員信箱與密碼登入。登入後所有新增、編輯、刪除、匯入、恢復預設都透過 Supabase，對所有訪客立即生效（訪客若已打開頁面，須重新載入才能取得更新）。
 
-### 如何將修改後的題庫發布給所有使用者？
+## 安全邊界
 
-1. 在網站按「**管理題庫**」增刪題目。
-2. 按「**匯出 JSON**」，得到 `questions.json`。
-3. 到 GitHub 儲存庫根目錄覆蓋 `questions.json` 並 commit。
-4. 訪客重新載入網站，即會讀取更新的預設題庫。
+- 後端帳密及密碼驗證由 Supabase Auth 提供；系統不把密碼或可逆密文寫進 GitHub。公開的 publishable key **不是**管理員祕密。
+- 密碼**不能靠前端加密、混淆或「防 AI 反組譯」保護**：攻擊者永遠能看到公開 Javascript。伺服器端身分驗證和 RLS 才是保護資料修改的關鍵。
+- 匿名使用者只具有題庫 `SELECT` 權限；已登入但未加入 `quiz_admins` 的使用者也不能寫入。`quiz_admins` 不允許前端自行加管理員。
+- 網頁不把登入存到 localStorage/sessionStorage；重新整理後需重新登入。登入 Token 暫存在目前分頁的記憶體內，登出會呼叫 Supabase Auth 撤銷會話。
+- 部署前請使用非管理員／未登入角色，**實際測試**資料庫拒絕 `POST`、`PATCH`、`DELETE` 與 `replace_quiz_bank`。本次交付未連接您的 Supabase 專案，因此**未能執行真實後端滲透或權限測試**。
+- 課題、正確答案及原始文獻引用是**公開讀取內容**，不適用於要求隱藏正確答案的高風險測驗。
 
-GitHub Pages 是靜態網頁，**網站上的管理操作不會自動向 GitHub 提交變更**。未匯出／上傳前，修改只存在 **該瀏覽器的 localStorage**。使用者若已建立自己的瀏覽器自訂題庫，會優先使用其本機資料；可在管理視窗按「恢復網站預設題庫」以讀取最新 GitHub 版本（此動作會清除該瀏覽器的自訂題庫，建議先匯出備份）。
+## 史料核對與史學注意
 
-## 旋轉與隨機規則
+引文集中於 `index.html` 的 `HISTORIES` 陣列；每則標記書名、卷次、原文連結，`quote` 是核對過的短引文，`context` 是現代編者說明。留空 `quote` 只展示摘要，不充作直接引文。將來擴充史料，宜對照可靠影印底本並記錄版本資訊。`《後漢書》志` 實取自司馬彪《續漢書》，後經劉昭補注附於今本；史書正文、注、後人補述需區分。《宋史》對極與極星的記載也提醒我們：圖上把「極星」固定在天極，只是互動示意，不能當成跨時代不變的精確天文位置。
 
-- 固定二十八宿圓盤：上南、下北、左東、右西，四方各七宿。
-- 以天樞位置為不動旋轉中心，北斗星線逆時針旋轉；瑤光的徑向光矢在終點對準所選星宿扇區中心。
-- 28 宿抽選使用 `crypto.getRandomValues()` 與拒絕取樣，以避免取模偏差；不支援時以 `Math.random()` 作相容後備。
-- 尊重系統「減少動態效果」，選中星宿時不必等待動畫。
+原始文本檢索連結：
 
-## 本機預覽
+- 《史記》卷二十七〈天官書〉：https://zh.wikisource.org/wiki/史記/卷027
+- 《漢書》卷二十六〈天文志〉：https://zh.wikisource.org/wiki/漢書/卷026
+- 《後漢書》志第十〈天文上〉：https://www.shidianguji.com/zh/book/LS0003/chapter/1j7lpp5enssv9_275
+- 《晉書》卷十一〈天文上〉：https://zh.wikisource.org/wiki/晉書/卷011
+- 《宋書》卷二十三〈天文一〉：https://zh.wikisource.org/zh-hant/宋書/卷23
+- 《宋史》卷四十八〈天文一〉：https://zh.wikisource.org/zh-hant/宋史/卷048
+- 《元史》卷四十八〈天文一〉：https://zh.wikisource.org/wiki/元史_(四庫全書本)/卷048
+- 《明史》卷二十五〈天文〉：https://zh.wikisource.org/wiki/明史_(四庫全書本)/卷025
 
-可直接開啟 `index.html` 預覽，多數情況會使用內嵌備用題庫；若要測試從 `questions.json` 載入，建議在資料夾執行：
+## 技術說明
 
-```bash
-python -m http.server 8000
-```
-
-再開啟 `http://localhost:8000/`。發佈 GitHub Pages 時會直接載入 `questions.json`。
+- 客戶端只有原生 HTML/CSS/JS，不需建置工具或外部 JS CDN。
+- 題庫仍保留 28 宿各兩題，共 56 題；題庫管理有搜尋、增刪改、JSON 匯入/匯出、恢復預設等。
+- `seed.sql` 將原版 JSON 題庫投入後端；GitHub 根目錄 `questions.json` 為公開示範及「恢復網站預設」的基礎資料。
+- **直接引文不是校勘定本**：已核查網路文字版篇章，但尚未逐字校對武英殿本、四庫本等影印原件；需要正式學術引用時仍應與版本底本比對。
