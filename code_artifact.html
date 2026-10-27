@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>星野循天：二十八宿巡禮</title>
+  <style>
+    /* --- 古籍碑帖、宣紙與文人書齋調色盤 --- */
+    :root {
+      --bg-paper: #f7f3e8;
+      --bg-panel: #fffefb;
+      --ink-dark: #232220;
+      --ink-mid: #524f4a;
+      --ink-light: #8c8880;
+      --cinnabar: #af342b;
+      --cinnabar-soft: rgba(175, 52, 43, 0.1);
+      --gold-ochre: #b58934;
+      --grid-border: #ddd5c3;
+      --cell-border: #c8bfae;
+
+      /* 四象色系 */
+      --azure-dragon: #235c4b;    /* 東方青龍：蒼青玉色 */
+      --black-tortoise: #213342;  /* 北方玄武：深潭玄水 */
+      --white-tiger: #72624f;     /* 西方白虎：古銅金石 */
+      --vermilion-bird: #b23b2a;  /* 南方朱雀：丹砂赤火 */
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Noto Serif TC", "Songti TC", "PingFang TC", "Source Han Serif TC", "BiauKai", serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background-color: var(--bg-paper);
+      color: var(--ink-dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 10px;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(var(--grid-border) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(247, 243, 232, 0.8), rgba(247, 243, 232, 0.95));
+      background-size: 20px 20px, 100% 100%;
+    }
+
+    /* 頂部靈臺司天監儀表 */
+    header {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding: 10px 14px;
+      border-bottom: 2px solid var(--ink-dark);
+      margin-bottom: 12px;
+    }
+
+    .title-group h1 {
+      font-size: 1.55rem;
+      letter-spacing: 5px;
+      color: var(--cinnabar);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .title-group p {
+      font-size: 0.78rem;
+      color: var(--ink-mid);
+      letter-spacing: 2px;
+      margin-top: 2px;
+    }
+
+    .status-group {
+      display: flex;
+      gap: 12px;
+      font-size: 0.86rem;
+    }
+
+    .status-pill {
+      background: var(--bg-panel);
+      border: 1px solid var(--cell-border);
+      padding: 4px 10px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+    .status-val {
+      font-weight: 700;
+      color: var(--cinnabar);
+    }
+
+    /* --- 8x8 棋盤排版 (CSS Grid) --- */
+    .sky-board {
+      width: min(94vw, 860px);
+      height: min(94vw, 860px);
+      position: relative;
+      background: var(--ink-dark);
+      padding: 3px;
+      border-radius: 8px;
+      box-shadow: 0 14px 30px rgba(35, 34, 32, 0.22);
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      grid-template-rows: repeat(8, 1fr);
+      width: 100%;
+      height: 100%;
+      gap: 2px;
+      background: var(--grid-border);
+    }
+
+    /* 星宿外圍格樣式 */
+    .mansion-cell {
+      background: var(--bg-panel);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 3px;
+      position: relative;
+      user-select: none;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      overflow: hidden;
+    }
+
+    .mansion-cell:hover {
+      background: #fdf6ec;
+    }
+
+    .mansion-cell.active-step {
+      background: var(--cinnabar-soft);
+      box-shadow: inset 0 0 0 2px var(--cinnabar);
+    }
+
+    /* 四象方位裝飾線條 */
+    .mansion-cell::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+    }
+
+    .palace-dragon::before { background: var(--azure-dragon); }
+    .palace-tortoise::before { background: var(--black-tortoise); }
+    .palace-tiger::before { background: var(--white-tiger); }
+    .palace-bird::before { background: var(--vermilion-bird); }
+
+    .cell-num {
+      font-size: 0.62rem;
+      color: var(--ink-light);
+      align-self: flex-start;
+      margin-left: 2px;
+      font-feature-settings: "tnum";
+    }
+
+    .cell-star-name {
+      font-weight: 700;
+      font-size: 0.88rem;
+      letter-spacing: 1px;
+      color: var(--ink-dark);
+      line-height: 1.1;
+      text-align: center;
+    }
+
+    .cell-badge {
+      font-size: 0.6rem;
+      padding: 1px 4px;
+      border-radius: 2px;
+      color: #fff;
+    }
+
+    .palace-dragon .cell-badge { background: var(--azure-dragon); }
+    .palace-tortoise .cell-badge { background: var(--black-tortoise); }
+    .palace-tiger .cell-badge { background: var(--white-tiger); }
+    .palace-bird .cell-badge { background: var(--vermilion-bird); }
+
+    /* 巡天星晷棋子 (Token) */
+    .astrolabe-token {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #fff7ce 15%, var(--gold-ochre) 75%, #6a490d 100%);
+      border: 2px solid #fff;
+      box-shadow: 0 0 12px rgba(181, 137, 52, 0.95);
+      z-index: 20;
+      pointer-events: none;
+      animation: celestial-glow 2s infinite ease-in-out;
+    }
+
+    @keyframes celestial-glow {
+      0% { transform: translate(-50%, -50%) scale(0.95); box-shadow: 0 0 8px rgba(181, 137, 52, 0.6); }
+      50% { transform: translate(-50%, -50%) scale(1.16); box-shadow: 0 0 16px rgba(175, 52, 43, 0.9); }
+      100% { transform: translate(-50%, -50%) scale(0.95); box-shadow: 0 0 8px rgba(181, 137, 52, 0.6); }
+    }
+
+    /* --- 中央靈臺中宮 (6x6 區域) --- */
+    .center-observatory {
+      grid-column: 2 / span 6;
+      grid-row: 2 / span 6;
+      background-color: var(--bg-paper);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px;
+      border: 1px solid var(--cell-border);
+      position: relative;
+      overflow-y: auto;
+      box-shadow: inset 0 0 16px rgba(35, 34, 32, 0.05);
+    }
+
+    /* 控制與擲骰條 */
+    .astronomy-ctrl {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--grid-border);
+    }
+
+    .btn-astrolabe {
+      background: linear-gradient(135deg, var(--cinnabar) 0%, #8c2820 100%);
+      color: #fff;
+      border: none;
+      padding: 9px 20px;
+      font-size: 0.95rem;
+      letter-spacing: 3px;
+      border-radius: 4px;
+      cursor: pointer;
+      box-shadow: 0 3px 6px rgba(175, 52, 43, 0.28);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-astrolabe:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 5px 12px rgba(175, 52, 43, 0.35);
+    }
+
+    .btn-astrolabe:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .roll-display {
+      font-size: 0.95rem;
+      color: var(--ink-mid);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .roll-number {
+      font-size: 1.55rem;
+      font-weight: 700;
+      color: var(--cinnabar);
+      min-width: 24px;
+      display: inline-block;
+      text-align: center;
+    }
+
+    /* 星宿解讀文牘 */
+    .star-scroll {
+      margin-top: 10px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .scroll-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+    }
+
+    .scroll-title {
+      font-size: 1.38rem;
+      font-weight: 700;
+      color: var(--ink-dark);
+      letter-spacing: 2px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .scroll-tag {
+      font-size: 0.78rem;
+      padding: 2px 8px;
+      border-radius: 3px;
+      background: var(--cinnabar-soft);
+      color: var(--cinnabar);
+      border: 1px solid var(--cinnabar);
+    }
+
+    .scroll-field {
+      font-size: 0.85rem;
+      color: var(--ink-mid);
+      margin-bottom: 8px;
+      font-style: italic;
+    }
+
+    .scroll-desc {
+      font-size: 0.92rem;
+      line-height: 1.68;
+      color: var(--ink-dark);
+      margin-bottom: 12px;
+      text-align: justify;
+    }
+
+    /* 司天殿堂考題 */
+    .scroll-quiz {
+      background: #fdfcf9;
+      border: 1px solid var(--cell-border);
+      border-left: 3px solid var(--gold-ochre);
+      padding: 10px 14px;
+      border-radius: 4px;
+    }
+
+    .quiz-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--ink-dark);
+    }
+
+    .quiz-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .opt-btn {
+      background: var(--bg-paper);
+      border: 1px solid var(--grid-border);
+      padding: 6px 10px;
+      text-align: left;
+      font-size: 0.82rem;
+      border-radius: 3px;
+      cursor: pointer;
+      color: var(--ink-dark);
+      transition: all 0.2s;
+    }
+
+    .opt-btn:hover:not(:disabled) {
+      border-color: var(--cinnabar);
+      background: #fff;
+    }
+
+    .quiz-report {
+      font-size: 0.8rem;
+      margin-top: 6px;
+      font-weight: 600;
+      min-height: 1.2rem;
+    }
+
+    /* 響應式優化 */
+    @media (max-width: 720px) {
+      .center-observatory { padding: 12px; }
+      .cell-star-name { font-size: 0.72rem; }
+      .cell-badge { display: none; }
+      .quiz-options { grid-template-columns: 1fr; }
+      header { flex-direction: column; align-items: flex-start; gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="title-group">
+      <h1>☯ 星野循天 <span>· 二十八宿經天記</span></h1>
+      <p>仰觀垂象 · 步天分土 · 考校星官</p>
+    </div>
+    <div class="status-group">
+      <div class="status-pill">
+        <span>已點校星宿：</span>
+        <span class="status-val" id="catalog-count">1 / 28</span>
+      </div>
+      <div class="status-pill">
+        <span>玄術通識度：</span>
+        <span class="status-val" id="star-score">0 爻</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="sky-board">
+    <div class="grid-container" id="mansions-grid">
+      <!-- 28格經天環狀排列將由 JS 注入 -->
+
+      <!-- 靈臺中宮 (6x6) -->
+      <div class="center-observatory">
+        <div class="astronomy-ctrl">
+          <button class="btn-astrolabe" id="roll-btn" onclick="spinAstrolabe()">
+            <span>轉動璇璣輪</span>
+          </button>
+          <div class="roll-display">
+            司天曆步：<span class="roll-number" id="dice-step">-</span>
+          </div>
+        </div>
+
+        <div class="star-scroll">
+          <div>
+            <div class="scroll-head">
+              <div class="scroll-title" id="m-name">角木蛟</div>
+              <div class="scroll-tag" id="m-palace">東方青龍 · 初宿</div>
+            </div>
+            <div class="scroll-field" id="m-field">分野對應：鄭國 · 兗州 · 辰宮天秤</div>
+            <p class="scroll-desc" id="m-desc">
+              蒼龍角亢，天之開闔。角宿為青龍雙角之首，春暮初升於東方，昭示農時之肇始。
+            </p>
+          </div>
+
+          <div class="scroll-quiz">
+            <div class="quiz-title" id="quiz-prompt">【星宮考訂】二十八宿四象排序中，角宿居於何象之首？</div>
+            <div class="quiz-options" id="quiz-opts"></div>
+            <div class="quiz-report" id="quiz-feedback"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    /* =========================================================================
+       1. 二十八星宿完整考證數據庫 (28 Mansions Database)
+       ========================================================================= */
+    const TWENTY_EIGHT_MANSIONS = [
+      // --- 東方青龍七宿 (0 ~ 6) ---
+      {
+        id: 0,
+        name: "角木蛟",
+        palace: "東方青龍",
+        animal: "蛟",
+        elem: "木",
+        field: "辰宮 · 兗州 · 鄭國分野",
+        desc: "角宿為蒼龍雙角，春季黃昏始見於東方地平，古代以角宿出沒作為農桑啟蟄與春耕歲首的重要天象標誌。",
+        quiz: {
+          q: "「角宿二」在現代西方全天星座中對應天室座的哪一顆一等亮星？",
+          opts: ["角宿一（Spica）", "心宿二（Antares）", "軒轅十四（Regulus）", "織女一（Vega）"],
+          ans: 0,
+          fact: "角宿一（Spica，室女座α）是春天著名的藍巨星，為全天第16顆亮星。"
+        }
+      },
+      {
+        id: 1,
+        name: "亢金龍",
+        palace: "東方青龍",
+        animal: "龍",
+        elem: "金",
+        field: "辰宮 · 兗州 · 鄭之分野",
+        desc: "亢宿為青龍之咽喉，亢者高也、引伸為極。天象上象徵朝堂之朝儀與號令，戒除高亢傲慢與亢龍有悔。",
+        quiz: {
+          q: "《易經》乾卦上九爻辭曰「亢龍有悔」，其哲理訓誡為？",
+          opts: ["知進而不知退，物極必反", "降龍有法，百戰百勝", "韜光養晦，藏於九地", "風生水起，騰躍九霄"],
+          ans: 0,
+          fact: "亢者高也，行至極位而不知敬慎，故有悔吝之道。"
+        }
+      },
+      {
+        id: 2,
+        name: "氐土貉",
+        palace: "東方青龍",
+        animal: "貉",
+        elem: "土",
+        field: "卯宮 · 豫州 · 宋國分野",
+        desc: "氐宿為青龍之前胸乳宿，氐者根也、底也。代表天子之宮寢路朝，天理民風之根本根基所在。",
+        quiz: {
+          q: "在二十八宿七曜五行配屬中，氐宿所屬之禽星為？",
+          opts: ["土貉", "日兔", "火虎", "水豹"],
+          ans: 0,
+          fact: "東方七宿口訣：角木蛟、亢金龍、氐土貉、房日兔、心月狐、尾火虎、箕水豹。"
+        }
+      },
+      {
+        id: 3,
+        name: "房日兔",
+        palace: "東方青龍",
+        animal: "兔",
+        elem: "日（火）",
+        field: "卯宮 · 豫州 · 宋國分野",
+        desc: "房宿為青龍之腹脅，又被尊稱為「天駟」或「天馬」。房星明潤象徵天衢大通，國泰道昌。",
+        quiz: {
+          q: "房宿在古代占星中因象徵駕馭天車之駿馬，故古籍稱其為？",
+          opts: ["天駟", "天狼", "天樞", "天關"],
+          ans: 0,
+          fact: "《晉書·天文志》載：「房四星為天駟，天馬也，主車駕。」"
+        }
+      },
+      {
+        id: 4,
+        name: "心月狐",
+        palace: "東方青龍",
+        animal: "狐",
+        elem: "月（水）",
+        field: "卯宮 · 豫州 · 宋國分野",
+        desc: "心宿三星為青龍之心臟，中星為「大火」（天蠍座心宿二），顏色彤紅。天象中熒惑（火星）犯心為至凶之變。",
+        quiz: {
+          q: "古代星佔中極受帝王震懾的逆行天象「熒惑守心」，其中「熒惑」是指？",
+          opts: ["火星", "金星", "木星", "水星"],
+          ans: 0,
+          fact: "火星在古代稱「熒惑」，當其在紅巨星心宿二附近順逆留守，被視為天子變故之大徵。"
+        }
+      },
+      {
+        id: 5,
+        name: "尾火虎",
+        palace: "東方青龍",
+        animal: "虎",
+        elem: "火",
+        field: "寅宮 · 幽州 · 燕國分野",
+        desc: "尾宿為青龍舒展之龍尾，九星列於天漢銀河之中。尾宿主軍事羽林、後宮子孫嗣續之事。",
+        quiz: {
+          q: "尾宿九星彎曲宛如蠍尾，在現代天體坐標中隸屬於哪一個星座？",
+          opts: ["天蠍座（Scorpius）", "射手座", "半人馬座", "天鷹座"],
+          ans: 0,
+          fact: "尾宿九星正構成天蠍座捲曲的毒刺尾部。"
+        }
+      },
+      {
+        id: 6,
+        name: "箕水豹",
+        palace: "東方青龍",
+        animal: "豹",
+        elem: "水",
+        field: "寅宮 · 幽州 · 燕國分野",
+        desc: "箕宿居青龍尾末，四星形似簸箕。古人觀箕主風，詩云「月麗於箕，風揚沙埃」，主口舌好風之象。",
+        quiz: {
+          q: "成語「南箕北斗」常用來比喻什麼情況？",
+          opts: ["徒有虛名而無實用", "星象交相輝映", "四海昇平安定", "兵戎南北交鋒"],
+          ans: 0,
+          fact: "《詩經·小雅·大東》：「維南有箕，不可以簸揚；維北有斗，不可以挹酒漿。」形容有名無實。"
+        }
+      },
+
+      // --- 北方玄武七宿 (7 ~ 13) ---
+      {
+        id: 7,
+        name: "斗木獬",
+        palace: "北方玄武",
+        animal: "獬",
+        elem: "木",
+        field: "丑宮 · 幽州 · 吳越分野",
+        desc: "斗宿為北方玄武之頭龜首，即「南斗六星」。道教崇仰南斗主壽、北斗主死，天府宮宿。",
+        quiz: {
+          q: "俗諺常云：「南斗注生，北斗注——」？",
+          opts: ["死", "昌", "福", "祿"],
+          ans: 0,
+          fact: "民間道教傳統以南斗六星延壽註生，北斗七星掌死籍陶融。"
+        }
+      },
+      {
+        id: 8,
+        name: "牛金牛",
+        palace: "北方玄武",
+        animal: "牛",
+        elem: "金",
+        field: "丑宮 · 揚州 · 吳越分野",
+        desc: "牛宿即牽牛星，主耕稼灌溉、關梁要津。六星橫立，與織女隔河相對，為務本力行之星。",
+        quiz: {
+          q: "民間「七夕牽牛織女」傳說中，牽牛星天象正式對應於二十八宿的哪一星？",
+          opts: ["河鼓二（天鷹座α）", "心宿二", "天狼星", "角宿一"],
+          ans: 0,
+          fact: "古代牽牛初指牛宿，後演變為河鼓三星之大星（河鼓二/牛郎星）。"
+        }
+      },
+      {
+        id: 9,
+        name: "女土蝠",
+        palace: "北方玄武",
+        animal: "蝠",
+        elem: "土",
+        field: "子宮 · 幽州 · 齊趙分野",
+        desc: "須女之星，四星若長布。主女紅布帛、裁縫裝嫁與天下庫藏之司。",
+        quiz: {
+          q: "女宿在古代二十八宿曜禽中，配屬五行與靈禽為何？",
+          opts: ["女土蝠", "女水燕", "女木獺", "女火猴"],
+          ans: 0,
+          fact: "女宿屬土，星禽配蝙蝠，稱女土蝠。"
+        }
+      },
+      {
+        id: 10,
+        name: "虛日鼠",
+        palace: "北方玄武",
+        animal: "鼠",
+        elem: "日（火）",
+        field: "子宮 · 青州 · 齊國分野",
+        desc: "虛宿二星，居正北子宮陰陽之交界。虛者塚宰也，主宗廟祭祀之禮，亦主人事悲泣虛損之事。",
+        quiz: {
+          q: "虛宿位於正北方位，在十二地支中與哪一宮地支配屬？",
+          opts: ["子宮", "午宮", "卯宮", "酉宮"],
+          ans: 0,
+          fact: "玄武危虛二宿鎮守子宮，為水旺至陰之位。"
+        }
+      },
+      {
+        id: 11,
+        name: "危月燕",
+        palace: "北方玄武",
+        animal: "燕",
+        elem: "月（水）",
+        field: "子宮 · 青州 · 齊國分野",
+        desc: "危宿三星成三角，玄武之甲背頂顛。危者高峻險仄，提示居安思危、固築城郭以備風寒禦敵。",
+        quiz: {
+          q: "《詩經》載「危宿見，修城郭」，其曆法天候寓意為何？",
+          opts: ["秋末寒冬將至，需早作工事防護", "春耕已屆，開墾水渠", "盛夏多雨，防範洪峰", "大暑酷熱，宜闢行宮"],
+          ans: 0,
+          fact: "危宿深秋中天，古人在入冬前抓緊維修城池屋舍防寒。"
+        }
+      },
+      {
+        id: 12,
+        name: "室火豬",
+        palace: "北方玄武",
+        animal: "豬",
+        elem: "火",
+        field: "亥宮 · 并州 · 衛國分野",
+        desc: "室宿又名營室、定星。二星平直如屋垣，天子以此營建宗廟殿閣，《豳風》有定之方中之詠。",
+        quiz: {
+          q: "詩經名篇「定之方中，作于楚宮」中的「定星」即指二十八宿的何宿？",
+          opts: ["營室宿", "東井宿", "牛宿", "鬼宿"],
+          ans: 0,
+          fact: "《毛詩》傳曰：定，營室也。十月定星昏中而可以營造宮室。"
+        }
+      },
+      {
+        id: 13,
+        name: "壁水貐",
+        palace: "北方玄武",
+        animal: "貐",
+        elem: "水",
+        field: "亥宮 · 并州 · 衛國分野",
+        desc: "壁宿即東壁圖書之府，兩星為天之秘書府庫，文章文明典籍之匯聚，主天子尚德求賢、文章煥發。",
+        quiz: {
+          q: "古代皇家或私家典藏宏富的藏書閣，常以「東壁」借稱，是因壁宿象徵？",
+          opts: ["文章學術與圖籍寶庫", "邊塞壁壘要塞", "黃金府庫", "醫卜藥草"],
+          ans: 0,
+          fact: "唐人有詩：「玉壺買春，賞雨茅屋；坐中佳士，左右修竹；東壁圖書，西園翰墨。」"
+        }
+      },
+
+      // --- 西方白虎七宿 (14 ~ 20) ---
+      {
+        id: 14,
+        name: "奎木狼",
+        palace: "西方白虎",
+        animal: "狼",
+        elem: "木",
+        field: "戌宮 · 冀州 · 魯國分野",
+        desc: "奎宿十六星聯如雙魚，為西方白虎之首宿。奎主文章、武庫、治亂興替，古稱奎星點斗主登科科甲。",
+        quiz: {
+          q: "科舉時代士人常拜之「魁星（奎星）」，其天象名號轉化自白虎哪一宿？",
+          opts: ["奎宿（奎木狼）", "胃宿", "昂宿", "畢宿"],
+          ans: 0,
+          fact: "「奎」主文運文章，民間後因字形諧音轉寫為「魁星踢斗」。"
+        }
+      },
+      {
+        id: 15,
+        name: "婁金狗",
+        palace: "西方白虎",
+        animal: "狗",
+        elem: "金",
+        field: "戌宮 · 冀州 · 魯之分野",
+        desc: "婁宿三星聚若三角形，婁者聚也。主宗廟祭祀犧牲、聚眾納財、亦主養牧蕃育萬物。",
+        quiz: {
+          q: "「婁宿」在字義與象意上，其核心主事涵義為？",
+          opts: ["聚斂與會集", "逃散奔竄", "水災覆沒", "兵變叛離"],
+          ans: 0,
+          fact: "婁訓為聚，主天府祭牲與聚眾之事。"
+        }
+      },
+      {
+        id: 16,
+        name: "胃土雉",
+        palace: "西方白虎",
+        animal: "雉",
+        elem: "土",
+        field: "酉宮 · 冀州 · 趙國分野",
+        desc: "胃宿三星，象徵天之五穀倉庫、大梁天倉。胃主納受水穀、財賦出納，國庫充裕民安。",
+        quiz: {
+          q: "在中醫臟腑與天宿分野對應中，「天倉胃宿」與人體何者對應？",
+          opts: ["脾胃消化倉廩", "心主神明", "肺金呼吸", "腎水真陰"],
+          ans: 0,
+          fact: "胃為天倉，主消化儲存，與人之胃腑受納百味完全相應。"
+        }
+      },
+      {
+        id: 17,
+        name: "昴日雞",
+        palace: "西方白虎",
+        animal: "雞",
+        elem: "日（火）",
+        field: "酉宮 · 冀州 · 趙之分野",
+        desc: "昴宿為著名七姊妹星團，古稱旄頭。西方西方金氣極肅殺之地，主白虎兵戈征伐、刑獄辨姦。",
+        quiz: {
+          q: "《西遊記》中專克蜈蚣百眼魔君、啼鳴退妖的星宿大仙為？",
+          opts: ["昴日星官", "井木犴", "奎木狼", "亢金龍"],
+          ans: 0,
+          fact: "昴日星官本相為雙冠大公雞，啼鳴一聲即破百眼魔君之妖術。"
+        }
+      },
+      {
+        id: 18,
+        name: "畢月烏",
+        palace: "西方白虎",
+        animal: "烏",
+        elem: "月（水）",
+        field: "申宮 · 梁州 · 魏國分野",
+        desc: "畢宿八星如叉狀網罟，主狩獵邊守，又主甘霖。天象詩曰「月離於畢，俾滂沱兮」，主沛然之雨。",
+        quiz: {
+          q: "《尚書·洪範》名句「月之從星，則以風雨。日月之行，則有冬夏。月離於畢，俾滂沱兮」，形容哪種天象？",
+          opts: ["月行掩掩入畢宿，常興滂沱大雨", "烈日乾旱大飢", "嚴冬冰封千里", "秋高氣爽無雲"],
+          ans: 0,
+          fact: "古天文發現月亮經過畢宿附近時，氣壓常易擾動而降暴雨。"
+        }
+      },
+      {
+        id: 19,
+        name: "觜火猴",
+        palace: "西方白虎",
+        animal: "猴",
+        elem: "火",
+        field: "申宮 · 益州 · 魏之分野",
+        desc: "觜宿三星緊密微小，為白虎之口喙。觜者嘴也，物之端銳，主言詞機辯，亦警醒多言招尤、察機避險。",
+        quiz: {
+          q: "觜宿是二十八宿中跨度極小的一宿，常與相鄰的何宿並稱商參之局？",
+          opts: ["參宿", "角宿", "翼宿", "井宿"],
+          ans: 0,
+          fact: "觜與參同處獵戶座區域，極為貼近相隨。"
+        }
+      },
+      {
+        id: 20,
+        name: "參水猿",
+        palace: "西方白虎",
+        animal: "猿",
+        elem: "水",
+        field: "申宮 · 益州 · 秦晉分野",
+        desc: "參宿七星雄峙西方（獵戶座主幹），中三星為橫列玉衡。參商兩不相見，白虎威武將軍之象，主討伐用兵。",
+        quiz: {
+          q: "杜甫詩「人生不相見，動如參與商」，詩中的「商」是指哪一個星宿？",
+          opts: ["心宿（大火商星）", "角宿", "斗宿", "虛宿"],
+          ans: 0,
+          fact: "商指東方心宿（大火），參指西方參宿，二者一升一沉，永不並出於天空。"
+        }
+      },
+
+      // --- 南方朱雀七宿 (21 ~ 27) ---
+      {
+        id: 21,
+        name: "井木犴",
+        palace: "南方朱雀",
+        animal: "犴",
+        elem: "木",
+        field: "未宮 · 雍州 · 秦國分野",
+        desc: "井宿八星如天井，為朱雀冠首。跨赤經廣大，天之津梁泉源，主法度平準、水泉清洌與法令平允。",
+        quiz: {
+          q: "在天球赤道分野中，二十八宿赤經度數跨度最大的一宿是？",
+          opts: ["井宿（東井）", "觜宿", "鬼宿", "房宿"],
+          ans: 0,
+          fact: "東井跨度超過三十度，為二十八宿諸宿之冠；而觜宿最小，不及兩度。"
+        }
+      },
+      {
+        id: 22,
+        name: "鬼金羊",
+        palace: "南方朱雀",
+        animal: "羊",
+        elem: "金",
+        field: "未宮 · 雍州 · 秦之分野",
+        desc: "鬼宿四星中有星團名「積尸氣」（鬼星團M44）。主幽隱、祭祀神鬼之事，提醒修德化煞以定心神。",
+        quiz: {
+          q: "鬼宿中央著名的朦朧星團「積尸氣」，在現代梅西爾星表中編號為？",
+          opts: ["M44（蜂巢星團）", "M31", "M42", "M45"],
+          ans: 0,
+          fact: "巨蟹座中央的M44星團，古稱鬼宿積尸氣。"
+        }
+      },
+      {
+        id: 23,
+        name: "柳土獐",
+        palace: "南方朱雀",
+        animal: "獐",
+        elem: "土",
+        field: "午宮 · 荊州 · 周楚分野",
+        desc: "柳宿八星垂垂如柳枝，為朱雀之咽喙與長喙。主天之庖廚宴饗、供奉上膳，言動宜慎防讒言。",
+        quiz: {
+          q: "柳宿在朱雀星象部位中象徵朱雀的哪一部分？",
+          opts: ["鳥喙與咽喉", "巨翼展翅", "腹囊", "尾末絨毛"],
+          ans: 0,
+          fact: "柳為雀嘴，故古天文家稱柳宿主進食調膳與天廚。"
+        }
+      },
+      {
+        id: 24,
+        name: "星日馬",
+        palace: "南方朱雀",
+        animal: "馬",
+        elem: "日（火）",
+        field: "午宮 · 荊州 · 周國分野",
+        desc: "星宿七星列如珠玉頸項，又稱「七星」。位居正南午宮，象徵朱雀之頸羽，光明盛大，文華炳煥。",
+        quiz: {
+          q: "星宿在《漢書》與民間常通稱之為？",
+          opts: ["七星", "九曜", "天乙", "開陽"],
+          ans: 0,
+          fact: "南方星宿因有七顆亮星排聚，自古常單稱「七星」。"
+        }
+      },
+      {
+        id: 25,
+        name: "張月鹿",
+        palace: "南方朱雀",
+        animal: "鹿",
+        elem: "月（水）",
+        field: "巳宮 · 荊州 · 楚國分野",
+        desc: "張宿六星若張羅之網，亦為朱雀之嗉囊。張者開張弘大，主設宴迎賓、宗廟禮樂、萬物敷暢。",
+        quiz: {
+          q: "二十八宿中，宿名本身即含「弘宣盛大、展布鋪陳」意涵的吉宿是？",
+          opts: ["張宿（張月鹿）", "危宿", "室宿", "婁宿"],
+          ans: 0,
+          fact: "張宿主開張布化，天庭饗宴和合之兆。"
+        }
+      },
+      {
+        id: 26,
+        name: "翼火蛇",
+        palace: "南方朱雀",
+        animal: "蛇",
+        elem: "火",
+        field: "巳宮 · 揚州 · 楚越分野",
+        desc: "翼宿二十二星如垂天之翼，為朱雀振翅翱翔之姿。主遠方歸附、禮樂歌舞、長途涉水行舟與文教飛昇。",
+        quiz: {
+          q: "翼宿星數繁多，其天象形廓主要象徵朱雀神鳥的？",
+          opts: ["雙翼羽翮", "腳爪", "尾翎", "鳥冠"],
+          ans: 0,
+          fact: "翼二十二星橫跨天際，宛若火鳳凰之龐大羽翼。"
+        }
+      },
+      {
+        id: 27,
+        name: "軫水蚓",
+        palace: "南方朱雀",
+        animal: "蚓",
+        elem: "水",
+        field: "巳宮 · 揚州 · 楚長沙分野",
+        desc: "軫宿四星為車輿之象，中有長沙小星。軫宿為朱雀之尾車，主管駕車涉遠、風塵跋涉與三軍出行之吉。",
+        quiz: {
+          q: "湖南省會「長沙」古稱星沙，其由來係因長沙星附麗於哪一宿旁？",
+          opts: ["軫宿", "心宿", "井宿", "亢宿"],
+          ans: 0,
+          fact: "《史記·天官書》載軫宿旁有一小星名長沙星，地應其名，故長沙有「星沙」之稱。"
+        }
+      }
+    ];
+
+    /* =========================================================================
+       2. 8x8 矩形環狀外圍座標演算法 (周長 7 + 7 + 7 + 7 = 28 格)
+       四象各佔 7 格，東南西北一象一邊，嚴整分明
+       ========================================================================= */
+    function get8x8RingCoords(index) {
+      if (index >= 0 && index <= 6) {
+        // [東方青龍七宿] 居底部排：從 (8, 8) 往左行至 (8, 2)
+        return { row: 8, col: 8 - index, palaceKey: "dragon" };
+      } else if (index >= 7 && index <= 13) {
+        // [北方玄武七宿] 居左側排：從 (8, 1) 往上行至 (2, 1)
+        return { row: 8 - (index - 7), col: 1, palaceKey: "tortoise" };
+      } else if (index >= 14 && index <= 20) {
+        // [西方白虎七宿] 居頂部排：從 (1, 1) 往右行至 (1, 7)
+        return { row: 1, col: 1 + (index - 14), palaceKey: "tiger" };
+      } else {
+        // [南方朱雀七宿] 居右側排：從 (1, 8) 往下行至 (7, 8)
+        return { row: 1 + (index - 21), col: 8, palaceKey: "bird" };
+      }
+    }
+
+    /* =========================================================================
+       3. 核心遊玩狀態機
+       ========================================================================= */
+    let currentMansionIndex = 0;
+    let unlockedMansions = new Set([0]);
+    let celestialScore = 0;
+    let isTransitioning = false;
+    let answeredCurrent = false;
+
+    const boardGridEl = document.getElementById("mansions-grid");
+    const tokenElement = document.createElement("div");
+    tokenElement.className = "astrolabe-token";
+
+    // 啟動棋盤
+    function buildSkyBoard() {
+      TWENTY_EIGHT_MANSIONS.forEach((star, idx) => {
+        const layout = get8x8RingCoords(idx);
+        const cell = document.createElement("div");
+        cell.className = `mansion-cell palace-${layout.palaceKey}`;
+        cell.id = `mansion-${idx}`;
+        cell.style.gridRow = layout.row;
+        cell.style.gridColumn = layout.col;
+
+        cell.innerHTML = `
+          <span class="cell-num">${String(idx + 1).padStart(2, '0')}</span>
+          <span class="cell-star-name">${star.name.substring(0, 2)}</span>
+          <span class="cell-badge">${star.elem}</span>
+        `;
+
+        cell.addEventListener("click", () => inspectMansion(idx));
+        boardGridEl.appendChild(cell);
+      });
+
+      renderPlayerPosition();
+      inspectMansion(0);
+    }
+
+    // 渲染定位與高亮
+    function renderPlayerPosition() {
+      document.querySelectorAll(".mansion-cell").forEach(el => el.classList.remove("active-step"));
+      
+      const targetCell = document.getElementById(`mansion-${currentMansionIndex}`);
+      if (targetCell) {
+        targetCell.classList.add("active-step");
+        targetCell.appendChild(tokenElement);
+      }
+
+      unlockedMansions.add(currentMansionIndex);
+      document.getElementById("catalog-count").innerText = `${unlockedMansions.size} / 28`;
+      document.getElementById("star-score").innerText = `${celestialScore} 爻`;
+    }
+
+    // 檢視星宿細節文牘
+    function inspectMansion(index) {
+      const star = TWENTY_EIGHT_MANSIONS[index];
+      document.getElementById("m-name").innerText = `${star.name}（${star.animal}）`;
+      document.getElementById("m-palace").innerText = `${star.palace} · 宿性【${star.elem}】`;
+      document.getElementById("m-field").innerText = `星度分野：${star.field}`;
+      document.getElementById("m-desc").innerText = star.desc;
+
+      loadQuizQuestion(star.quiz);
+    }
+
+    // 載入當宿考題
+    function loadQuizQuestion(quiz) {
+      answeredCurrent = false;
+      document.getElementById("quiz-prompt").innerText = `【星官考定】${quiz.q}`;
+      const optsContainer = document.getElementById("quiz-opts");
+      const reportBox = document.getElementById("quiz-feedback");
+      
+      optsContainer.innerHTML = "";
+      reportBox.innerText = "";
+
+      const markTokens = ["子", "丑", "寅", "卯"];
+      quiz.opts.forEach((optStr, i) => {
+        const btn = document.createElement("button");
+        btn.className = "opt-btn";
+        btn.innerText = `${markTokens[i]} · ${optStr}`;
+        btn.onclick = () => submitAnswer(i, quiz.ans, quiz.fact);
+        optsContainer.appendChild(btn);
+      });
+    }
+
+    // 提交答案審核
+    function submitAnswer(chosen, correct, fact) {
+      if (answeredCurrent) return;
+      answeredCurrent = true;
+
+      const reportBox = document.getElementById("quiz-feedback");
+      const allBtns = document.querySelectorAll(".opt-btn");
+      allBtns.forEach(b => b.disabled = true);
+
+      if (chosen === correct) {
+        celestialScore += 10;
+        reportBox.style.color = "var(--azure-dragon)";
+        reportBox.innerText = `【明悟】答對！通解星象，玄術通識度 +10。考證：${fact}`;
+      } else {
+        reportBox.style.color = "var(--cinnabar)";
+        reportBox.innerText = `【勘誤】未合經義。考證：${fact}`;
+      }
+      document.getElementById("star-score").innerText = `${celestialScore} 爻`;
+    }
+
+    // 擲骰演繹（旋轉璇璣輪）
+    function spinAstrolabe() {
+      if (isTransitioning) return;
+      isTransitioning = true;
+
+      const rollBtn = document.getElementById("roll-btn");
+      const stepDisplay = document.getElementById("dice-step");
+      rollBtn.disabled = true;
+
+      // 產生 1 ~ 6 步
+      const finalSteps = Math.floor(Math.random() * 6) + 1;
+      
+      // 快速滾動動畫特效
+      let tick = 0;
+      const rollAnim = setInterval(() => {
+        stepDisplay.innerText = Math.floor(Math.random() * 6) + 1;
+        tick++;
+        if (tick > 7) {
+          clearInterval(rollAnim);
+          stepDisplay.innerText = finalSteps;
+          stepByStepMove(finalSteps);
+        }
+      }, 70);
+    }
+
+    // 逐格平滑進步移動
+    function stepByStepMove(remainingSteps) {
+      let left = remainingSteps;
+      const stepInterval = setInterval(() => {
+        currentMansionIndex = (currentMansionIndex + 1) % 28;
+        renderPlayerPosition();
+        left--;
+
+        if (left <= 0) {
+          clearInterval(stepInterval);
+          isTransitioning = false;
+          document.getElementById("roll-btn").disabled = false;
+          inspectMansion(currentMansionIndex);
+        }
+      }, 190);
+    }
+
+    // 頁面載入完成即刻排局
+    window.onload = buildSkyBoard;
+  </script>
+</body>
+</html>
