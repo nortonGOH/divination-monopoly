@@ -1,68 +1,108 @@
-# 數術知識大挑戰 · 第三版
+# 數術知識大挑戰 v4 — GitHub Pages + Supabase + 站內 EPUB 文獻庫
 
-GitHub Pages 靜態站（`index.html` + `config.js` + `questions.json`），題庫管理員認證與跨訪客資料讀寫使用 **Supabase Auth + PostgreSQL Row Level Security (RLS)**。
+版本日期：2026-10-27。系統為互動學習示意，不應將現代抽宿機制誤認為已有古籍證明的占法。
 
-## 這版修改
+## A. 此版介面
 
-1. **安全管理員登入**：公開網頁不寫密碼、密碼雜湊、Supabase secret/service_role 密鑰。管理員登入憑證送往 Supabase Auth（HTTPS），經由資料庫 `quiz_admins` 及 RLS 確認有權新增、刪除、更新題目。
-2. **史書天文資料輪播**：目前有《史記》《漢書》《後漢書》《晉書》《宋書》《宋史》《元史》《明史》共八部正史的短引文或明確標為「編者說明」的摘要。依星宿所屬方位優先抽選，亦有跨星宿通用資料。每則附卷次、原始文字網址。**不是二十四史全部都有天文志，也不是所有章節逐宿記錄。**
-3. **北極星與北斗**：固定北極星於圓心，天璇—天樞—北極星成指極示意線，北斗繞圓心逆時針轉動，瑤光指針指向所選二十八宿。示意星距與圓盤扇區不是實測天象。
+- 二十八宿圓盤固定**上南、下北、左東、右西**；改用傳統連續次序「東方角亢氐房心尾箕 → 北方斗牛女虛危室壁 → 西方奎婁胃昴畢觜參 → 南方井鬼柳星張翼軫」。**角木蛟置於原先箕水豹位置（左上），依序逆時針排到左下箕宿**；其餘三方也相應調整以保持 28 宿連續。
+- 北極星（圓心）可滑鼠點擊或鍵盤 Tab 選取，再按 Enter/空白鍵啟動抽宿；一般「抽宿挑戰」按鈕仍可用。固定天極僅為示意，非精確歷史天球。
+- 史料卡上的「站內查閱」或「文獻庫」開啟本頁的閱讀對話框，**不再開外部文獻網址**。可選書、選章及本章字詞查找。
+- 若沒有上傳真正 EPUB 轉製的正文，閱讀器會明確告知「尚未匯入」，不會拿別部書替代。原版 HISTORIES 的既有短句因未對照使用者提供 EPUB，**一律顯示「既有文字摘錄（待與 EPUB 核對）」**。
+- 題庫仍支援 56 題基本題及管理員透過 Supabase 登入，登入安全由伺服器端 Auth 和 RLS 保護。
 
-## 部署與初始管理員設定（必要）
+## B. 逐步建立 Supabase 帳號與專案（一次性）
 
-> **注意：GitHub Pages 不提供後端密碼驗證。** 本站未設定安全後端時可公開答題與閱讀，但點「管理題庫」只會顯示設定提示，**不提供可繞過的前端管理密碼**。
-
-1. 到 [Supabase](https://supabase.com/) 建立專案，記下 `Project URL` 與 **Publishable key**（舊專案可用 legacy `anon` key）。**不要用** `secret` 或 `service_role` key。
-2. 在 Supabase **SQL Editor** 先執行 `setup.sql`，建立 `quiz_admins`、`quiz_questions` 兩表，四種操作的 RLS 規則及原子性題庫取代 RPC。
-3. 在同一 SQL Editor 執行 `seed.sql`，匯入初始 56 題。此腳本只增修相同 ID 的題目。
-4. 在 Supabase **Authentication → Users** 新增管理員電子郵件／密碼使用者（建議使用強密碼、電子郵件驗證及 MFA，並關閉對外自由註冊），複製該使用者 **UID**。**在私人的 SQL Editor** 執行：
+1. 在瀏覽器前往 https://supabase.com/dashboard ，按 **Sign up**（註冊），可選電子郵件或其支援的身份提供者。依頁面指引驗證帳號並登入。請使用自己管理的電子郵件；不要在公開程式碼提供任何密碼。
+2. 選 **New project**（有些版面需先選 **New organization**），輸入專案名稱（例如 `divination-quiz`），設定**資料庫密碼**並安全留存。這個資料庫密碼 **不是** 網站管理員登入密碼。
+3. 選擇離訪客較近的區域（台灣使用者可按現有供應區域比較 Tokyo / Singapore），按 **Create new project**。專案完成建立後就有 PostgreSQL 資料庫和 Supabase Auth。
+4. 左側選 **SQL Editor → New query**。開啟本套件的 `setup.sql`，將全部內容貼上並 **Run**。這會建立 `quiz_admins` / `quiz_questions`、RLS 設定與 `replace_quiz_bank` RPC。**注意 SQL 腳本須一次核查後再執行，勿隨意在正式專案反覆覆蓋自訂政策。**
+5. 另開 SQL Query，貼上 `seed.sql` 內容再按 **Run**，建立 56 題種子題庫。可到 **Table Editor → quiz_questions** 確認資料。
+6. 左側 **Authentication → Users → Add user**（實際文字可能因平台版本而變）：新增一位具**電子郵件＋強密碼**的管理員，完成需要的 email confirmation。請到 **Authentication → Providers / Sign In** 關閉**不需要的訪客自助註冊**（只允許受邀或管理員建立的帳號）；如果需要郵件確認，請設定好郵件傳送。
+7. 在 **Authentication → Users** 內複製管理員的 **User UID（UUID）**，回到私人 SQL Editor 執行下列 SQL，把 UUID 替換為真實值：
 
    ```sql
    insert into public.quiz_admins(user_id)
-   values ('此處替換為實際的管理員 UID');
+   values ('請替換成管理員的真實-UUID');
    ```
 
-   此 UID 不含密碼；請勿將實際帳號資訊或密鑰提交 GitHub。
-5. 修改 `config.js`（只有兩項**可公開**的設定）：
+   **只在自己的 Supabase Dashboard 中執行。** 不要把含管理員 UID、個資、密碼的 SQL 提交到公開 GitHub。
+8. 到 Supabase 專案右上角 **Connect**，查詢 **Project URL** 和 **Publishable key**；或在 **Settings → API Keys** 找 publishable key（形式 `sb_publishable_...`）。不要複製 `sb_secret_...`、舊式 `service_role`。參照官方：https://supabase.com/docs/guides/getting-started/api-keys
+9. 修改 `config.js` 的**兩個公開設定**：
 
-   ```js
+   ```javascript
    window.QUIZ_AUTH_CONFIG = {
-     supabaseUrl: 'https://你的專案.supabase.co',
+     supabaseUrl: 'https://你的專案參照碼.supabase.co',
      publishableKey: 'sb_publishable_你的公開金鑰'
    };
    ```
 
-   Supabase 專案請保持正確的 API 權限及允許網站來源的設定。真正的資料修改權限由 SQL RLS 控制，**不是** `config.js` 隱藏。
-6. 將 `index.html`、`config.js`、`questions.json` 放在 GitHub Pages 的網站根目錄。`setup.sql` 和 `seed.sql` 是方便部署的文件，不會在公開網站自動執行。可將 SQL 放入私人管理資料夾，不必公開上傳。
-7. 打開 `https://nortongoh.github.io/divination-monopoly/`，按「管理題庫」以管理員信箱與密碼登入。登入後所有新增、編輯、刪除、匯入、恢復預設都透過 Supabase，對所有訪客立即生效（訪客若已打開頁面，須重新載入才能取得更新）。
+   注意：這兩項是**刻意允許公開**的專案資訊，不是管理密碼。真正的安全邊界是 RLS。將網站管理員登入密碼或 Supabase secret key 寫入 JavaScript 將是不安全的。
+10. 部署後以管理員帳密登入網站「管理題庫」。實測新增一題、重新整理頁面及另一瀏覽器能讀到更新；再以未登入／普通已登入使用者測試無法新增、編輯、刪除題目；也應確認 RPC 無權呼叫時會拒絕。**本套件無法替您的 Supabase 專案完成真實帳號、網路和 RLS 整合測試。**
 
-## 安全邊界
+## C. 如何提供 EPUB 原始文獻（不使用外部連結）
 
-- 後端帳密及密碼驗證由 Supabase Auth 提供；系統不把密碼或可逆密文寫進 GitHub。公開的 publishable key **不是**管理員祕密。
-- 密碼**不能靠前端加密、混淆或「防 AI 反組譯」保護**：攻擊者永遠能看到公開 Javascript。伺服器端身分驗證和 RLS 才是保護資料修改的關鍵。
-- 匿名使用者只具有題庫 `SELECT` 權限；已登入但未加入 `quiz_admins` 的使用者也不能寫入。`quiz_admins` 不允許前端自行加管理員。
-- 網頁不把登入存到 localStorage/sessionStorage；重新整理後需重新登入。登入 Token 暫存在目前分頁的記憶體內，登出會呼叫 Supabase Auth 撤銷會話。
-- 部署前請使用非管理員／未登入角色，**實際測試**資料庫拒絕 `POST`、`PATCH`、`DELETE` 與 `replace_quiz_bank`。本次交付未連接您的 Supabase 專案，因此**未能執行真實後端滲透或權限測試**。
-- 課題、正確答案及原始文獻引用是**公開讀取內容**，不適用於要求隱藏正確答案的高風險測驗。
+### 方法 1：上傳 EPUB 至此對話以利轉製
 
-## 史料核對與史學注意
+把合法取得、可以公開展示的 `*.epub` 上傳到 ChatGPT 對話，並註明：
 
-引文集中於 `index.html` 的 `HISTORIES` 陣列；每則標記書名、卷次、原文連結，`quote` 是核對過的短引文，`context` 是現代編者說明。留空 `quote` 只展示摘要，不充作直接引文。將來擴充史料，宜對照可靠影印底本並記錄版本資訊。`《後漢書》志` 實取自司馬彪《續漢書》，後經劉昭補注附於今本；史書正文、注、後人補述需區分。《宋史》對極與極星的記載也提醒我們：圖上把「極星」固定在天極，只是互動示意，不能當成跨時代不變的精確天文位置。
+- 書名與篇／卷名；例如《史記》卷二十七〈天官書〉。
+- EPUB 來源、編校者、出版者、版本及已知異文（能查到才填）。
+- 是否有公開放上 GitHub Pages 的重製與散布授權；**僅個人持有 EPUB 不代表可以公開轉發全文**。
 
-原始文本檢索連結：
+之後可製作 `library/books/*.json` 及 `library/catalog.json`，供右側「站內查閱」開啟；**本次 ZIP 尚無任何使用者提供的史書 EPUB，因此不含史書全文**。
 
-- 《史記》卷二十七〈天官書〉：https://zh.wikisource.org/wiki/史記/卷027
-- 《漢書》卷二十六〈天文志〉：https://zh.wikisource.org/wiki/漢書/卷026
-- 《後漢書》志第十〈天文上〉：https://www.shidianguji.com/zh/book/LS0003/chapter/1j7lpp5enssv9_275
-- 《晉書》卷十一〈天文上〉：https://zh.wikisource.org/wiki/晉書/卷011
-- 《宋書》卷二十三〈天文一〉：https://zh.wikisource.org/zh-hant/宋書/卷23
-- 《宋史》卷四十八〈天文一〉：https://zh.wikisource.org/zh-hant/宋史/卷048
-- 《元史》卷四十八〈天文一〉：https://zh.wikisource.org/wiki/元史_(四庫全書本)/卷048
-- 《明史》卷二十五〈天文〉：https://zh.wikisource.org/wiki/明史_(四庫全書本)/卷025
+### 方法 2：在本機自行轉換（離線、無須額外 Python 套件）
 
-## 技術說明
+1. 安裝 Python 3.10+，下載本套件並解壓縮；在包含 `index.html` 的根資料夾打開 PowerShell。
+2. 將合法可公開的 EPUB 存入 `epub_input` 資料夾。範例：
 
-- 客戶端只有原生 HTML/CSS/JS，不需建置工具或外部 JS CDN。
-- 題庫仍保留 28 宿各兩題，共 56 題；題庫管理有搜尋、增刪改、JSON 匯入/匯出、恢復預設等。
-- `seed.sql` 將原版 JSON 題庫投入後端；GitHub 根目錄 `questions.json` 為公開示範及「恢復網站預設」的基礎資料。
-- **直接引文不是校勘定本**：已核查網路文字版篇章，但尚未逐字校對武英殿本、四庫本等影印原件；需要正式學術引用時仍應與版本底本比對。
+   ```powershell
+   python .\tools\epub_to_library.py .\epub_input\shiji.epub --id shiji --title "《史記》" --edition "請填真實版本資料"
+   ```
+
+   若用 Windows，請在 PowerShell 上使用上述指令。macOS/Linux 可將路徑分隔符 `\` 改為 `/`。
+3. 轉換器會讀取 EPUB 的 OPF 書脊（spine）閱讀順序與 XHTML 文字，產出或更新：
+
+   ```text
+   library/
+     catalog.json
+     books/
+       shiji.json
+   ```
+
+   其他史書可以改 `--id hanshu`、`--id houhanshu`、`--id jinshu` 等，一書一個 JSON，不會覆寫其他 ID 的書。
+4. 打開 `library/books/shiji.json`，校對書名、章節順序、文字、缺漏和異體字。文字段落有 EPUB 原始內部路徑 `source_path`、書脊順序 `spine_index` 與閱讀器內的段序。**EPUB 未必有固定紙本頁碼，不能用網頁段序冒充原書頁碼。** 有掃描圖、圖片正文或 DRM 時，工具不會猜字或跳過授權限制。
+5. 把更新的 `library/catalog.json` 與 `library/books/*.json` 上傳到同一 GitHub Pages repo。以後讀者按「文獻庫」即可**在網站內**閱讀，不跳轉外站。
+
+**限制**：本工具只轉出可擷取的 EPUB XHTML 文字，保留原字而不自動校勘；不擷取圖片文字、不做 OCR、不用 AI 猜測缺字，不繞過 DRM。如有複雜註腳或特殊排版，需另行人工核對。公開託管全文必須遵守授權及法規；若無散布權，可改只放獲授權節錄，或建置需要授權登入的**私有後端文獻服務**，不要把私密資料提交公開 repo。
+
+### 目前史料摘錄的嚴格定位
+
+`HISTORIES` 是第三版延續的演示摘錄與編者說明，不等同已用 EPUB 原始文件逐頁對校。正式論文引用時，請在讀到提供的 EPUB 後逐條對照正文、注疏、版本差異與可核的卷篇／葉次。網站**不會宣稱**尚未提供的 EPUB 已經匯入。
+
+## D. GitHub Pages 部署
+
+將以下檔案與目錄放在 `nortonGOH/divination-monopoly` 儲存庫 **根目錄**：
+
+```text
+index.html
+config.js
+questions.json
+library/
+  catalog.json
+  books/
+    （有 EPUB 且經授權轉製後才加入 *.json）
+tools/
+  epub_to_library.py
+```
+
+`setup.sql` / `seed.sql` 用於 **Supabase SQL Editor**，並非瀏覽器會自動執行的 SQL，也不必放入公開網站。更新並 commit 之後進入 `https://nortongoh.github.io/divination-monopoly/`。如 GitHub Pages 尚未啟用：儲存庫 **Settings → Pages**，選 **Deploy from a branch**，選主分支與 `/ (root)`。此站只使用原生 HTML、CSS 與 JavaScript，無 CDN 套件與外部文獻閱覽連結。
+
+## E. 測試紀錄與限制
+
+- JavaScript 語法檢查：通過。
+- Playwright 無網路模擬：檢查 28 宿順序及四象方位、北極星滑鼠觸發、停止指向誤差、原有抽宿按鈕、登入未設定時鎖定、EPUB 段落保留、站內查閱與檢索、未匯入對應史書不會替代、手機版無橫向溢出：通過。
+- 模擬測試使用**合成的假 EPUB**，只為測試轉換功能，未混入交付的史料庫；`catalog.json` 預設為空。
+- **未驗證**：真實 Supabase 帳號註冊與驗證（需使用者建立專案）；任何真實史書 EPUB 的全文正確性、版本、排版與著作權狀態（尚未提供原檔）；真實 GitHub Pages 部署。
+
+開發工具和平台依目前檢索到的 Supabase 官方文件整理，實際管理介面名稱可變動。
