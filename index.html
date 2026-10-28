@@ -986,6 +986,7 @@ el('questionForm').addEventListener('submit',async event=>{
   if(!proposed.prompt||proposed.options.some(option=>!option)){
     displayBankToast('請填寫題目及四個選項。');return;
   }
+  if(editingQuestionId&&!window.confirm('確定儲存這道四選一題目的修改？原題號會保留。'))return;
   try{
     validBank([proposed]);
     el('saveQuestionBtn').disabled=true;
