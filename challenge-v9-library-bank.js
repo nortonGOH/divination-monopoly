@@ -53,8 +53,11 @@
     if(MANSIONS.length!==28)throw Error('二十八宿資料不完整，無法執行均分。');
     const pool=rows.map(q=>({...q,difficulty:LEVELS.includes(q.difficulty)?q.difficulty:'中階'}));
     for(const level of LEVELS){
-      const sub=pool.filter(q=>q.difficulty===level).sort((a,b)=>a.id.localeCompare(b.id,'en'));
-      sub.forEach((q,i)=>{q.mansion=MANSIONS[i%28];});
+      const kinds=[...new Set(pool.filter(q=>q.difficulty===level).map(q=>q.knowledge_type||'待分類'))];
+      for(const kind of kinds){
+        const sub=pool.filter(q=>q.difficulty===level&&(q.knowledge_type||'待分類')===kind).sort((a,b)=>a.id.localeCompare(b.id,'en'));
+        sub.forEach((q,i)=>{q.mansion=MANSIONS[i%28];});
+      }
     }
     return pool;
   }
