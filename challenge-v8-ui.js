@@ -58,15 +58,16 @@
     activeMansion=index;
     const mansion=MANSIONS[index]?.name;
     const level=$('quizDifficulty')?.value||'中階';
+    const levelLabel=level==='all'?'不分難度':level;
     const requestedType=typeof window.quizFiveArtsSelection==='function'?window.quizFiveArtsSelection():'all';
     const playable=questionBank.filter(q =>
-      q.mansion===mansion && (q.difficulty||'中階')===level &&
+      q.mansion===mansion && (level==='all'||(q.difficulty||'中階')===level) &&
       (requestedType==='all'||(typeof inferKnowledgeType==='function' && inferKnowledgeType(q)===requestedType)) &&
       Array.isArray(q.options) && q.options.length===4 &&
       Number.isInteger(Number(q.answer)) && Number(q.answer)>=0 && Number(q.answer)<=3
     );
     $('quizScope').textContent='目前星宿：'+mansion;
-    $('quizAvailable').textContent=level+' · 本宿 '+playable.length+' 題四選一';
+    $('quizAvailable').textContent=levelLabel+' · 本宿 '+playable.length+' 題四選一';
     if(!wheelReady) {
       hideQuestion('請按「抽宿挑戰」開始；點選星宿或切換難度不會直接出題。');
       return;
@@ -76,7 +77,7 @@
       return;
     }
     if(!playable.length){
-      hideQuestion('已抽中 '+mansion+'，但「'+level+'」題庫沒有四選一題目；本次不計分，請再抽宿。');
+      hideQuestion('已抽中 '+mansion+'，但「'+levelLabel+'」題庫沒有四選一題目；本次不計分，請再抽宿。');
       return;
     }
     const previous=activeQuestion?.id;
@@ -84,7 +85,7 @@
     const pool=alternatives.length?alternatives:playable;
     const selected=pool[fairRandomInt(pool.length)];
     showQuestion(selected,playable.length);
-    $('quizAvailable').textContent=level+' · 本宿 '+playable.length+' 題四選一';
+    $('quizAvailable').textContent=levelLabel+' · 本宿 '+playable.length+' 題四選一';
     showQuestionPanel();
   };
 
