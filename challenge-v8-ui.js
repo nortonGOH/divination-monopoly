@@ -96,6 +96,17 @@
       hideQuestion(ev ? '抽中「'+ev.name+'」：'+ev.message+'（特殊格不計分）' : '請重新抽宿。');
     }
   };
+  // The v7 listeners hold a reference to the original spin function.
+  // Capture interactions before those listeners, not only by reassignment.
+  for(const el of [$('spinBtn'),$('polaris-trigger')]) {
+    if(!el)continue;
+    el.addEventListener('click',()=>{
+      if(!spinning)hideQuestion('北斗旋轉中，待瑤光停在星宿後才會出題。');
+    },true);
+    el.addEventListener('keydown',e=>{
+      if((e.key==='Enter'||e.key===' ')&&!spinning)hideQuestion('北斗旋轉中，待瑤光停在星宿後才會出題。');
+    },true);
+  }
   const oldSpin=spin;
   spin=function(){
     if(spinning)return;
