@@ -1,38 +1,31 @@
-# Cloudflare Turnstile / Supabase CAPTCHA 整合補丁（測試版）
+# 數術知識大挑戰 v8 — 抽宿後才出四選一題、會員挑戰統計
 
-這個版本針對「數術知識大挑戰」三個登入流程：會員註冊/登入、題庫管理員登入、文獻庫登入。
+## 已更新 GitHub main
 
-## 重要安全原則
-- 不要上傳 Cloudflare Secret Key。Secret Key 只在 Supabase Auth > CAPTCHA 設定中保存。
-- 只需在現有 `config.js` 的 `window.QUIZ_AUTH_CONFIG` 物件中增加：`turnstileSiteKey: '您的公開 Site Key'`（記得在前一行值的結尾補逗號）。
-- 本包故意不含 `config.js`，以免覆蓋您現有 Supabase 專案 URL / Publishable Key。
-- 登入驗證 token 由 Cloudflare 產生、從每個表單讀取後傳給 Supabase Auth；使用後即清除並重新驗證。
+- index.html：載入 challenge-v8-ui.js
+- challenge-v8-ui.js：隱藏重複星宿詳情、僅抽宿後出四選一題、管理員挑戰紀錄視窗
+- quiz-challenge-v7.js：會員狀態列顯示參戰次數、答對次數及成功率
 
-## 部署順序
-1. 在 Cloudflare Turnstile 確認允許 `nortongoh.github.io` 網域。
-2. 在您的 GitHub `config.js` 加入公開 Site Key：
+## 尚需執行資料庫 SQL
 
-```javascript
-window.QUIZ_AUTH_CONFIG = {
-  supabaseUrl: '您的 Supabase Project URL',
-  publishableKey: '您的 Supabase Publishable Key',
-  turnstileSiteKey: '您的 Cloudflare 公開 Site Key'
-};
-```
+在 Supabase Dashboard → SQL Editor 執行 `01_upgrade_player_statistics.sql`，再重新整理網頁。SQL 會保留現有會員與四小時鎖定資料，新增 lifetime total_attempts / correct_attempts，更新 RPC，並加入管理員專用統計查詢。此 SQL 包含第七版原有鎖定函式定義，可重複執行；不要在測驗中途執行資料庫更新。
 
-3. 建議在 GitHub 建新分支備份，再更新本包中 `index.html`、`quiz-challenge-v7.js`、`history-supabase-reader.js`，並新增 `captcha-integration.js`。
-4. 請勿覆蓋原有 `quiz-open-qa.js`、`questions.json`、`calendar-questions-80.json`、`setup.sql`、`history` 資料庫等檔案。
-5. 先在可測試的 GitHub Pages 分支或 staging 網站驗證三種登入；完成後再發佈正式站。
+## 計算方式
 
-## 注意現有網站版本
-本包的 `index.html` 與 `quiz-challenge-v7.js` 是以先前產生的 v7 程式為底本；若 GitHub 上有後續修改，請比對差異後再替換，避免覆蓋新的功能。`history-supabase-reader.js` 對應已核對的目前 GitHub 版本。
+- 參戰一次 = 會員提交一筆被伺服器接受的四選一答案。
+- 成功一次 = 答對一題。
+- 成功率 = 答對次數 / 參戰次數 × 100%。
+- 特殊格（機會／命運）、未作答、開放問答自評均不列入「客觀四選一成功率」。
+- 4 小時鎖定清零的只有當期 wrong_count；累計參戰與成功次數不清零。
+- 統計從此升級後開始累積。舊版沒有保存答題明細，無法安全重建過去的總次數。
+- 各會員的電子郵件及個別紀錄僅授權管理員可看，訪客只能看到自己的統計。
 
-## 測試
-- 會員註冊：Turnstile 完成才能送出確認信（SMTP 仍須正常配置）。
-- 會員登入：通過 Turnstile，登入成功，原有答錯 5 次/鎖定 4 小時不變。
-- 題庫管理員登入：受 `quiz_admins` 權限保護，CAPTCHA 通過後仍需管理員授權。
-- 文獻庫登入：同樣必須先通過 CAPTCHA，再檢查管理員權限。
-- 錯誤與重試：任何登入/註冊請求之後，Turnstile 驗證均被重設。
+## 驗收步驟
 
-## 未驗證事項
-此為本地整合補丁。未有您的真實 Cloudflare Site Key，故無法在您的正式 Supabase / Cloudflare 帳號做端對端登入驗證。
+1. 開網頁，確認看不到「周天定位 · 星宿詳情」，題目在未抽宿前隱藏。
+2. 登入普通會員，選擇初／中／高，點「抽宿挑戰」，只在抽中有四選一題的星宿顯示題目。
+3. 提交答題，狀態列的參戰總數增加 1；答對時答對總數增加 1，成功率更新。
+4. 管理員登入「管理題庫」→「會員挑戰紀錄」，檢查各會員的累計總數與成功率。
+5. 同帳號累計錯誤 5 次後確認鎖定 4 小時；期滿只清除錯誤次數。
+
+備註：GitHub Pages 發佈仍取決於儲存庫 Pages 設定及部署狀態。若仍顯示 404，請先排除 Pages 問題。
