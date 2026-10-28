@@ -58,8 +58,10 @@
     activeMansion=index;
     const mansion=MANSIONS[index]?.name;
     const level=$('quizDifficulty')?.value||'中階';
+    const requestedType=typeof window.quizFiveArtsSelection==='function'?window.quizFiveArtsSelection():'all';
     const playable=questionBank.filter(q =>
       q.mansion===mansion && (q.difficulty||'中階')===level &&
+      (requestedType==='all'||(typeof inferKnowledgeType==='function' && inferKnowledgeType(q)===requestedType)) &&
       Array.isArray(q.options) && q.options.length===4 &&
       Number.isInteger(Number(q.answer)) && Number(q.answer)>=0 && Number(q.answer)<=3
     );
