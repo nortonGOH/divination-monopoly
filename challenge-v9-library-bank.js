@@ -12,9 +12,9 @@
   const css=document.createElement('style');
   css.textContent=`
     #manageBankBtn,#libraryStandaloneBtn{display:none!important}
-    .v9-resource-selector{position:relative;display:inline-flex;flex:0 0 auto;align-items:center;z-index:5}
-    .v9-resource-trigger{font:inherit;border:1px solid #bba37d;border-radius:9px;background:#fff8ea;color:#58452d;padding:10px 13px;cursor:pointer}
-    .v9-resource-menu{position:absolute;right:0;top:calc(100% + 7px);min-width:205px;display:grid;gap:5px;border:1px solid #d6c4a5;background:#fffbf2;padding:8px;border-radius:11px;box-shadow:0 14px 35px #1721292b;z-index:20}
+    .v9-resource-selector{position:fixed;right:14px;bottom:14px;display:inline-flex;align-items:center;z-index:900;filter:drop-shadow(0 4px 12px #24323b33)}
+    .v9-resource-trigger{font:inherit;font-size:.76rem;border:1px solid #bba37d;border-radius:24px;background:#fff8eaeb;color:#58452d;padding:9px 12px;cursor:pointer}
+    .v9-resource-menu{position:absolute;right:0;bottom:calc(100% + 7px);min-width:205px;display:grid;gap:5px;border:1px solid #d6c4a5;background:#fffbf2;padding:8px;border-radius:11px;box-shadow:0 14px 35px #1721292b;z-index:20}
     .v9-resource-menu[hidden]{display:none!important}
     .v9-resource-menu button{border:0;text-align:left;background:transparent;padding:12px;border-radius:7px;color:#43392b;cursor:pointer;font:inherit}
     .v9-resource-menu button:hover,.v9-resource-menu button:focus-visible{background:#f0e3ce}
@@ -40,10 +40,11 @@
   if(!toolbar||typeof fetchCloudBank!=='function'||typeof upsertCloud!=='function'||
      typeof persistBank!=='function'||typeof validBank!=='function')return;
   const importBtn=document.createElement('button');importBtn.type='button';importBtn.className='outline-btn v9-balance-action';
-  importBtn.textContent='匯入新增70題並均分28宿';
+  importBtn.textContent='匯入新增題目並均分28宿';
   const balanceBtn=document.createElement('button');balanceBtn.type='button';balanceBtn.className='outline-btn';
   balanceBtn.textContent='重新均分現有題庫';
-  toolbar.append(importBtn,balanceBtn);
+  const input=document.createElement('input');input.type='file';input.accept='.json,application/json';input.hidden=true;
+  toolbar.append(importBtn,balanceBtn,input);
 
   const LEVELS=['初階','中階','高階'];
   const MANSIONS=Array.isArray(window.MANSION_NAMES)?window.MANSION_NAMES:
@@ -57,10 +58,10 @@
     }
     return pool;
   }
-  async function apply(includeNew){
+  async function apply(includeNew,sourceRows=[]){
     if(!adminAccessToken){displayBankToast('請先登入題庫管理員帳號。');return;}
     if(!window.confirm(includeNew?
-      '從已上傳的兩份選擇題文件新增70題，並將全部四選一題依初中高階均分28宿。保留現有題目文字，但會改變星宿歸屬。確定嗎？':
+      '將選取的JSON新題與既有四選一題合併，再按初中高階均分28宿。保留現有題目及題號，但重新配置星宿。確定嗎？':
       '將現有全部四選一題目按難度均分到28宿，會改變星宿歸屬。確定嗎？'))return;
     importBtn.disabled=true;balanceBtn.disabled=true;
     try{
@@ -68,10 +69,8 @@
       const map=new Map(existing.map(q=>[q.id,q]));
       let added=0;
       if(includeNew){
-        const r=await fetch('./quiz-imports/choice-70-2026-10-28.json',{cache:'no-store'});
-        if(!r.ok)throw Error('題庫來源檔載入失敗：HTTP '+r.status);
-        const imported=validBank(await r.json());
-        if(imported.length!==70)throw Error('來源題庫不是70題，取消匯入。');
+        const imported=validBank(sourceRows);
+        if(!imported.length)throw Error('選取的檔案沒有任何四選一題目。');
         for(const q of imported){if(!map.has(q.id)){map.set(q.id,q);added++;}}
       }
       const rows=balancedRows([...map.values()]);
@@ -86,6 +85,15 @@
     }catch(err){displayBankToast('匯入／均分失敗：'+(err.message||String(err)));}
     finally{importBtn.disabled=false;balanceBtn.disabled=false;}
   }
-  importBtn.addEventListener('click',()=>apply(true));
+  importBtn.addEventListener('click',()=>input.click());
+  input.addEventListener('change',async()=>{
+    const file=input.files?.[0];if(!file)return;
+    try{
+      if(file.size>2*1024*1024)throw Error('檔案超過2MB，請分批匯入。');
+      const parsed=JSON.parse(await file.text());
+      await apply(true,parsed);
+    }catch(err){displayBankToast('讀取題庫檔失敗：'+err.message);}
+    finally{input.value='';}
+  });
   balanceBtn.addEventListener('click',()=>apply(false));
 })();
