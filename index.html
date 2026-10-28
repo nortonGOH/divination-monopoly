@@ -75,10 +75,11 @@
     .notes{font-size:.77rem;color:var(--muted);line-height:1.8;margin:23px 0 0;border-top:1px solid var(--stroke);padding-top:13px}
     .page-foot{font-size:.76rem;color:#78776f;line-height:1.75;margin:20px 4px 0}
     .mansion-sector{cursor:pointer;outline:none}
+    .mansion-sector.special-sector{cursor:default}
     .mansion-sector path{transition:fill .16s,stroke .16s;stroke:#fff9ef;stroke-width:2;vector-effect:non-scaling-stroke}
     .mansion-sector:hover path,.mansion-sector:focus-visible path{fill:#f7dcaa !important;stroke:#765a26;stroke-width:3}
     .mansion-sector.active path{fill:#e4b66a !important;stroke:#86612a;stroke-width:3.5}
-    .mansion-sector text{pointer-events:none;font-weight:700;fill:#233c4a;font-size:25px;letter-spacing:1px}
+    .mansion-sector text{pointer-events:none;font-weight:700;fill:#233c4a;font-size:20px;letter-spacing:0}
     .short-name{display:none}
     #star-labels .star-number{display:none}
     .mansion-sector.active text{fill:#583418}
@@ -201,10 +202,10 @@
   </header>
   <main class="layout">
     <section class="wheel-card" aria-label="二十八星宿與北斗七星互動圓盤">
-      <div class="wheel-header"><span>四象二十八宿 · 圓周等分</span><strong>上南　下北　左東　右西</strong></div>
+      <div class="wheel-header"><span>二十八宿＋四特殊格 · 32格圓盤</span><strong>上南　下北　左東　右西</strong></div>
       <div class="wheel-wrap">
         <svg id="skyWheel" viewBox="0 0 1000 1000" role="group" aria-labelledby="wheelTitle wheelDesc">
-          <title id="wheelTitle">二十八宿圓盤與北斗七星</title>
+          <title id="wheelTitle">三十二格挑戰圓盤與北斗七星</title>
           <desc id="wheelDesc">上方是南方朱雀七宿，下方是北方玄武七宿，左方是東方青龍七宿，右方是西方白虎七宿；北極星固定中央，北斗繞北極星逆時針旋轉，斗口指極，瑤光指向停止的星宿。</desc>
           <defs>
             <radialGradient id="night" cx="50%" cy="45%" r="65%"><stop offset="0%" stop-color="#223f56"/><stop offset="100%" stop-color="#0f2030"/></radialGradient>
@@ -392,7 +393,20 @@ const svgEl = (tag, attrs={}, text='') => {
   if(text) el.textContent=text;
   return el;
 };
-const CENTER=500, INNER=326, OUTER=461, SLOT=360/28;
+const CENTER=500, INNER=326, OUTER=461;
+// 每象七宿，最後插入一個「機會／命運」遊戲格；四象順序和宿序皆維持不變。
+const BOARD_SLOTS=[];
+for(let q=0;q<4;q++){
+  for(let j=0;j<7;j++) BOARD_SLOTS.push({type:'mansion',mansionIndex:q*7+j});
+  BOARD_SLOTS.push({type:q%2===0?'chance':'destiny',specialIndex:q});
+}
+const SLOT=360/BOARD_SLOTS.length;
+const SPECIAL_CARDS=[
+  {name:'機會 I',message:'得到一次重新抽宿的機會。此格不計入答題或答錯次數。'},
+  {name:'命運 I',message:'命運格：可以調整初／中／高階難度，再次抽宿。此格不計入答題。'},
+  {name:'機會 II',message:'得到一次自主選宿的機會：可點選任何一個星宿練習，或再抽一次。'},
+  {name:'命運 II',message:'命運格：保持目前難度，重新抽取下一宿。此格不計入答題。'}
+];
 // SVG 螢幕座標：0° 指右，90° 指下；角度增加為順時針。
 // 角宿在原箕宿位置（左上）；沿 SVG 負角度方向（視覺逆時針）排列 28 宿。
 const sectorStart = i => 225 - i*SLOT;
@@ -406,21 +420,33 @@ const polygonWedge = (start,end,r1=INNER,r2=OUTER) => {
 const sectorLayer=document.getElementById('sectors');
 const sectorNodes=[];
 let spinning=false, lastResult=null, inspection=null, currentRotation=0;
-MANSIONS.forEach((m,i)=>{
-  const g=svgEl('g',{class:'mansion-sector',tabindex:'0',role:'button','aria-label':`查閱${m.quad}${m.name}`});
+const specialNodes=[];
+BOARD_SLOTS.forEach((slot,i)=>{
+  const isMansion=slot.type==='mansion';
+  const m=isMansion?MANSIONS[slot.mansionIndex]:null;
+  const special=isMansion?null:SPECIAL_CARDS[slot.specialIndex];
+  const title=isMansion?m.name:special.name;
+  const g=svgEl('g',{class:'mansion-sector'+(isMansion?'':' special-sector'),
+    tabindex:isMansion?'0':'-1',role:isMansion?'button':'img',
+    'aria-label':isMansion?`查閱${m.quad}${m.name}`:`${title}遊戲格`});
   const start=sectorStart(i)-SLOT, end=sectorStart(i), angle=sectorCenter(i);
-  g.appendChild(svgEl('path',{d:polygonWedge(start,end),fill:m.pale}));
-  const pos=toXY(398,angle);
-  g.appendChild(svgEl('text',{x:pos.x,y:pos.y+8,'text-anchor':'middle',class:'full-name'},m.name));
-  g.appendChild(svgEl('text',{x:pos.x,y:pos.y+15,'text-anchor':'middle',class:'short-name'},m.name[0]));
-  const tiny=toXY(438,angle);
-  g.appendChild(svgEl('text',{x:tiny.x,y:tiny.y+5,'text-anchor':'middle',class:'sector-index'},String((i%7)+1).padStart(2,'0')));
-  const show=()=>{ if(!spinning) inspectMansion(i); };
-  g.addEventListener('click',show);
-  g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();show();}});
+  const colors={chance:'#f5deb2',destiny:'#ded8f2'};
+  g.appendChild(svgEl('path',{d:polygonWedge(start,end),fill:isMansion?m.pale:colors[slot.type]}));
+  const pos=toXY(396,angle);
+  g.appendChild(svgEl('text',{x:pos.x,y:pos.y+7,'text-anchor':'middle',class:'full-name'},title));
+  g.appendChild(svgEl('text',{x:pos.x,y:pos.y+13,'text-anchor':'middle',class:'short-name'},isMansion?m.name[0]:(slot.type==='chance'?'機':'命')));
+  const tiny=toXY(440,angle);
+  g.appendChild(svgEl('text',{x:tiny.x,y:tiny.y+4,'text-anchor':'middle',class:'sector-index'},isMansion?String((slot.mansionIndex%7)+1).padStart(2,'0'):'✦'));
+  if(isMansion){
+    const show=()=>{ if(!spinning) inspectMansion(slot.mansionIndex); };
+    g.addEventListener('click',show);
+    g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();show();}});
+    sectorNodes[slot.mansionIndex]=g;
+  }else specialNodes.push(g);
   sectorLayer.appendChild(g);
-  sectorNodes.push(g);
 });
+const specialCss=svgEl('style',{},'.special-sector text{fill:#4d3c63;font-weight:800}.special-sector.active path{stroke:#9d7637;stroke-width:6}');
+sectorLayer.appendChild(specialCss);
 
 // 2026新版：北極星固定於盤心，北斗繞北極星逆時針旋動；斗口朝向北極星。
 // 此為便於互動閱讀的示意幾何，不是精確赤經／赤緯測繪。
@@ -486,6 +512,7 @@ function renderRotation(angle){
 currentRotation=normalize(sectorCenter(0)-POINTER_NATIVE);
 renderRotation(currentRotation);
 function setActive(index){
+  specialNodes.forEach(g=>g.classList.remove('active'));
   sectorNodes.forEach((g,i)=>{
     g.classList.toggle('active',i===index);
     if(i===index) g.setAttribute('aria-current','true');
@@ -736,16 +763,35 @@ function answerQuestion(index){
 
 // 北斗圍繞固定北極星逆時針旋運；瑤光的放射指向線與二十八宿扇區等角定位。
 const spinBtn=el('spinBtn');
-function finishSpin(targetIndex){
+function finishSpin(slotIndex){
   spinning=false;
-  lastResult=targetIndex;
   inspection=null;
-  setActive(targetIndex);
-  renderInfo(targetIndex);
-  selectQuizForMansion(targetIndex);
-  setStatus('本次抽中 · 瑤光所指','live');
+  const cell=BOARD_SLOTS[slotIndex];
   spinBtn.disabled=false;
   spinBtn.textContent='✦　再次抽宿挑戰';
+  if(cell.type==='mansion'){
+    const targetIndex=cell.mansionIndex;
+    lastResult=targetIndex;
+    setActive(targetIndex);
+    renderInfo(targetIndex);
+    selectQuizForMansion(targetIndex);
+    setStatus('本次抽中 · 瑤光所指','live');
+  }else{
+    lastResult=null;
+    sectorNodes.forEach(g=>g.classList.remove('active'));
+    specialNodes.forEach(g=>g.classList.remove('active'));
+    const node=sectorLayer.children[slotIndex]; if(node)node.classList.add('active');
+    const event=SPECIAL_CARDS[cell.specialIndex];
+    el('quizScope').textContent='抽中遊戲格：'+event.name;
+    el('quizCategory').textContent=cell.type==='chance'?'機會':'命運';
+    el('quizAvailable').textContent='不計入答題次數';
+    el('questionText').textContent=event.message;
+    el('answerOptions').replaceChildren();
+    el('answerFeedback').textContent='請點「再次抽宿挑戰」繼續，或點選一個星宿自主練習。';
+    el('nextQuestionBtn').disabled=true;
+    setStatus('本次抽中 · '+event.name,'live');
+  }
+  window.dispatchEvent(new CustomEvent('challenge-spin-finished',{detail:{cell,slotIndex}}));
 }
 function spin(){
   if(spinning)return;
@@ -753,15 +799,15 @@ function spin(){
   spinBtn.disabled=true;
   spinBtn.textContent='北斗旋運中…';
   setStatus('正在抽取星宿 · 北斗逆時針旋運中','spin');
-  const targetIndex=fairRandomInt(MANSIONS.length);
-  const target=normalize(sectorCenter(targetIndex)-POINTER_NATIVE);
+  const slotIndex=fairRandomInt(BOARD_SLOTS.length);
+  const target=normalize(sectorCenter(slotIndex)-POINTER_NATIVE);
   const current=normalize(currentRotation);
   const antiClockwiseDelta=normalize(current-target);
   const laps=4+fairRandomInt(2);
   const total=360*laps+antiClockwiseDelta;
   const start=currentRotation,end=start-total;
   const duration=window.matchMedia('(prefers-reduced-motion: reduce)').matches?0:4900;
-  const done=()=>{currentRotation=normalize(end);renderRotation(currentRotation);finishSpin(targetIndex);};
+  const done=()=>{currentRotation=normalize(end);renderRotation(currentRotation);finishSpin(slotIndex);};
   if(!duration){done();return;}
   let startTime;
   const animate=now=>{
@@ -1082,5 +1128,6 @@ el('librarySearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.prevent
 </script>
 <script src="./history-supabase-reader.js"></script>
 <script src="./quiz-open-qa.js"></script>
+<script src="./quiz-challenge-v7.js"></script>
 </body>
 </html>
