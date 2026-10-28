@@ -136,6 +136,8 @@ form.addEventListener('submit',async e=>{
   const data=await endpoint('/auth/v1/token?grant_type=password','POST',{email:email.value.trim(),password:password.value,gotrue_meta_security:{captcha_token:window.quizCaptcha.token(form)}});
   if(!data.access_token)throw Error('未取得有效登入憑證。若啟用了郵件確認，請先驗證電子郵件。');
   playerToken=data.access_token;playerEmail=email.value.trim();password.value='';
+  // Log this verified Auth session once. Failure must not block a valid login.
+  try{await endpoint('/rest/v1/rpc/quiz_record_member_login','POST',{});}catch(error){console.warn('登入計次未寫入',error.message);}
   await refresh();
   const hasNickname=await loadNickname();
   if(!hasNickname){
