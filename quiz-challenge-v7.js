@@ -94,19 +94,19 @@ function showError(msg){notice.textContent=msg;}
 form.addEventListener('submit',async e=>{
  e.preventDefault();if(busy)return;busy=true;
  try{
-  const data=await endpoint('/auth/v1/token?grant_type=password','POST',{email:email.value.trim(),password:password.value});
+  const data=await endpoint('/auth/v1/token?grant_type=password','POST',{email:email.value.trim(),password:password.value,gotrue_meta_security:{captcha_token:window.quizCaptcha.token(form)}});
   if(!data.access_token)throw Error('未取得有效登入憑證。若啟用了郵件確認，請先驗證電子郵件。');
   playerToken=data.access_token;playerEmail=email.value.trim();password.value='';
   await refresh();dialog.close();selectQuizForMansion(activeMansion);
  }catch(err){playerToken=null;playerState=null;showError('登入失敗：'+err.message);drawState();}
- finally{busy=false;}
+ finally{window.quizCaptcha.reset(form);busy=false;}
 });
 registerBtn.addEventListener('click',async()=>{
  if(busy)return;if(!email.reportValidity()||!password.reportValidity())return;
  busy=true;
- try{await endpoint('/auth/v1/signup','POST',{email:email.value.trim(),password:password.value});
+ try{await endpoint('/auth/v1/signup','POST',{email:email.value.trim(),password:password.value,gotrue_meta_security:{captcha_token:window.quizCaptcha.token(form)}});
   showError('註冊請求已送出。若已啟用電子郵件驗證，請先到信箱點擊確認連結，再使用「登入」。');
- }catch(err){showError('註冊失敗：'+err.message);}finally{busy=false;}
+ }catch(err){showError('註冊失敗：'+err.message);}finally{window.quizCaptcha.reset(form);busy=false;}
 });
 closeBtn.addEventListener('click',()=>{password.value='';dialog.close();});
 signInBtn.addEventListener('click',showDlg);

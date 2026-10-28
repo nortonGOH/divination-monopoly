@@ -371,6 +371,7 @@
   <p class="library-foot">EPUB 為流式排版，原無固定紙本頁碼。每段顯示章節段序及原 EPUB 內部檔案路徑；正式學術引用仍須對勘指定版本。</p>
 </dialog>
 <script src="./config.js"></script>
+<script src="./captcha-integration.js"></script>
 <script>
 'use strict';
 
@@ -845,7 +846,7 @@ el('loginForm').addEventListener('submit',async e=>{
   try{
     const email=el('loginEmail').value.trim(),password=el('loginPassword').value;
     const session=await cloudCall('/auth/v1/token?grant_type=password',{
-      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password,gotrue_meta_security:{captcha_token:window.quizCaptcha.token(el('loginForm'))}})
     });
     candidateToken=session?.access_token;
     if(!candidateToken)throw new Error('登入回應沒有有效憑證');
@@ -864,7 +865,7 @@ el('loginForm').addEventListener('submit',async e=>{
   }catch(error){
     adminAccessToken=null;adminEmail=null;
     el('loginStatus').textContent='登入失敗：'+(error.message||'帳密錯誤、權限不足或網路異常。');
-  }finally{btn.disabled=false;el('loginPassword').value='';}
+  }finally{window.quizCaptcha.reset(el('loginForm'));btn.disabled=false;el('loginPassword').value='';}
 });
 async function logout(){
   const old=adminAccessToken;

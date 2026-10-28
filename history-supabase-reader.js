@@ -131,12 +131,12 @@
     }
     return data;
   }
-  async function login(email, password) {
+  async function login(email, password, form) {
     if (!ready) throw new Error('網站尚未正確設定 Supabase 連線。');
     const response = await fetch(api + '/auth/v1/token?grant_type=password', {
       method: 'POST',
       headers: { apikey: key, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, gotrue_meta_security: { captcha_token: window.quizCaptcha.token(form) } }),
       cache: 'no-store'
     });
     const data = await response.json().catch(() => ({}));
@@ -170,9 +170,9 @@
     form.append(heading, eLabel, pLabel, btn, status, help);
     form.addEventListener('submit', async evt => {
       evt.preventDefault(); btn.disabled = true; status.textContent = '正在驗證…';
-      try { await login(email.value.trim(), pass.value); pass.value = ''; await loadIndex(state.pendingRef); }
+      try { await login(email.value.trim(), pass.value, form); pass.value = ''; await loadIndex(state.pendingRef); }
       catch (err) { status.textContent = err.message; }
-      finally { btn.disabled = false; pass.value = ''; }
+      finally { window.quizCaptcha.reset(form); btn.disabled = false; pass.value = ''; }
     });
     pane.append(form);
   }
