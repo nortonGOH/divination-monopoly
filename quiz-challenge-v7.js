@@ -73,7 +73,7 @@ function drawState(){
      },Math.min(remaining,2147483647));
    }
  }
- summary.textContent=playerToken?`${playerEmail}｜答錯 ${playerState?.wrong_count??0}/5${locked?'｜暫停至 '+dateText(playerState.locked_until):''}`:'請註冊或登入，才能開始數術問答挑戰。';
+ summary.textContent=playerToken?`${playerEmail}｜參戰 ${playerState?.total_attempts??0} 次｜答對 ${playerState?.correct_attempts??0} 次｜成功率 ${Number(playerState?.success_rate??0).toFixed(1)}%｜當期答錯 ${playerState?.wrong_count??0}/5${locked?'｜暫停至 '+dateText(playerState.locked_until):''}`:'請註冊或登入，才能開始數術問答挑戰。';
  logoutBtn.hidden=!playerToken;signInBtn.hidden=!!playerToken;
  if(locked){alertBox.hidden=false;alertBox.textContent=`已累計五次答錯，暫停挑戰至 ${dateText(playerState.locked_until)}。四小時後自動歸零。`;
  }else{alertBox.hidden=true;alertBox.textContent='';}
@@ -125,7 +125,7 @@ answerQuestion=async function(index){
  try{
   const result=await endpoint('/rest/v1/rpc/quiz_submit_choice','POST',{
     p_question_id:activeQuestion.id,p_answer_index:index});
-  playerState={wrong_count:result.wrong_count,locked:result.locked,locked_until:result.locked_until};
+  playerState={wrong_count:result.wrong_count,locked:result.locked,locked_until:result.locked_until,total_attempts:result.total_attempts??playerState?.total_attempts??0,correct_attempts:result.correct_attempts??playerState?.correct_attempts??0,success_rate:result.success_rate??playerState?.success_rate??0};
   if(!result.accepted){drawState();return;}
   // Display server-checked result, not a locally guessed value.
   questionAnswered=true;answeredCount++;if(result.correct)correctCount++;
