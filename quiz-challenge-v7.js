@@ -164,7 +164,7 @@ registerBtn.addEventListener('click',async()=>{
 closeBtn.addEventListener('click',()=>{password.value='';dialog.close();setDialogMode('login');});
 backBtn.addEventListener('click',()=>setDialogMode('login'));
 signInBtn.addEventListener('click',()=>{setDialogMode('login');showDlg();});
-const profileBtn=node('button','暱稱設定');profileBtn.type='button';profileBtn.hidden=true;actions.append(profileBtn);
+const profileBtn=node('button','修改暱稱');profileBtn.type='button';profileBtn.hidden=true;actions.append(profileBtn);
 profileBtn.addEventListener('click',()=>{setDialogMode('profile');showDlg();nickname.focus();});
 saveProfileBtn.addEventListener('click',async()=>{
   if(busy)return;busy=true;saveProfileBtn.disabled=true;
