@@ -90,6 +90,33 @@
   const answerEditor=$('editAnswer')?.closest('label');
   const explanationEditor=$('editExplanation')?.closest('label');
   const optionInputs=[0,1,2,3].map(i=>$('editOption'+i));
+  // An explicit edit state protects the original question ID and question type.
+  const editNotice=node('div','quiz-edit-notice');
+  editNotice.id='quizEditNotice';editNotice.hidden=true;editNotice.setAttribute('role','status');
+  form.before(editNotice);
+  const editStyles=node('style');
+  editStyles.textContent=`
+    #quizEditNotice{padding:12px 15px;margin:0 0 15px;border:1px solid #bea067;border-radius:10px;background:#fff0cf;color:#534329;font-size:.85rem;line-height:1.7;overflow-wrap:anywhere}
+    #quizEditNotice[hidden]{display:none!important}
+    #bankList .bank-item.quiz-being-edited{outline:2px solid #bd8b47;background:#fff4d8}
+    #questionForm #editQuestionType:disabled{background:#ece5d5;color:#544b3e;opacity:1}
+  `;
+  document.head.append(editStyles);
+  function showEditMode(q,type){
+    form.dataset.editingId=q.id;
+    editNotice.hidden=false;
+    editNotice.textContent='正在修改'+(type==='open'?'開放問答':'四選一選擇題')+'｜題號：'+q.id+'。題號與題型固定；確認修改後按「儲存修改」，或按「取消修改」。';
+    typeSelect.disabled=true;
+    $('cancelEditBtn').textContent='取消修改';
+    for(const item of $('bankList').querySelectorAll('.bank-item'))item.classList.toggle('quiz-being-edited',item.dataset.questionId===q.id&&item.dataset.questionType===type);
+  }
+  function stopEditMode(){
+    delete form.dataset.editingId;
+    editNotice.hidden=true;editNotice.textContent='';
+    typeSelect.disabled=false;
+    $('cancelEditBtn').textContent='清除表單';
+    for(const item of $('bankList').querySelectorAll('.bank-item'))item.classList.remove('quiz-being-edited');
+  }
   function changeType(){
     const isOpen=typeSelect.value==='open';
     openEditor.hidden=!isOpen;
@@ -182,13 +209,15 @@
     $('editSourceTitle').value=q.source_title;
     $('editSourceNo').value=q.source_question_no??'';
     $('editReviewStatus').value=q.review_status;
-    changeType();$('editPrompt').focus();$('editPrompt').scrollIntoView({block:'nearest'});
+    changeType();showEditMode(q,'open');$('editPrompt').focus();$('editPrompt').scrollIntoView({block:'nearest'});
   }
   editQuestion=function(id){
     if(openRows.some(q=>q.id===id))return editOpen(id);
     editingOpenId=null;typeSelect.value='choice';changeType();baseEdit(id);
+    const q=questionBank.find(item=>item.id===id);
+    if(q)showEditMode(q,'choice');
   };
-  clearEditor=function(){editingOpenId=null;typeSelect.value='choice';changeType();baseClear();levelEditorSelect.value='中階';};
+  clearEditor=function(){editingOpenId=null;typeSelect.value='choice';stopEditMode();changeType();baseClear();levelEditorSelect.value='中階';};
   const oldResetButton=$('newQuestionBtn');
   // 主頁原有「新增題目」事件呼叫 clearEditor，故無須另建入口。
   const oldFilter=$('bankFilter'),search=$('bankSearch');
@@ -202,10 +231,12 @@
     if(!rows.length){target.append(node('p','bank-list-empty','目前沒有符合條件的題目。'));return;}
     for(const q of rows){
       const item=node('article','bank-item');
+      item.dataset.questionId=q.id;item.dataset.questionType=q.type;
+      if(form.dataset.editingId===q.id)item.classList.add('quiz-being-edited');
       item.append(node('div','bank-item-top',`${q.difficulty} · ${q.mansion} · ${q.category} · ${q.type==='open'?'開放問答':'四選一'}`));
       item.append(node('div','bank-item-question',q.prompt));
       const actions=node('div','bank-item-actions');
-      const edit=node('button','', '編輯');edit.type='button';edit.addEventListener('click',()=>editQuestion(q.id));
+      const edit=node('button','', '修改題目');edit.type='button';edit.addEventListener('click',()=>editQuestion(q.id));
       const del=node('button','delete','刪除');del.type='button';
       del.addEventListener('click',()=>removeQuestion(q.id));
       actions.append(edit,del);item.append(actions);target.append(item);
@@ -234,10 +265,11 @@
       source_title:$('editSourceTitle').value.trim(),source_url:editingOpenId?(openRows.find(q=>q.id===editingOpenId)?.source_url||''):'',
       review_status:$('editReviewStatus').value};
     if(!payload.prompt||!payload.reference_answer){displayBankToast('請填寫題目與參考答案。');return;}
+    if(editingOpenId&&!window.confirm('確定儲存這道開放問答的修改？原題號會保留。'))return;
     $('saveQuestionBtn').disabled=true;
     try{
       await cloudCall('/rest/v1/quiz_open_questions?on_conflict=id',{method:'POST',headers:{'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify([payload])},true);
-      await fetchOpen();clearEditor();displayBankToast('開放問答已儲存至 Supabase。');
+      await fetchOpen();clearEditor();displayBankToast(editingOpenId?'開放問答修改已儲存至 Supabase。':'開放問答已儲存至 Supabase。');
     }catch(e){displayBankToast('儲存失敗：'+e.message);}finally{$('saveQuestionBtn').disabled=false;}
   },true);
   // 原有匯入／匯出 JSON 仍專供四選一題目，避免不相容的格式互相覆蓋。
