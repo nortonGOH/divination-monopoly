@@ -7,16 +7,17 @@ const base=String(cfg.supabaseUrl||'').replace(/\/$/,'');
 const publicKey=String(cfg.publishableKey||'');
 if(!toolbar||!base)return;
 const btn=document.createElement('button');btn.type='button';btn.className='outline-btn';btn.textContent='會員帳號管理';toolbar.append(btn);
-const dialog=document.createElement('dialog');dialog.className='v8-stats-dialog';dialog.style.width='min(840px,calc(100vw - 24px))';
+const dialog=document.createElement('dialog');dialog.className='v8-stats-dialog';dialog.style.width='min(1100px,calc(100vw - 24px))';
 const title=document.createElement('h3');title.textContent='會員帳號管理（限管理員）';
 const note=document.createElement('p');note.textContent='新增帳號採電子郵件邀請，受邀者自行設定密碼。刪除會員將失去登入權限，且可能清除相關挑戰資料，請謹慎操作。';
+const footnote=document.createElement('p');footnote.textContent='* 登入次數從本版啟用後開始累計；問答題型僅計入已保存的四選一逐題作答，不推算舊紀錄或開放問答。';footnote.style.fontSize='.8rem';
 const form=document.createElement('form');form.style.cssText='display:flex;gap:8px;flex-wrap:wrap;margin:12px 0';
 const email=document.createElement('input');email.type='email';email.placeholder='受邀者電子郵件';email.required=true;email.style.cssText='flex:1;min-width:210px;padding:9px;';
 const invite=document.createElement('button');invite.textContent='寄送邀請';invite.type='submit';
 const close=document.createElement('button');close.textContent='關閉';close.type='button';close.onclick=()=>dialog.close();
 form.append(email,invite);
 const status=document.createElement('p');status.setAttribute('role','status');
-const output=document.createElement('div');dialog.append(title,note,form,status,output,close);document.body.append(dialog);
+const output=document.createElement('div');dialog.append(title,note,footnote,form,status,output,close);document.body.append(dialog);
 const call=async body=>{
  if(!adminAccessToken)throw Error('請先登入題庫管理員');
  const r=await fetch(base+'/functions/v1/quiz-admin-users',{method:'POST',headers:{apikey:publicKey,Authorization:'Bearer '+adminAccessToken,'Content-Type':'application/json'},body:JSON.stringify(body)});
@@ -29,12 +30,12 @@ async function load(){
  try{
  const data=await call({action:'list'});
  const table=document.createElement('table');table.className='v8-stats-table';
- const head=document.createElement('tr');['電子郵件（僅管理員）','註冊日期','動作'].forEach(t=>{const th=document.createElement('th');th.textContent=t;head.append(th);});
+ const head=document.createElement('tr');['電子郵件（僅管理員）','暱稱','最近登入','登入次數*','問答題型','動作'].forEach(t=>{const th=document.createElement('th');th.textContent=t;head.append(th);});
  const thead=document.createElement('thead');thead.append(head);table.append(thead);
  const tbody=document.createElement('tbody');
  for(const account of data.users||[]){
   const tr=document.createElement('tr');
-  for(const v of [account.email||'（未提供）',account.created_at?new Date(account.created_at).toLocaleDateString('zh-TW'):'—']){
+  for(const v of [account.email||'（未提供）',account.nickname||'尚未設定',account.last_sign_in_at?new Date(account.last_sign_in_at).toLocaleString('zh-TW',{hour12:false}):'尚無紀錄',(account.login_count??0)+' 次', '四選一 '+(account.choice_count??0)+' 題'+(Array.isArray(account.choice_types)&&account.choice_types.length?'（'+account.choice_types.join('、')+'）':'')]){
     const td=document.createElement('td');td.textContent=v;tr.append(td);
   }
   const td=document.createElement('td'),del=document.createElement('button');del.type='button';del.textContent='刪除帳號';
