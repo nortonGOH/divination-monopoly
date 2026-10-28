@@ -1,180 +1,246 @@
-/* 開放式數術問答插件：與現有四選一題庫並存。原 Google 文件參考答案待學術核校。 */
+/* 數術知識大挑戰 v6：初／中／高階共用二十八宿問答與題庫管理。
+ * 原始問答保持來源答案，未校勘的文字以「待考」顯示。
+ * 本檔沿用頁面原有 Supabase Auth 與 quiz_admins/RLS，不包含任何私密金鑰。
+ */
 (() => {
   'use strict';
   const $ = id => document.getElementById(id);
-  const mansionOrder = ['角木蛟','亢金龍','氐土貉','房日兔','心月狐','尾火虎','箕水豹','斗木獬','牛金牛','女土蝠','虛日鼠','危月燕','室火豬','壁水貐','奎木狼','婁金狗','胃土雉','昴日雞','畢月烏','觜火猴','參水猿','井木犴','鬼金羊','柳土獐','星日馬','張月鹿','翼火蛇','軫水蚓'];
+  if (!$('quizScope') || !$('bankDialog') || typeof cloudCall !== 'function') return;
+  const levels = ['初階','中階','高階'];
   const fields = 'id,source_question_no,difficulty,category,mansion,prompt,reference_answer,source_title,source_url,review_status';
-  const configured = Boolean(window.QUIZ_AUTH_CONFIG?.supabaseUrl && window.QUIZ_AUTH_CONFIG?.publishableKey);
-  const isAdmin = () => typeof adminAccessToken !== 'undefined' && Boolean(adminAccessToken);
-  const api = async (route, options={}, requireAuth=false) => {
-    if (typeof cloudCall !== 'function') throw new Error('網站尚未載入 Supabase 連接程式');
-    return cloudCall(route,options,requireAuth);
+  let openRows = [], source = '尚未載入', currentId = '', currentOpen = null;
+  let reviewCount = 0, masteredCount = 0, editingOpenId = null;
+  let openLoadPending = true;
+  const baseSelect = selectQuizForMansion;
+  const baseShow = showQuestion;
+  const baseAnswer = answerQuestion;
+  const baseEdit = editQuestion;
+  const baseDelete = removeQuestion;
+  const baseClear = clearEditor;
+  const isAdmin = () => Boolean(adminAccessToken);
+  const node = (tag, className, value) => {
+    const n = document.createElement(tag);
+    if (className) n.className = className;
+    if (value !== undefined) n.textContent = value;
+    return n;
   };
-  let rows=[], sourceLabel='尚未載入', active=null, activeId=null, reviewed=0, known=0, editorId=null;
-  const make = (tag, name, text) => {
-    const el=document.createElement(tag);
-    if(name)el.className=name;
-    if(text!==undefined)el.textContent=text;
-    return el;
-  };
-  const setStatus = message => { if ($('openQaAdminStatus')) $('openQaAdminStatus').textContent=message; };
-  const sheet = make('style');
-  sheet.textContent=`
-    #openQaChallenge{margin-top:20px;padding:18px;border:1px solid var(--stroke,#d9cfb9);border-radius:16px;background:rgba(255,255,255,.45)}
-    #openQaChallenge h4{font-size:1.08rem;margin:.6rem 0;font-weight:700}
-    #openQaChallenge .qa-tag{font-size:.75rem;color:var(--jade,#376d64);letter-spacing:.02em}
-    #openQaChallenge .qa-copy{white-space:pre-wrap;line-height:1.85;margin:12px 0;background:#fffaf0;padding:14px;border-radius:8px;border-left:3px solid #b08548}
-    #openQaChallenge .qa-hint{font-size:.78rem;line-height:1.65;color:var(--muted,#68717a);margin:8px 0}
-    #openQaChallenge .qa-controls{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
-    #openQaChallenge button,#openQaManager button{cursor:pointer;border:1px solid #cebfa1;border-radius:8px;padding:8px 12px;background:#fffaf0;color:#26313a;font:inherit}
-    #openQaChallenge button:hover,#openQaManager button:hover{background:#efe2c8}
-    #openQaManager{border-top:2px solid #cbb890;margin-top:26px;padding-top:20px}
-    #openQaManager h3{margin:0 0 10px;font-size:1.25rem}
-    #openQaManager .qa-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-    #openQaManager label{display:flex;flex-direction:column;gap:5px;font-size:.86rem;color:#4f514f;margin:8px 0}
-    #openQaManager input,#openQaManager textarea,#openQaManager select{width:100%;padding:9px;background:#fff;border:1px solid #cabda4;border-radius:8px;font:inherit;color:#26313a}
-    #openQaManager textarea{min-height:78px;resize:vertical}
-    #openQaManager .qa-list{max-height:250px;overflow:auto;border:1px solid #d9cfb9;border-radius:8px;margin:8px 0}
-    #openQaManager .qa-item{padding:10px;border-bottom:1px solid #eee4d3;display:flex;align-items:start;justify-content:space-between;gap:10px}
-    #openQaManager .qa-item .qa-actions{display:flex;gap:5px;flex-shrink:0}
-    #openQaManager .qa-muted{color:#68717a;font-size:.78rem;line-height:1.6}
-    #openQaAdminStatus{margin-top:12px;white-space:pre-wrap}
-    @media(max-width:640px){#openQaManager .qa-grid{grid-template-columns:1fr}#openQaManager .qa-item{flex-direction:column}}
+  const normalize = (q) => ({
+    id:String(q.id || ''), source_question_no: q.source_question_no == null ? null : Number(q.source_question_no),
+    difficulty: levels.includes(q.difficulty) ? q.difficulty : '中階',
+    category:String(q.category || '其他'), mansion:String(q.mansion || ''),
+    prompt:String(q.prompt || ''), reference_answer:String(q.reference_answer || ''),
+    source_title:String(q.source_title || ''), source_url:String(q.source_url || ''),
+    review_status:String(q.review_status || '待考'), type:'open'
+  });
+  // 單一難度選擇器；沒有第二套「數術深究開放問答」卡片。
+  const selectorWrap = node('label','level-chooser');
+  selectorWrap.textContent='挑戰難度';
+  const levelSelect = node('select');
+  levelSelect.id='quizDifficulty';
+  for(const l of levels) {const opt = node('option','',l);opt.value=l;levelSelect.append(opt);}
+  levelSelect.value='初階';
+  selectorWrap.append(levelSelect);
+  const header=$('quizTitle')?.closest('.quiz-heading');
+  header?.appendChild(selectorWrap);
+  const style=node('style');
+  style.textContent=`
+    .level-chooser{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:.86rem;color:var(--ink,#26313a);font-weight:700}
+    .level-chooser select,.level-filter select{border:1px solid var(--stroke,#d9cfb9);border-radius:9px;background:#fffaf0;padding:7px 10px;color:var(--ink,#26313a);font:inherit}
+    .open-answer-control{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}
+    .open-answer-control button{font:inherit;cursor:pointer;padding:10px 15px;background:#fffaf0;color:#26313a;border:1px solid #cdbb98;border-radius:9px}
+    .open-answer-control button:hover{background:#f0e2c8}
+    .open-answer-content{white-space:pre-wrap;line-height:1.85;text-align:left;border-left:3px solid #b08548;padding:12px 14px;background:#fffaf0;border-radius:6px;margin-top:12px}
+    .qa-review-note{font-size:.8rem;color:var(--muted,#68717a);line-height:1.6;margin-top:8px}
+    .level-filter{display:flex;gap:6px;align-items:center}
+    #openAnswerEditor label{display:block;margin:12px 0}
+    #openAnswerEditor textarea,#openAnswerEditor input,#openAnswerEditor select{width:100%;font:inherit;border:1px solid #cabda4;border-radius:8px;padding:10px;background:#fff}
+    #openAnswerEditor textarea{resize:vertical;min-height:120px}
+    #bankList .bank-item-top{font-size:.8rem}
+    #openAnswerEditor[hidden],.option-editor[hidden],#editAnswer[hidden]{display:none!important}
+    @media(max-width:640px){.level-chooser{width:100%}.quiz-heading{flex-wrap:wrap}}
   `;
-  document.head.appendChild(sheet);
+  document.head.append(style);
+  const managerFilters=$('bankFilter')?.closest('.bank-filters');
+  const managerLevel=node('label','level-filter');managerLevel.textContent='難度';
+  const managerLevelSelect=node('select');managerLevelSelect.id='bankDifficulty';
+  for(const [value,label] of [['all','全部難度'],...levels.map(x=>[x,x])]) {const o=node('option','',label);o.value=value;managerLevelSelect.append(o);}
+  managerLevel.append(managerLevelSelect);
+  if(managerFilters)managerFilters.append(managerLevel);
 
-  const quizSection=document.querySelector('.quiz-section');
-  if(!quizSection || !$('bankDialog'))return;
-  const challenge=make('section');challenge.id='openQaChallenge';challenge.setAttribute('aria-label','開放式數術問答');
-  const eyebrow=make('div','qa-tag','OPEN QUESTION · Google 文件 60 題');
-  const head=make('h4','', '數術深究 · 開放問答');
-  const meta=make('div','qa-hint','正在載入…');meta.id='openQaMeta';
-  const prompt=make('p','', '正在讀取開放式問答題庫…');prompt.id='openQaPrompt';
-  const answer=make('div','qa-copy');answer.id='openQaAnswer';answer.hidden=true;
-  const actions=make('div','qa-controls');
-  const reveal=make('button','', '顯示來源答案');reveal.type='button';
-  const next=make('button','', '換一道問答 ↻');next.type='button';
-  const mastery=make('button','', '✓ 已掌握');mastery.type='button';mastery.hidden=true;
-  const retry=make('button','', '↻ 待複習');retry.type='button';retry.hidden=true;
-  const notice=make('p','qa-hint','題目與二十八宿的分配是遊戲設計；文件答案保持原文，尚未逐題學術考證。');
-  actions.append(reveal,next,mastery,retry);
-  challenge.append(eyebrow,head,meta,prompt,answer,actions,notice);
-  quizSection.appendChild(challenge);
-  const mansionFromWheel=() => ($('quizScope')?.textContent||'').split('：').pop().trim();
-  function showCurrent(){
-    const mansion=mansionFromWheel();
-    const subset=rows.filter(q=>q.mansion===mansion);
-    answer.hidden=true;mastery.hidden=true;retry.hidden=true;reveal.hidden=false;
-    if(!subset.length){active=null;meta.textContent=`${sourceLabel} · ${mansion} 尚無開放題`;prompt.textContent='請旋轉圓盤或前往管理題庫新增問答。';reveal.disabled=true;next.disabled=true;return;}
-    const choices=subset.filter(q=>q.id!==activeId);
-    const pool=choices.length?choices:subset;
-    active=pool[Math.floor(Math.random()*pool.length)];activeId=active.id;
-    reveal.disabled=false;next.disabled=false;
-    meta.textContent=`${active.difficulty} · ${active.category} · ${mansion} · 本宿 ${subset.length} 題 · ${sourceLabel} · 已複習 ${reviewed} / 已掌握 ${known}`;
-    prompt.textContent=active.prompt;
-    answer.textContent=`原文件參考答案（${active.review_status||'待考'}）\n${active.reference_answer}\n\n出處：${active.source_title||'管理員自訂題目'}${active.source_question_no?'，第 '+active.source_question_no+' 題':''}`;
+  // 題型與難度整合到既有編輯表單（非額外的開放問答管理區）。
+  const form=$('questionForm');
+  const formColumns=form.querySelector('.editor-columns');
+  const levelEditor=node('label','', '題目難度');
+  const levelEditorSelect=node('select');levelEditorSelect.id='editDifficulty';
+  for(const l of levels){const o=node('option','',l);o.value=l;levelEditorSelect.append(o);}
+  levelEditorSelect.value='中階';levelEditor.append(levelEditorSelect);
+  const typeEditor=node('label','', '題目類型');
+  const typeSelect=node('select');typeSelect.id='editQuestionType';
+  for(const [value,label] of [['choice','四選一'],['open','開放問答']]){const o=node('option','',label);o.value=value;typeSelect.append(o);}
+  typeEditor.append(typeSelect);
+  formColumns?.append(levelEditor,typeEditor);
+  const openEditor=node('div');openEditor.id='openAnswerEditor';openEditor.hidden=true;
+  openEditor.innerHTML=`<label>參考答案（保留來源原文）<textarea id="editReferenceAnswer" rows="7" maxlength="12000" placeholder="請輸入問答的參考答案"></textarea></label>
+    <label>來源標題<input id="editSourceTitle" maxlength="180" placeholder="例如：數術知識問答六十題"></label>
+    <label>來源題號（選填）<input id="editSourceNo" type="number" min="1" max="100000"></label>
+    <label>學術校核狀態<select id="editReviewStatus"><option>待考</option><option>已核校</option></select></label>`;
+  form.querySelector('.editor-actions')?.before(openEditor);
+  const optionEditor=form.querySelector('.option-editor');
+  const answerEditor=$('editAnswer')?.closest('label');
+  const explanationEditor=$('editExplanation')?.closest('label');
+  const optionInputs=[0,1,2,3].map(i=>$('editOption'+i));
+  function changeType(){
+    const isOpen=typeSelect.value==='open';
+    openEditor.hidden=!isOpen;
+    if(optionEditor)optionEditor.hidden=isOpen;
+    if(answerEditor)answerEditor.hidden=isOpen;
+    if(explanationEditor)explanationEditor.hidden=isOpen;
+    for(const inp of optionInputs){inp.required=!isOpen;inp.disabled=isOpen;}
+    $('editReferenceAnswer').required=isOpen;
   }
-  reveal.addEventListener('click',()=>{if(!active)return;answer.hidden=false;mastery.hidden=false;retry.hidden=false;reveal.hidden=true;});
-  const mark=ok=>{if(!active)return;reviewed++;if(ok)known++;showCurrent();};
-  mastery.addEventListener('click',()=>mark(true));retry.addEventListener('click',()=>mark(false));next.addEventListener('click',showCurrent);
-  if($('quizScope'))new MutationObserver(showCurrent).observe($('quizScope'),{childList:true,subtree:true,characterData:true});
-  const normalize = item => ({
-    id:String(item.id||''),source_question_no:item.source_question_no===null?null:Number(item.source_question_no),
-    difficulty:String(item.difficulty||'自訂'),category:String(item.category||'其他'),
-    mansion:String(item.mansion||'角木蛟'),prompt:String(item.prompt||''),reference_answer:String(item.reference_answer||''),
-    source_title:String(item.source_title||''),source_url:String(item.source_url||''),review_status:String(item.review_status||'待考')
-  });
-  async function refresh(){
-    try {
-      if(configured){
-        const data=await api(`/rest/v1/quiz_open_questions?select=${fields}&order=source_question_no.asc.nullslast,id.asc&limit=3000`);
-        if(!Array.isArray(data))throw new Error('題庫格式不符合預期');
-        rows=data.map(normalize);sourceLabel='Supabase 開放式題庫';
-      }else throw new Error('尚未啟用 Supabase');
-    } catch(error){
-      const resp=await fetch('./qa-source-60.json',{cache:'no-store'});
-      if(!resp.ok){rows=[];sourceLabel='無法載入';meta.textContent='讀取失敗：'+error.message;return;}
-      const obj=await resp.json();rows=(obj.questions||[]).map(normalize);
-      sourceLabel='GitHub 示範題（需執行 SQL 才能雲端編輯）';
+  typeSelect.addEventListener('change',changeType);
+  function scoreText(){
+    $('quizScore').textContent=`四選一已答 ${answeredCount} · 答對 ${correctCount}｜問答複習 ${reviewCount} · 掌握 ${masteredCount}`;
+  }
+  function renderOpen(q, poolSize){
+    activeQuestion=null;questionAnswered=false;currentOpen=q;currentId=q.id;
+    $('quizCategory').textContent=q.category+' · 開放問答';
+    $('quizAvailable').textContent=`${levelSelect.value} · 本宿 ${poolSize} 題`;
+    $('questionText').textContent=q.prompt;
+    $('answerFeedback').textContent='';
+    const wrap=$('answerOptions');wrap.replaceChildren();
+    const controls=node('div','open-answer-control');
+    const reveal=node('button','', '顯示參考答案');reveal.type='button';
+    const mastered=node('button','', '✓ 已掌握');mastered.type='button';mastered.hidden=true;
+    const retry=node('button','', '↻ 待複習');retry.type='button';retry.hidden=true;
+    const answer=node('div','open-answer-content');answer.hidden=true;
+    answer.textContent=`來源參考答案（${q.review_status}）\n${q.reference_answer}\n\n來源：${q.source_title||'管理員自訂題目'}${q.source_question_no?' · 第 '+q.source_question_no+' 題':''}`;
+    reveal.addEventListener('click',()=>{reveal.hidden=true;answer.hidden=false;mastered.hidden=false;retry.hidden=false;});
+    const mark=(yes)=>{reviewCount++;if(yes)masteredCount++;scoreText();selectQuizForMansion(activeMansion);};
+    mastered.addEventListener('click',()=>mark(true));retry.addEventListener('click',()=>mark(false));
+    controls.append(reveal,mastered,retry);wrap.append(controls,answer);
+    const note=node('p','qa-review-note','參考答案依來源文件保存，未逐題考證；二十八宿歸屬僅為教學互動分組。');wrap.append(note);
+    $('nextQuestionBtn').disabled=false;scoreText();
+  }
+  function currentLevel(){return levelSelect.value;}
+  // 兩種題型共用唯一的二十八宿問答欄；抽宿及換題均走本函數。
+  selectQuizForMansion=function(index){
+    activeMansion=index;
+    const mansion=MANSIONS[index].name, level=currentLevel();
+    const multiple=questionBank.filter(q=>q.mansion===mansion && (q.difficulty||'中階')===level).map(q=>({...q,type:'choice'}));
+    const opened=openRows.filter(q=>q.mansion===mansion && q.difficulty===level);
+    const pool=multiple.concat(opened);
+    $('quizScope').textContent=`目前星宿：${mansion}`;
+    $('quizAvailable').textContent=`${level} · 本宿共 ${pool.length} 題`;
+    scoreText();
+    if(!pool.length){
+      activeQuestion=null;currentOpen=null;questionAnswered=false;
+      $('quizCategory').textContent=openLoadPending?'正在載入':'本宿暫無題目';
+      $('questionText').textContent=openLoadPending?'正在載入難度題庫…':`${mansion} 在「${level}」目前沒有題目，請選其他難度，或由管理員新增。`;
+      $('answerOptions').replaceChildren();$('answerFeedback').textContent='';$('nextQuestionBtn').disabled=true;
+      return;
     }
-    showCurrent();renderManager();
-  }
+    const alternatives=pool.filter(q=>q.id!==currentId), choices=alternatives.length?alternatives:pool;
+    const q=choices[fairRandomInt(choices.length)];currentId=q.id;
+    if(q.type==='open')renderOpen(q,pool.length);
+    else{currentOpen=null;baseShow(q,pool.length);$('quizAvailable').textContent=`${level} · 本宿共 ${pool.length} 題`;scoreText();}
+  };
+  answerQuestion=function(i){baseAnswer(i);scoreText();};
+  levelSelect.addEventListener('change',()=>{currentId='';selectQuizForMansion(activeMansion);});
 
-  // 同一個管理員視窗內管理新增開放題；所有寫入由 Supabase RLS 判定，不是前端判定授權。
-  const manager=make('section');manager.id='openQaManager';
-  const mh=make('h3','', '開放式問答題庫管理');
-  const descr=make('p','qa-muted','與原四選一題庫並存。原 Google 文件 60 題採問答形式，未自動生成干擾選項。修改內容直接送往 Supabase；尚未建立資料表時只能預覽。');
-  const search=make('input');search.type='search';search.placeholder='搜尋問句、主題與參考答案';search.setAttribute('aria-label','搜尋開放題');
-  const count=make('div','qa-muted');
-  const list=make('div','qa-list');
-  const form=make('form');form.id='openQaForm';
-  const grid=make('div','qa-grid');
-  const control=(label,element)=>{const l=make('label','',label);l.appendChild(element);return l;};
-  const mansion=make('select');mansionOrder.forEach(n=>{const o=make('option','',n);o.value=n;mansion.append(o);});
-  const difficulty=make('select');['初階','高階','自訂'].forEach(n=>{const o=make('option','',n);o.value=n;difficulty.append(o);});
-  const category=make('input');category.maxLength=120;category.required=true;
-  const question=make('textarea');question.maxLength=1000;question.required=true;
-  const reference=make('textarea');reference.maxLength=12000;reference.required=true;reference.rows=6;
-  const status=make('select');['待考','已核校'].forEach(n=>{const o=make('option','',n);o.value=n;status.append(o);});
-  const sourceTitle=make('input');const sourceNo=make('input');sourceNo.type='number';sourceNo.min='1';
-  grid.append(control('對應星宿（僅為遊戲分組）',mansion),control('難度',difficulty),control('分類／主題',category),control('校核狀態',status));
-  form.append(grid,control('問句',question),control('來源稿參考答案',reference));
-  const extra=make('div','qa-grid');extra.append(control('來源文件名',sourceTitle),control('來源題號（可留空）',sourceNo));form.append(extra);
-  const save=make('button','', '新增開放題');save.type='submit';
-  const clear=make('button','', '清空編輯器');clear.type='button';
-  const actions2=make('div','qa-controls');actions2.append(save,clear);form.append(actions2);
-  const msg=make('p','qa-muted');msg.id='openQaAdminStatus';msg.setAttribute('role','status');
-  manager.append(mh,descr,search,count,list,form,msg);
-  $('bankDialog').querySelector('.bank-content')?.insertAdjacentElement('afterend',manager);
-  const resetForm=()=>{editorId=null;form.reset();save.textContent='新增開放題';mansion.value=mansionFromWheel()||'角木蛟';difficulty.value='自訂';category.value='其他';status.value='待考';};
-  clear.addEventListener('click',resetForm);
-  function renderManager(){
-    if(!list)return;
-    list.replaceChildren();
-    const queryText=search.value.trim().toLocaleLowerCase();
-    const filtered=rows.filter(r=>[r.prompt,r.reference_answer,r.category,r.mansion].join(' ').toLocaleLowerCase().includes(queryText));
-    count.textContent=`開放式題目 ${filtered.length} / ${rows.length} 題 · ${sourceLabel}`;
-    filtered.forEach(row=>{
-      const item=make('div','qa-item');
-      const brief=make('div','',`${row.difficulty} · ${row.category} · ${row.mansion}｜${row.prompt}`);
-      const bwrap=make('div','qa-actions');
-      const edit=make('button','', '編輯');edit.type='button';
-      edit.addEventListener('click',()=>{
-        editorId=row.id;save.textContent='儲存修改';mansion.value=row.mansion;difficulty.value=row.difficulty;
-        category.value=row.category;question.value=row.prompt;reference.value=row.reference_answer;
-        status.value=row.review_status;sourceTitle.value=row.source_title||'';sourceNo.value=row.source_question_no||'';
-        question.focus();form.scrollIntoView({block:'nearest'});
-      });
-      const remove=make('button','', '刪除');remove.type='button';
-      remove.addEventListener('click',async()=>{
-        if(!isAdmin()){setStatus('請先登入授權管理員');return;}
-        if(!confirm(`確定刪除「${row.prompt}」？`))return;
-        try{await api('/rest/v1/quiz_open_questions?id=eq.'+encodeURIComponent(row.id),{method:'DELETE'},true);await refresh();setStatus('已刪除題目。');}
-        catch(e){setStatus('刪除失敗：'+e.message);}
-      });
-      bwrap.append(edit,remove);item.append(brief,bwrap);list.append(item);
-    });
-  }
-  search.addEventListener('input',renderManager);
-  form.addEventListener('submit',async event=>{
-    event.preventDefault();
-    if(!isAdmin()){setStatus('請先登入授權管理員。');return;}
-    const payload={
-      id:editorId||`open-custom-${(crypto.randomUUID?.()||Date.now().toString(36))}`,
-      source_question_no:sourceNo.value?Number(sourceNo.value):null,
-      difficulty:difficulty.value,category:category.value.trim(),mansion:mansion.value,
-      prompt:question.value.trim(),reference_answer:reference.value.trim(),
-      source_title:sourceTitle.value.trim(),source_url:editorId?(rows.find(x=>x.id===editorId)?.source_url||''):'',review_status:status.value
-    };
-    if(!payload.prompt||!payload.reference_answer){setStatus('請填完整問句與參考答案。');return;}
-    save.disabled=true;
+  async function fetchOpen(){
     try{
-      await api('/rest/v1/quiz_open_questions?on_conflict=id',{method:'POST',headers:{'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify([payload])},true);
-      await refresh();resetForm();setStatus('已儲存至 Supabase 開放題庫。');
-    }catch(e){setStatus('儲存失敗：'+e.message);}
-    finally{save.disabled=false;}
+      if(!CLOUD_READY)throw new Error('未啟用 Supabase');
+      const data=await cloudCall('/rest/v1/quiz_open_questions?select='+fields+'&order=source_question_no.asc.nullslast,id.asc&limit=3000');
+      if(!Array.isArray(data))throw new Error('雲端問答題庫格式無效');
+      openRows=data.map(normalize);source='Supabase 開放問答題庫';
+    }catch(err){
+      try{const r=await fetch('./qa-source-60.json',{cache:'no-store'});if(!r.ok)throw new Error(String(r.status));
+        const obj=await r.json();openRows=(obj.questions||[]).map(normalize);source='GitHub 來源題（唯讀備援，請先執行 SQL）';
+      }catch(e){openRows=[];source='無法載入問答題庫：'+err.message;}
+    }finally{openLoadPending=false;selectQuizForMansion(activeMansion);renderBankList();}
+  }
+  // 在同一個「數術題庫管理」列表呈現四選一與開放問答。
+  function editOpen(id){
+    const q=openRows.find(x=>x.id===id);if(!q)return;
+    editingOpenId=id;editingQuestionId=null;
+    $('editorHeading').textContent='編輯開放問答';$('saveQuestionBtn').textContent='儲存修改';
+    typeSelect.value='open';levelEditorSelect.value=q.difficulty;
+    $('editMansion').value=q.mansion;
+    const category=$('editCategory');
+    if(![...category.options].some(x=>x.value===q.category)){const o=node('option','',q.category);o.value=q.category;category.append(o);}
+    category.value=q.category;
+    $('editPrompt').value=q.prompt;
+    $('editReferenceAnswer').value=q.reference_answer;
+    $('editSourceTitle').value=q.source_title;
+    $('editSourceNo').value=q.source_question_no??'';
+    $('editReviewStatus').value=q.review_status;
+    changeType();$('editPrompt').focus();$('editPrompt').scrollIntoView({block:'nearest'});
+  }
+  editQuestion=function(id){
+    if(openRows.some(q=>q.id===id))return editOpen(id);
+    editingOpenId=null;typeSelect.value='choice';changeType();baseEdit(id);
+  };
+  clearEditor=function(){editingOpenId=null;typeSelect.value='choice';changeType();baseClear();levelEditorSelect.value='中階';};
+  const oldResetButton=$('newQuestionBtn');
+  // 主頁原有「新增題目」事件呼叫 clearEditor，故無須另建入口。
+  const oldFilter=$('bankFilter'),search=$('bankSearch');
+  renderBankList=function(){
+    const target=$('bankList');target.replaceChildren();
+    const mansion=oldFilter.value, difficulty=managerLevelSelect.value, keyword=search.value.trim().toLowerCase();
+    const all=[...questionBank.map(q=>({...q,type:'choice',difficulty:q.difficulty||'中階'})),...openRows];
+    const rows=all.filter(q=>(mansion==='all'||q.mansion===mansion) && (difficulty==='all'||q.difficulty===difficulty) &&
+       (!keyword||[q.prompt,q.category,q.mansion,q.explanation,q.reference_answer].filter(Boolean).join(' ').toLowerCase().includes(keyword)));
+    $('bankListCount').textContent=`${rows.length} / ${all.length} 題`;
+    if(!rows.length){target.append(node('p','bank-list-empty','目前沒有符合條件的題目。'));return;}
+    for(const q of rows){
+      const item=node('article','bank-item');
+      item.append(node('div','bank-item-top',`${q.difficulty} · ${q.mansion} · ${q.category} · ${q.type==='open'?'開放問答':'四選一'}`));
+      item.append(node('div','bank-item-question',q.prompt));
+      const actions=node('div','bank-item-actions');
+      const edit=node('button','', '編輯');edit.type='button';edit.addEventListener('click',()=>editQuestion(q.id));
+      const del=node('button','delete','刪除');del.type='button';
+      del.addEventListener('click',()=>removeQuestion(q.id));
+      actions.append(edit,del);item.append(actions);target.append(item);
+    }
+  };
+  managerLevelSelect.addEventListener('change',renderBankList);
+  removeQuestion=async function(id){
+    const q=openRows.find(x=>x.id===id);
+    if(!q)return baseDelete(id);
+    if(!isAdmin()){displayBankToast('請先登入管理員。');return;}
+    if(!confirm(`確定刪除此題嗎？\n${q.prompt}`))return;
+    try{
+      await cloudCall('/rest/v1/quiz_open_questions?id=eq.'+encodeURIComponent(id),{method:'DELETE'},true);
+      await fetchOpen();displayBankToast('開放問答已刪除。');
+    }catch(e){displayBankToast('刪除失敗：'+e.message);}
+  };
+  // 插入 capture 階段處理開放問答，避免原四選一 submit handler驗證四個選項。
+  form.addEventListener('submit',async event=>{
+    if(typeSelect.value!=='open')return;
+    event.preventDefault();event.stopImmediatePropagation();
+    if(!isAdmin()){displayBankToast('請先登入管理員。');return;}
+    const payload={id:editingOpenId||('open-custom-'+(crypto.randomUUID?.()||Date.now())),
+      source_question_no:$('editSourceNo').value?Number($('editSourceNo').value):null,
+      difficulty:levelEditorSelect.value, mansion:$('editMansion').value,category:$('editCategory').value,
+      prompt:$('editPrompt').value.trim(),reference_answer:$('editReferenceAnswer').value.trim(),
+      source_title:$('editSourceTitle').value.trim(),source_url:editingOpenId?(openRows.find(q=>q.id===editingOpenId)?.source_url||''):'',
+      review_status:$('editReviewStatus').value};
+    if(!payload.prompt||!payload.reference_answer){displayBankToast('請填寫題目與參考答案。');return;}
+    $('saveQuestionBtn').disabled=true;
+    try{
+      await cloudCall('/rest/v1/quiz_open_questions?on_conflict=id',{method:'POST',headers:{'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify([payload])},true);
+      await fetchOpen();clearEditor();displayBankToast('開放問答已儲存至 Supabase。');
+    }catch(e){displayBankToast('儲存失敗：'+e.message);}finally{$('saveQuestionBtn').disabled=false;}
+  },true);
+  // 原有匯入／匯出 JSON 仍專供四選一題目，避免不相容的格式互相覆蓋。
+  $('exportBankBtn').textContent='↓ 匯出四選一 JSON';
+  $('importBankBtn').textContent='↑ 匯入四選一 JSON';
+  const exportOpen=node('button','outline-btn','↓ 匯出開放問答 JSON');exportOpen.type='button';
+  exportOpen.addEventListener('click',()=>{
+    const blob=new Blob([JSON.stringify({version:1,questions:openRows},null,2)],{type:'application/json'});
+    const u=URL.createObjectURL(blob),a=node('a');a.href=u;a.download='open-questions-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1500);
   });
-  // Modal 的管理介面本身仍由既有登入程序管制；資料庫 RLS 才是最後權限界線。
-  resetForm();
-  refresh().catch(err=>{meta.textContent='題庫載入失敗：'+err.message;});
+  $('exportBankBtn').after(exportOpen);
+  clearEditor();fetchOpen();
 })();
