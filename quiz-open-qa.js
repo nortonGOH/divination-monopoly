@@ -38,6 +38,7 @@
   const levelSelect = node('select');
   levelSelect.id='quizDifficulty';
   for(const l of levels) {const opt = node('option','',l);opt.value=l;levelSelect.append(opt);}
+  {const o=node('option','','不分難度');o.value='all';levelSelect.prepend(o);}
   levelSelect.value='初階';
   selectorWrap.append(levelSelect);
   const header=$('quizTitle')?.closest('.quiz-heading');
@@ -133,8 +134,8 @@
   selectQuizForMansion=function(index){
     activeMansion=index;
     const mansion=MANSIONS[index].name, level=currentLevel();
-    const multiple=questionBank.filter(q=>q.mansion===mansion && (q.difficulty||'中階')===level).map(q=>({...q,type:'choice'}));
-    const opened=openRows.filter(q=>q.mansion===mansion && q.difficulty===level);
+    const multiple=questionBank.filter(q=>q.mansion===mansion && (level==='all'||(q.difficulty||'中階')===level)).map(q=>({...q,type:'choice'}));
+    const opened=openRows.filter(q=>q.mansion===mansion && (level==='all'||q.difficulty===level));
     const pool=multiple.concat(opened);
     $('quizScope').textContent=`目前星宿：${mansion}`;
     $('quizAvailable').textContent=`${level} · 本宿共 ${pool.length} 題`;
