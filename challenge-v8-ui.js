@@ -60,7 +60,9 @@
     const level=$('quizDifficulty')?.value||'中階';
     const levelLabel=level==='all'?'不分難度':level;
     const requestedType=typeof window.quizFiveArtsSelection==='function'?window.quizFiveArtsSelection():'all';
+    const completed=window.quizCompletedIds||new Set();
     const playable=questionBank.filter(q =>
+      !completed.has(q.id) &&
       q.mansion===mansion && (level==='all'||(q.difficulty||'中階')===level) &&
       (requestedType==='all'||(typeof inferKnowledgeType==='function' && inferKnowledgeType(q)===requestedType)) &&
       Array.isArray(q.options) && q.options.length===4 &&
@@ -77,7 +79,7 @@
       return;
     }
     if(!playable.length){
-      hideQuestion('已抽中 '+mansion+'，但「'+levelLabel+'」題庫沒有四選一題目；本次不計分，請再抽宿。');
+      hideQuestion('已抽中 '+mansion+'，目前「'+levelLabel+'」條件下沒有尚未作答的四選一題目，請更換條件或再抽宿。');
       return;
     }
     const previous=activeQuestion?.id;
