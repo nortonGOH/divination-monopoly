@@ -44,6 +44,73 @@ actions.append(signInBtn,logoutBtn);strip.append(summary,actions);
 $('quizTitle').closest('.quiz-heading').after(strip);
 const alertBox=node('p','','player-lock');alertBox.hidden=true;alertBox.id='playerLockAlert';
 $('quizAvailable').closest('.quiz-panel').prepend(alertBox);
+// Keep the wheel clickable while a server-side lock is active, but explain why
+// spins are blocked rather than leaving users with an apparently dead control.
+const cooldownDialog=node('dialog','','player-dialog');
+const cooldownTitle=node('h2','挑戰暫停・解鎖倒數');
+const cooldownDetail=node('p','');
+const cooldownExplanation=node('p','連續答錯累計達五次後，挑戰暫停四小時。「文昌星救援」僅用於查看正確答案及解析，不會抵銷答錯次數，也不會提前解除鎖定。');
+const cooldownActions=node('div','','account-actions');
+const cooldownCheck=node('button','重新檢查解鎖狀態','player-main');cooldownCheck.type='button';
+const cooldownClose=node('button','知道了');cooldownClose.type='button';
+cooldownActions.append(cooldownCheck,cooldownClose);
+cooldownDialog.append(cooldownTitle,cooldownDetail,cooldownExplanation,cooldownActions);
+document.body.append(cooldownDialog);
+let cooldownTicker=null,cooldownChecking=false;
+function cooldownRemaining(){
+ const until=new Date(playerState?.locked_until||'').getTime();
+ if(!Number.isFinite(until))return '解鎖時間尚未取得，請重新登入後確認。';
+ const seconds=Math.max(0,Math.ceil((until-Date.now())/1000));
+ const hours=Math.floor(seconds/3600),minutes=Math.floor((seconds%3600)/60),secs=seconds%60;
+ return '預計解鎖：'+dateText(playerState.locked_until)+'\n剩餘時間：'+hours+' 小時 '+String(minutes).padStart(2,'0')+' 分 '+String(secs).padStart(2,'0')+' 秒';
+}
+function renderCooldown(){
+ if(!playerState?.locked){
+   if(cooldownTicker){clearInterval(cooldownTicker);cooldownTicker=null;}
+   if(cooldownDialog.open)cooldownDialog.close();
+   return;
+ }
+ const line=cooldownRemaining();
+ alertBox.textContent='本次已累計五次答錯，挑戰暫停四小時。'+line.replace('\n','；')+'。點擊北極星可查看詳情。';
+ cooldownDetail.textContent=line;
+ if(!cooldownTicker)cooldownTicker=setInterval(renderCooldown,1000);
+}
+function openCooldown(){
+ renderCooldown();
+ if(playerState?.locked&&!cooldownDialog.open)cooldownDialog.showModal();
+}
+function handleCooldownRefreshError(error){
+ const msg=String(error?.message||error);
+ if(/jwt|expired|token|unauthori[sz]ed|^HTTP (401|403)|invalid claim|signature/i.test(msg)){
+   playerToken=null;playerState=null;playerNickname='';
+   renderCooldown();drawState();setDialogMode('login');showDlg();
+   showError('登入狀態已過期，請重新登入後繼續；先前成績及答題紀錄仍保留。');
+ }else{
+   cooldownDetail.textContent='無法查詢解鎖狀態：'+msg+'\n請稍後再點「重新檢查解鎖狀態」。';
+   if(!cooldownDialog.open)cooldownDialog.showModal();
+ }
+}
+async function checkCooldown(continueSpin=false){
+ if(cooldownChecking||!playerToken)return;
+ cooldownChecking=true;cooldownCheck.disabled=true;
+ try{
+   await refresh();
+   if(playerState?.locked){openCooldown();}
+   else{
+     if(cooldownDialog.open)cooldownDialog.close();
+     if(continueSpin&&!spinning)spin();
+   }
+ }catch(error){handleCooldownRefreshError(error);}
+ finally{cooldownChecking=false;cooldownCheck.disabled=false;}
+}
+cooldownCheck.addEventListener('click',()=>checkCooldown(false));
+cooldownClose.addEventListener('click',()=>cooldownDialog.close());
+function onLockedWheelClick(){
+ if(!playerState?.locked)return;
+ const until=new Date(playerState.locked_until||'').getTime();
+ if(Number.isFinite(until)&&until<=Date.now())checkCooldown(true);
+ else openCooldown();
+}
 const dialog=node('dialog','','player-dialog');
 const heading=node('h2','數術知識挑戰・帳號登入');
 const intro=node('p','請使用自己的電子郵件註冊。同一帳號累計答錯五次，將暫停挑戰四小時；期滿歸零。');
@@ -107,16 +174,23 @@ function drawState(){
    if(locked && nextUnlock){
      const remaining=Math.max(1000,new Date(nextUnlock).getTime()-Date.now()+500);
      if(Number.isFinite(remaining))unlockTimer=setTimeout(()=>{
-       if(!playerToken)return;refresh().then(()=>{if(!playerState?.locked)selectQuizForMansion(activeMansion);}).catch(console.error);
+       if(!playerToken)return;
+       refresh().then(()=>{if(!playerState?.locked)selectQuizForMansion(activeMansion);})
+         .catch(handleCooldownRefreshError);
      },Math.min(remaining,2147483647));
    }
  }
  summary.textContent=playerToken?`${playerNickname||'尚未設定暱稱'}｜參戰 ${playerState?.total_attempts??0} 次｜答對 ${playerState?.correct_attempts??0} 次｜成功率 ${Number(playerState?.success_rate??0).toFixed(1)}%｜當期答錯 ${playerState?.wrong_count??0}/5${locked?'｜暫停至 '+dateText(playerState.locked_until):''}`:'請註冊或登入，才能開始數術問答挑戰。';
  logoutBtn.hidden=!playerToken;signInBtn.hidden=!!playerToken;profileBtn.hidden=!playerToken;
- if(locked){alertBox.hidden=false;alertBox.textContent=`已累計五次答錯，暫停挑戰至 ${dateText(playerState.locked_until)}。四小時後自動歸零。`;
- }else{alertBox.hidden=true;alertBox.textContent='';}
+ if(locked){alertBox.hidden=false;}else{alertBox.hidden=true;alertBox.textContent='';}
+ renderCooldown();
  const allowed=!!playerToken && !locked;
- if(!spinning){$('spinBtn').disabled=!allowed;$('nextQuestionBtn').disabled=!allowed || $('nextQuestionBtn').disabled;}
+ if(!spinning){
+   $('spinBtn').disabled=!playerToken;
+   if(locked){$('spinBtn').textContent='🔒 挑戰暫停・查看解鎖時間';$('spinBtn').title='點擊可查看解鎖倒數與原因';}
+   else if($('spinBtn').textContent.startsWith('🔒')){$('spinBtn').textContent='✦　再次抽宿挑戰';$('spinBtn').title='';}
+   $('nextQuestionBtn').disabled=!allowed || $('nextQuestionBtn').disabled;
+ }
  if(!allowed && !spinning){
   $('answerOptions').replaceChildren();
   $('questionText').textContent=locked?'本次挑戰已達五次答錯，請於解鎖後繼續。':'請登入或註冊帳號，再開始抽宿挑戰。';
@@ -249,9 +323,10 @@ wenchangYes.addEventListener('click',async()=>{
     wenchangAnswer.textContent='正確答案：'+label+(result.explanation?'\n\n解析：'+result.explanation:'');
     wenchangAnswer.hidden=false;
     wenchangInfo.textContent=result.used_credit?'已扣除 1 次文昌星救援；下次仍可重新挑戰這道題目。':'本題答案已解鎖，不重複扣除救援次數。';
+    if(playerState?.locked)wenchangInfo.textContent+='\n您已累計五次答錯，目前仍須等候四小時鎖定期結束；救援不會解除鎖定。';
     wenchangCredits.textContent='目前剩餘：'+Number(result.status?.credits??0)+' / 10 次';
     wenchangYes.hidden=true;wenchangNo.textContent='關閉';
-    if(activeQuestion?.id===id)$('answerFeedback').textContent='✕ 回答錯誤。已使用「文昌星救援」查看解析。';
+    if(activeQuestion?.id===id)$('answerFeedback').textContent='✕ 回答錯誤。已使用「文昌星救援」查看解析。'+(playerState?.locked?'\n本次已達五次答錯，請等待解鎖；點北極星可查看倒數。':'');
   }catch(err){wenchangInfo.textContent='救援失敗：'+err.message;wenchangYes.disabled=false;}
   finally{wenchangBusy=false;wenchangNo.disabled=false;}
 });
@@ -316,7 +391,7 @@ for(const elem of [$('spinBtn'),$('polaris-trigger')]){
  for(const eventName of ['click','keydown'])elem.addEventListener(eventName,e=>{
   if(eventName==='keydown'&&!['Enter',' '].includes(e.key))return;
   if(!playerToken||playerState?.locked){e.preventDefault();e.stopImmediatePropagation();
-    if(playerState?.locked)drawState();else showDlg();}
+    if(playerState?.locked)onLockedWheelClick();else{setDialogMode('login');showDlg();}}
  },true);
 }
 setDialogMode('login');
