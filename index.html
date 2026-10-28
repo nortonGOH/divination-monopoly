@@ -608,7 +608,7 @@ function inferKnowledgeType(question){
   if(KNOWLEDGE_TYPES.includes(question.knowledge_type))return question.knowledge_type;
   const c=String(question.category||'').trim();
   const fixed={
-    '易學基礎':'卜','八卦':'卜','九宮':'卜','奇門遁甲':'卜','六壬':'卜','太乙':'卜',
+    '易學基礎':'易學','易學':'易學','八卦':'易學','九宮':'卜','奇門遁甲':'卜','六壬':'卜','太乙':'卜',
     '二十八宿':'命','干支':'命','五行':'命','曆法':'天文曆法','天文曆法':'天文曆法',
     '一·干支與五行基礎':'命','二·易卦、圖書與時空模型':'卜',
     '二·三式高階機理與局數推衍':'卜'
@@ -620,7 +620,8 @@ function inferKnowledgeType(question){
   if(/^(漢醫|中醫|醫學|醫藥|經絡)/.test(c))return '醫';
   if(/^(風水|相術|面相|堪輿|形法)/.test(c))return '相';
   if(/^(星命|星占|命理|紫微斗數)/.test(c))return '命';
-  if(/^(占卜|卜筮|易學|六爻)/.test(c))return '卜';
+  if(/^(易學|周易|易經|六爻)/.test(c))return '易學';
+  if(/^(占卜|卜筮)/.test(c))return '卜';
   return '待分類';
 }
 function validBank(input){
