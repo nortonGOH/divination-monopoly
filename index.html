@@ -669,17 +669,15 @@ async function cloudCall(path,opts={}, authenticated=false){
   if(response.status===204)return null;
   const text=await response.text();return text?JSON.parse(text):null;
 }
-async function fetchCloudBank(){
-  let data;
-  try {
-    data=await cloudCall('/rest/v1/quiz_questions?select=id,mansion,category,knowledge_type,difficulty,prompt,options,answer,explanation&order=id.asc&limit=3000');
-  } catch(error) {
-    // Backward-compatible read until database upgrade SQL is applied.
-    if(!String(error.message||'').includes('knowledge_type'))throw error;
-    data=await cloudCall('/rest/v1/quiz_questions?select=id,mansion,category,difficulty,prompt,options,answer,explanation&order=id.asc&limit=3000');
-  }
+async function fetchCloudBank(admin=false){
+  // Public RPC deliberately excludes the answer key and explanations.
+  const endpoint=admin?'/rest/v1/rpc/quiz_admin_question_bank':'/rest/v1/rpc/quiz_public_question_bank';
+  const data=await cloudCall(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'},admin);
   if(!Array.isArray(data))throw new Error('雲端題庫格式不正確');
-  return validBank(data);
+  if(admin)return validBank(data);
+  // Compatibility with the existing choice renderer; this is NOT the true answer.
+  // Scoring uses the authenticated quiz_submit_choice server RPC exclusively.
+  return validBank(data.map(q=>({...q,answer:0,explanation:''})));
 }
 async function loadHostedBank(){
   if(CLOUD_READY){
@@ -710,7 +708,7 @@ async function initializeBank(){
 async function persistBank(){
   // 題庫不可僅在瀏覽器本地假裝受密碼保護；變更一律提交到有 RLS 的伺服器。
   if(!adminAccessToken)throw new Error('請先完成管理員登入。');
-  questionBank=await fetchCloudBank();
+  questionBank=await fetchCloudBank(true);
   questionSource='Supabase 共享題庫（已登入管理員）';
   refreshBankInterface();selectQuizForMansion(activeMansion);
 }
