@@ -603,17 +603,18 @@ function fairRandomInt(limit){
   return Math.floor(Math.random()*limit);
 }
 /* 五術學習類型與原始題材分類分離，避免抹除原作者主題。 */
-const KNOWLEDGE_TYPES=['山','醫','命','卜','相','待分類'];
+const KNOWLEDGE_TYPES=['山','醫','命','卜','相','天文曆法','待分類'];
 function inferKnowledgeType(question){
   if(KNOWLEDGE_TYPES.includes(question.knowledge_type))return question.knowledge_type;
   const c=String(question.category||'').trim();
   const fixed={
     '易學基礎':'卜','八卦':'卜','九宮':'卜','奇門遁甲':'卜','六壬':'卜','太乙':'卜',
-    '二十八宿':'命','干支':'命','五行':'命','曆法':'命',
+    '二十八宿':'命','干支':'命','五行':'命','曆法':'天文曆法','天文曆法':'天文曆法',
     '一·干支與五行基礎':'命','二·易卦、圖書與時空模型':'卜',
     '二·三式高階機理與局數推衍':'卜'
   };
   if(fixed[c])return fixed[c];
+  if(c.includes('曆法')||c.includes('天文'))return '天文曆法';
   if(/^(山|醫|命|卜|相)([（(　\s]|$)/.test(c))return c[0];
   if(/^(修練|修煉|丹道|內丹|導引)/.test(c))return '山';
   if(/^(漢醫|中醫|醫學|醫藥|經絡)/.test(c))return '醫';
