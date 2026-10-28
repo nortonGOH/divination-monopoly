@@ -83,7 +83,7 @@ CREATE TRIGGER quiz_player_profile_signup
 -- Public view is deliberately a function with *only* opted-in nickname/score fields.
 -- It never emits user_id, email, or contact details.
 CREATE OR REPLACE FUNCTION public.quiz_public_leaderboard()
-RETURNS TABLE(position bigint, nickname text, total_attempts bigint,
+RETURNS TABLE("position" bigint, nickname text, total_attempts bigint,
               correct_attempts bigint, success_rate numeric)
 LANGUAGE sql SECURITY DEFINER SET search_path = ''
 AS $$
@@ -91,13 +91,13 @@ AS $$
       ORDER BY s.correct_attempts DESC,
         s.correct_attempts::numeric / nullif(s.total_attempts,0) DESC,
         s.total_attempts DESC, p.nickname ASC
-    ) AS position,
+    ) AS "position",
     p.nickname, s.total_attempts, s.correct_attempts,
     round(s.correct_attempts::numeric * 100/nullif(s.total_attempts,0),1) AS success_rate
   FROM public.quiz_player_profiles p
   JOIN public.quiz_player_state s ON s.user_id=p.user_id
   WHERE p.leaderboard_opt_in=true AND s.total_attempts>0
-  ORDER BY position LIMIT 50;
+  ORDER BY "position" LIMIT 50;
 $$;
 REVOKE ALL ON FUNCTION public.quiz_public_leaderboard() FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.quiz_public_leaderboard() TO anon, authenticated;
