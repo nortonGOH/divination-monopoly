@@ -116,7 +116,13 @@
     const answer=node('div','open-answer-content');answer.hidden=true;
     answer.textContent=`來源參考答案（${q.review_status}）\n${q.reference_answer}\n\n來源：${q.source_title||'管理員自訂題目'}${q.source_question_no?' · 第 '+q.source_question_no+' 題':''}`;
     reveal.addEventListener('click',()=>{reveal.hidden=true;answer.hidden=false;mastered.hidden=false;retry.hidden=false;});
-    const mark=(yes)=>{reviewCount++;if(yes)masteredCount++;scoreText();selectQuizForMansion(activeMansion);};
+    const mark=async(yes)=>{
+      if(typeof window.challengeRecordOpen==='function'){
+        const recorded=await window.challengeRecordOpen(q,yes);
+        if(!recorded)return;
+      }
+      reviewCount++;if(yes)masteredCount++;scoreText();selectQuizForMansion(activeMansion);
+    };
     mastered.addEventListener('click',()=>mark(true));retry.addEventListener('click',()=>mark(false));
     controls.append(reveal,mastered,retry);wrap.append(controls,answer);
     const note=node('p','qa-review-note','參考答案依來源文件保存，未逐題考證；二十八宿歸屬僅為教學互動分組。');wrap.append(note);

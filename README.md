@@ -1,31 +1,53 @@
-# 數術知識大挑戰 v6：同一題庫／初中高階／二十八宿抽宿出題
+# 數術知識大挑戰 v7：會員、五錯四小時、32 格轉盤、曆法篇 80 題
 
-## 本次修改
+## 已製作／尚未執行
 
-- 主介面「數術問答」增加難度下拉：初階／中階／高階。
-- 先選難度，然後抽宿。停止在某宿時，只從該宿且符合難度的題組隨機取一題；該宿該難度沒題目時明確顯示「本宿暫無題目」，**不跨宿也不跨難度借題**。
-- 四選一與開放問答共用唯一主問答畫面，移除獨立的「數術深究 · 開放問答」卡片。
-- 「管理題庫」同一清單列出兩種題型，可依難度與星宿篩選，編輯、刪除、新增兩種題型。
-- 原 Google 文件 1–30 題維持初階、31–60 題維持高階。原 56 道四選一暫歸中階（**系統便於分組的暫定分類，非經學術評級**），管理員可以重新調整。
-- 既有 Google 文件中存在待查證的研究性論述，原始參考答案不修改，`review_status` 維持「待考」。
+- 靜態網站更新：`index.html`、`quiz-open-qa.js`、`quiz-challenge-v7.js`。
+- PostgreSQL migration：`01_player_lock.sql`，為會員建立錯題次數及鎖定狀態，並新增 3 個 API RPC。
+- 曆法篇 80 題：`calendar-questions-80.json`；另提供 8 份每份 10 題的 `seed/calendar_01.sql` ... `calendar_08.sql`。
+- 驗證指令：`02_verify.sql`。
+- 本套件**不包含帳密、secret/service_role key，也不會覆寫**史料表及既有問答題；SQL 未在您的實際 Supabase 專案執行。
 
-## Supabase 安裝順序（先安裝，再發布網站）
+## 部署順序（切勿顛倒）
 
-1. Supabase Dashboard → SQL Editor：執行 `01_upgrade_difficulty.sql`。這只新增四選一 `difficulty` 欄位，保留原四選一、開放問答、史料庫。
-2. **如之前已執行 60 題 `02_import_60_open_questions.sql`，不要重複匯入**；否則執行包內 `02_import_60_open_questions.sql`，以 `ON CONFLICT DO NOTHING` 插入 60 題。
-3. 執行 `03_verify_levels.sql`，檢查初階 30／高階 30；四選一預設中階，具體數量視您先前已增刪的題庫而定。
-4. GitHub 儲存庫 `nortonGOH/divination-monopoly`：以本包 `quiz-open-qa.js` **替換**原同名檔案，不要再載入舊版插件。這個新檔會讓同一問答欄依難度與抽中星宿出題。
-5. 此版本 `index.html` 的核心程式也有四項配套升級，**必須同步更新**：讓四選一題庫在讀取、保存與管理時保留難度。若目前網站還沒有更新，請將本包 `index.html` 更新至 GitHub 根目錄，保留 `config.js` 與 `history-supabase-reader.js` 不變。如網站有其他自訂修改，應先備份或比對差異後再合併。
-6. 開啟 GitHub Pages 網站按 Ctrl+F5，測試三個難度切換，抽宿顯示的題目必須符合所選等級與所落星宿。
+1. 備份 Supabase 題庫：在 SQL Editor 先查總筆數，或在管理題庫中匯出 JSON。
+2. 先確認第六版的 `quiz_questions.difficulty` 與 `quiz_open_questions` 都存在。若尚未執行第六版升級 SQL，先執行舊版 `01_upgrade_difficulty.sql`。
+3. 在 Supabase **SQL Editor** 貼入並執行 `01_player_lock.sql`（這份不長）。檢查成功後再做下一步。
+4. **80 題匯入二選一：**最簡單是已部署 v6 的網站以授權管理員登入「管理題庫」→「匯入四選一 JSON」→ 模式選**合併** → 選 `calendar-questions-80.json`；此方式會直接寫入 Supabase。若不使用管理介面，則在 SQL Editor 依序執行 `seed/calendar_01.sql` 至 `seed/calendar_08.sql`（每份 10 題）。**不要把兩種方式都當作必須操作**。SQL 版 `ON CONFLICT DO NOTHING` 不覆蓋同 ID。
+5. 無論選哪一種匯入方式，執行 `02_verify.sql`，預期有 80 題 `calendar-2026-%`，且難度均是「初階」。
+6. Supabase Dashboard → **Authentication → Sign In / Providers → Email**：開啟 Email provider 和新增使用者註冊。建議保留 `Confirm email` 開啟；設定 Email rate limits、CAPTCHA、必要時自訂 SMTP。**Authentication → URL Configuration** 的 Site URL 設為 `https://nortongoh.github.io/divination-monopoly/`。
+7. GitHub 專案根目錄：上傳/覆蓋 `index.html`、`quiz-open-qa.js`，新增 `quiz-challenge-v7.js`。請保留現有 `config.js` 與 `history-supabase-reader.js`，不要公開任何金鑰以外的 Supabase Secret。
+8. 開啟網站（Ctrl+F5）註冊 → 驗證 Email → 登入 → 抽宿 → 連續答錯五次 → 顯示鎖定四小時。用瀏覽器重新整理並再次登入，次數應維持。四小時期滿下次查詢狀態會歸零。
 
-## 安全及資料留存
+## 三個 RPC
 
-- 原有 `quiz_admins` ＋ Supabase RLS 控制新增／修改／刪除，訪客只有 SELECT。
-- `config.js` 只能放 `supabaseUrl` 與 `publishableKey`；**不要公開資料庫密碼、service_role/secret key**。
-- 題型仍分兩張 Supabase 表以保留不同欄位要求，但**前台不再分成兩個問答模組**。
-- 既有四選一 JSON 匯入／匯出功能保留，新增獨立的開放問答匯出備份；匯入開放問答需在管理員後台逐題新增或執行 SQL。
-- 正式學術引用仍需核對原始文獻，待考表示僅忠實收錄來源文件問答，並非已證明。
+- `quiz_player_status()`：原子查詢/過期重設 `wrong_count`, `locked_until`。
+- `quiz_submit_choice(p_question_id,p_answer_index)`：伺服器核對四選一答案並更新答錯次數。
+- `quiz_review_open(p_question_id,p_mastered)`：開放問答依使用者自評「待複習」計錯一次；這**不是客觀閱卷**。
 
-## 版本與回滾
+四小時鎖定從該帳號的第 5 次錯誤開始；答對不消除先前累計錯誤。按正常流程，鎖定中無法抽宿或答題。會員認證由 Supabase Auth 管理，密碼絕不寫在 GitHub。前端不將 access token 存於 localStorage；重新整理後請重新登入同帳號，伺服器次數會保留。
 
-本包程式沿用既有 `index.html`、`quiz-open-qa.js` 路徑；如已自行修改站點，建議先用 GitHub 版本歷史備份原 `index.html` 再更新。資料庫升級為加欄位式，不會清空原有記錄。
+### 實際安全限制
+
+目前舊版 `quiz_questions` 會把正確答案透過公開 API 回傳以供讀取。因此**伺服器能可靠地限制已註冊帳號透過新版 RPC 進行的測驗提交，但不能宣稱整套系統已具備反作弊安全性**：知道 API 的人能自行查詢現有題庫答案，也可以另創新帳號。若要正式競賽，應再將正確答案移出公開讀取 API、把題目發放與答題綁定一次性伺服器試次，並對註冊加入 CAPTCHA、電子郵件驗證與風控。
+
+## 四個特殊格
+
+星盤維持東、北、西、南連續序列，共 **7 宿＋特殊格** ×4＝32格，每格等角、隨機抽取。
+
+- 機會 I：重新抽宿；不計答題／答錯。
+- 命運 I：允許調整難度再抽宿；不計答題。
+- 機會 II：可自行點選任何一宿練習，或再抽宿。
+- 命運 II：保持難度再抽宿；不計答題。
+
+這是遊戲設計，不是古代星占技法。特殊格指向的是該格，不會假裝落在二十八宿內。
+
+## 80 題來源與學術校核
+
+題目根據上傳 DOCX《數術入門研究知識問答八十題：曆法篇（選擇題版）》逐題保留題幹、A–D 選項、原文件指定答案與解析。依來源順序在 28 宿輪流配置每宿 2–3 題；全部暫定 **初階**，方便在網站難度選擇後抽中每一宿都有題。來源中個別歷史與天文論述可能存在應修正之處，本次**沒有將模型推測補成史料事實**，所有新題解析均標示「待考」。應在管理題庫中逐條核對後，再將內容視為已審校題目。
+
+## 不破壞既有功能
+
+- 第六版初／中／高階、四選一與開放問答共用介面保留。
+- `history-supabase-reader.js` 的站內閱讀/隱藏史料卡片沿用原版，不受此更新影響。
+- 管理員依原有 `quiz_admins` 授權；會員註冊不能自動獲得管理員權限。
