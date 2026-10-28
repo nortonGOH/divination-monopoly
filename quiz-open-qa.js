@@ -269,7 +269,8 @@
     $('saveQuestionBtn').disabled=true;
     try{
       await cloudCall('/rest/v1/quiz_open_questions?on_conflict=id',{method:'POST',headers:{'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify([payload])},true);
-      await fetchOpen();clearEditor();displayBankToast(editingOpenId?'開放問答修改已儲存至 Supabase。':'開放問答已儲存至 Supabase。');
+      const wasEditing=Boolean(editingOpenId);
+      await fetchOpen();clearEditor();displayBankToast(wasEditing?'開放問答修改已儲存至 Supabase。':'開放問答已儲存至 Supabase。');
     }catch(e){displayBankToast('儲存失敗：'+e.message);}finally{$('saveQuestionBtn').disabled=false;}
   },true);
   // 原有匯入／匯出 JSON 仍專供四選一題目，避免不相容的格式互相覆蓋。
