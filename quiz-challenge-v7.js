@@ -197,6 +197,7 @@ answerQuestion=async function(index){
   playerState={wrong_count:result.wrong_count,locked:result.locked,locked_until:result.locked_until,total_attempts:result.total_attempts??playerState?.total_attempts??0,correct_attempts:result.correct_attempts??playerState?.correct_attempts??0,success_rate:result.success_rate??playerState?.success_rate??0};
   if(!result.accepted){if(result.reason==='already_answered'){completedIds.add(activeQuestion.id);$('answerFeedback').textContent='這一題您已作答，不會再次出題或計分；請重新抽宿。';$('answerOptions').querySelectorAll('button').forEach(b=>b.disabled=true);}drawState();return;}
   completedIds.add(activeQuestion.id);
+  window.dispatchEvent(new CustomEvent('quiz-answer-graded',{detail:{correct:result.correct,questionId:activeQuestion.id}}));
   // Display server-checked result, not a locally guessed value.
   questionAnswered=true;answeredCount++;if(result.correct)correctCount++;
   [...$('answerOptions').children].forEach((b,i)=>{
