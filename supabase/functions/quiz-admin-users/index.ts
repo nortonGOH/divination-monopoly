@@ -37,11 +37,15 @@ Deno.serve(async req=>{
    const body=await req.json().catch(()=>({}));
    const action=body.action;
    if(action==='list'){
+      const overviewResponse=await fetch(SUPABASE_URL+'/rest/v1/rpc/quiz_admin_member_overview',{method:'POST',headers:{apikey:ANON_KEY,Authorization:'Bearer '+jwt,'Content-Type':'application/json'},body:'{}'});
+      if(!overviewResponse.ok)return fail('無法載入會員統計，請確認資料庫升級。',503);
+      const overview=await overviewResponse.json();
+      const detailById=new Map((Array.isArray(overview)?overview:[]).map(x=>[x.user_id,x]));
       const all=[];
       for(let page=1;page<=5;page++){
         const result=await api('/auth/v1/admin/users?page='+page+'&per_page=100','GET',ADMIN_KEY);
         const users=result.users||[];
-        all.push(...users.map(u=>({id:u.id,email:u.email||'',created_at:u.created_at,confirmed_at:u.email_confirmed_at||null})));
+        all.push(...users.map(u=>({id:u.id,email:u.email||'',created_at:u.created_at,confirmed_at:u.email_confirmed_at||null,last_sign_in_at:u.last_sign_in_at||null,...(detailById.get(u.id)||{})})));
         if(users.length<100)break;
       }
       return reply({users:all});
