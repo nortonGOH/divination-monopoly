@@ -11,6 +11,9 @@ const base=String(cfg.supabaseUrl||'').replace(/\/$/,'');
 const key=String(cfg.publishableKey||'');
 let playerToken=null, playerEmail='', playerNickname='', playerState=null, busy=false;
 let unlockTimer=null, unlockAt='';
+let completedIds=new Set();window.quizCompletedIds=completedIds;
+window.quizPlayerMayChallenge=()=>Boolean(playerToken&&!playerState?.locked);
+async function reloadCompleted(){completedIds=new Set(await endpoint('/rest/v1/rpc/quiz_answered_question_ids','POST',{}));window.quizCompletedIds=completedIds;}
 const loginReady=Boolean(base&&key);
 const node=(tag,text='',cls='')=>{const x=document.createElement(tag);x.textContent=text;if(cls)x.className=cls;return x;};
 const style=node('style');
@@ -123,6 +126,7 @@ function drawState(){
 async function refresh(){
  if(!playerToken){playerState=null;drawState();return;}
  playerState=await endpoint('/rest/v1/rpc/quiz_player_status','POST',{});
+ await reloadCompleted();
  drawState();
 }
 function showError(msg){notice.textContent=msg;}
@@ -169,11 +173,11 @@ saveProfileBtn.addEventListener('click',async()=>{
     showError('暱稱與排行榜公開設定已儲存。');
     dialog.close();setDialogMode('login');
     selectQuizForMansion(activeMansion);
-  }catch(e){showError('儲存失敗：'+e.message);}
+  }catch(e){showError('儲存失敗：'+(/Nickname already taken|unique|duplicate/i.test(e.message)?'此暱稱已有人使用，請改用其他暱稱。':e.message));}
   finally{saveProfileBtn.disabled=false;busy=false;}
 });
 logoutBtn.addEventListener('click',async()=>{
- const old=playerToken;playerToken=null;playerEmail='';playerNickname='';playerState=null;
+ const old=playerToken;playerToken=null;playerEmail='';playerNickname='';playerState=null;completedIds=new Set();window.quizCompletedIds=completedIds;
  nickname.value='';privacyCheck.checked=false;setDialogMode('login');drawState();
  if(old)try{await fetch(base+'/auth/v1/logout',{method:'POST',headers:{'apikey':key,'Authorization':'Bearer '+old}});}catch(e){}
 });
@@ -189,7 +193,8 @@ answerQuestion=async function(index){
   const result=await endpoint('/rest/v1/rpc/quiz_submit_choice','POST',{
     p_question_id:activeQuestion.id,p_answer_index:index});
   playerState={wrong_count:result.wrong_count,locked:result.locked,locked_until:result.locked_until,total_attempts:result.total_attempts??playerState?.total_attempts??0,correct_attempts:result.correct_attempts??playerState?.correct_attempts??0,success_rate:result.success_rate??playerState?.success_rate??0};
-  if(!result.accepted){drawState();return;}
+  if(!result.accepted){if(result.reason==='already_answered'){completedIds.add(activeQuestion.id);$('answerFeedback').textContent='這一題您已作答，不會再次出題或計分；請重新抽宿。';$('answerOptions').querySelectorAll('button').forEach(b=>b.disabled=true);}drawState();return;}
+  completedIds.add(activeQuestion.id);
   // Display server-checked result, not a locally guessed value.
   questionAnswered=true;answeredCount++;if(result.correct)correctCount++;
   [...$('answerOptions').children].forEach((b,i)=>{
