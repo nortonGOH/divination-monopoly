@@ -602,6 +602,26 @@ function fairRandomInt(limit){
   }
   return Math.floor(Math.random()*limit);
 }
+/* 五術學習類型與原始題材分類分離，避免抹除原作者主題。 */
+const KNOWLEDGE_TYPES=['山','醫','命','卜','相','待分類'];
+function inferKnowledgeType(question){
+  if(KNOWLEDGE_TYPES.includes(question.knowledge_type))return question.knowledge_type;
+  const c=String(question.category||'').trim();
+  const fixed={
+    '易學基礎':'卜','八卦':'卜','九宮':'卜','奇門遁甲':'卜','六壬':'卜','太乙':'卜',
+    '二十八宿':'命','干支':'命','五行':'命','曆法':'命',
+    '一·干支與五行基礎':'命','二·易卦、圖書與時空模型':'卜',
+    '二·三式高階機理與局數推衍':'卜'
+  };
+  if(fixed[c])return fixed[c];
+  if(/^(山|醫|命|卜|相)([（(　\s]|$)/.test(c))return c[0];
+  if(/^(修練|修煉|丹道|內丹|導引)/.test(c))return '山';
+  if(/^(漢醫|中醫|醫學|醫藥|經絡)/.test(c))return '醫';
+  if(/^(風水|相術|面相|堪輿|形法)/.test(c))return '相';
+  if(/^(星命|星占|命理|紫微斗數)/.test(c))return '命';
+  if(/^(占卜|卜筮|易學|六爻)/.test(c))return '卜';
+  return '待分類';
+}
 function validBank(input){
   const list=Array.isArray(input)?input:input&&input.questions;
   if(!Array.isArray(list)||list.length>3000) throw new Error('JSON 必須是題目陣列或含 questions 的物件，且不得超過 3000 題。');
@@ -621,7 +641,7 @@ function validBank(input){
     const category=String(q.category||'其他').trim();
     const explanation=String(q.explanation||'').trim();
     if(category.length>40||explanation.length>1600)throw new Error(`第 ${i+1} 題的分類或說明過長。`);
-    return {id,mansion,category:category||'其他',difficulty:['初階','中階','高階'].includes(q.difficulty)?q.difficulty:'中階',prompt,options:q.options.map(v=>String(v).trim()),answer,explanation};
+    return {id,mansion,category:category||'其他',knowledge_type:inferKnowledgeType(q),difficulty:['初階','中階','高階'].includes(q.difficulty)?q.difficulty:'中階',prompt,options:q.options.map(v=>String(v).trim()),answer,explanation};
   });
 }
 // Supabase Auth 與資料庫 RLS 才是真正權限邊界。公開的 URL / publishable key 不是密碼。
@@ -648,7 +668,14 @@ async function cloudCall(path,opts={}, authenticated=false){
   const text=await response.text();return text?JSON.parse(text):null;
 }
 async function fetchCloudBank(){
-  const data=await cloudCall('/rest/v1/quiz_questions?select=id,mansion,category,difficulty,prompt,options,answer,explanation&order=id.asc&limit=3000');
+  let data;
+  try {
+    data=await cloudCall('/rest/v1/quiz_questions?select=id,mansion,category,knowledge_type,difficulty,prompt,options,answer,explanation&order=id.asc&limit=3000');
+  } catch(error) {
+    // Backward-compatible read until database upgrade SQL is applied.
+    if(!String(error.message||'').includes('knowledge_type'))throw error;
+    data=await cloudCall('/rest/v1/quiz_questions?select=id,mansion,category,difficulty,prompt,options,answer,explanation&order=id.asc&limit=3000');
+  }
   if(!Array.isArray(data))throw new Error('雲端題庫格式不正確');
   return validBank(data);
 }
@@ -950,7 +977,7 @@ el('questionForm').addEventListener('submit',async event=>{
   event.preventDefault();
   const proposed={
     id:editingQuestionId||('custom-'+(window.crypto&&crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random().toString(36).slice(2))),
-    mansion:el('editMansion').value,category:el('editCategory').value,difficulty:el('editDifficulty')?.value||'中階',
+    mansion:el('editMansion').value,category:el('editCategory').value,knowledge_type:el('editKnowledgeType')?.value||'待分類',difficulty:el('editDifficulty')?.value||'中階',
     prompt:el('editPrompt').value.trim(),options:[0,1,2,3].map(i=>el('editOption'+i).value.trim()),
     answer:Number(el('editAnswer').value),explanation:el('editExplanation').value.trim()
   };
