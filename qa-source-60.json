@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "description": "原文件問答60題，原文答案尚待學術核校。星宿配對僅供互動分組。",
+  "description": "依來源 Google 文件逐題擷取，原答案尚待學術核校，星宿配對僅供遊戲題組分配",
   "questions": [
     {
       "id": "google-doc60-001",
@@ -11,7 +11,7 @@
       "prompt": "十天干與十二地支的陰陽奇偶配合原則為何？",
       "reference_answer": "天干地支皆有陰陽劃分。十天干中，甲丙戊庚壬為陽，乙丁己辛癸為陰；十二地支中，子寅辰午申戌為陽，丑卯巳未酉亥為陰。六十甲子的組合嚴格依循「陽干配陽支、陰干配陰支」的原則，自甲子起至癸亥止，共六十組，絕無陰陽雜錯之配。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -23,7 +23,7 @@
       "prompt": "何謂「五行相生」與「五行相剋」？其傳世次序為何？",
       "reference_answer": "五行生剋是數術推演的核心動力。相生次序為：木生火、火生土、土生金、金生水、水生木；相剋次序為：木剋土、土剋水、水剋火、火剋金、金剋木。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -35,7 +35,7 @@
       "prompt": "五行於四季各月之氣勢強弱，所謂「旺、相、休、囚、死」如何定義？",
       "reference_answer": "「旺相休囚死」用以衡量五行在特定時令中的能量消長。當令者為「旺」（如春木旺）；生旺者為「相」（如春火相）；生我者為「休」（如春水休）；剋我者為「囚」（如春金囚）；我剋者為「死」（如春土死）。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -47,7 +47,7 @@
       "prompt": "天干「五合」的具體組合與化氣五行分別為何？",
       "reference_answer": "甲己合化土、乙庚合化金、丙辛合化水、丁壬合化木、戊癸合化火。此五合源自古代天文觀測與《黃帝內經·素問》五運六氣之天干化氣理論。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -59,7 +59,7 @@
       "prompt": "地支「六合」與「六沖」分別包含哪些地支？",
       "reference_answer": "六合為子丑合（土）、寅亥合（木）、卯戌合（火）、辰酉合（金）、巳申合（水）、午未合（日月/火土）。六沖為方位相對（相隔一百八十度）之地支互衝：子午相沖、丑未相沖、寅申相沖、卯酉相沖、辰戌相沖、巳亥相沖。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -71,7 +71,7 @@
       "prompt": "地支「三合局」之組合原則與各局五行屬性為何？",
       "reference_answer": "三合局由五行之「長生、帝旺、墓庫」三支構成：申子辰合水局、亥卯未合木局、寅午戌合火局、巳酉丑合金局。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -83,7 +83,7 @@
       "prompt": "何謂「十二長生」？其完整順序為何？",
       "reference_answer": "十二長生描述五行氣運自孕育、興盛至消亡與再生的十二個發展階段，其順序為：長生、沐浴、冠帶、臨官、帝旺、衰、病、死、墓（庫）、絕、胎、養。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -95,7 +95,7 @@
       "prompt": "地支「三會局」由哪些地支組成？其與三合局有何本質差異？",
       "reference_answer": "三會局為同一季節與方位的整組地支聚集：寅卯辰會東方木（春）、巳午未會南方火（夏）、申酉戌會西方金（秋）、亥子丑會北方水（冬）。三會局純粹體現方隅時序之氣，氣勢專一，其力通常大於跨越方位的五行生旺庫三合局。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -107,7 +107,7 @@
       "prompt": "何謂「旬空」（空亡）？其在六十甲子中如何產生？",
       "reference_answer": "十天干配十二地支，一輪十日稱為「一旬」。因地支比天干多兩位，故每旬必有兩地支無天干相配，稱為「旬空」或「空亡」。如甲子旬中戌亥空、甲戌旬中申酉空、甲申旬中午未空、甲午旬中辰巳空、甲辰旬中寅卯空、甲寅旬中子丑空。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -119,7 +119,7 @@
       "prompt": "何謂「納音五行」？其三十組納音與六十甲子的基本對應關係為何？",
       "reference_answer": "納音五行係依據古代律呂律數（如大衍之數五十八卦曆算法或三分損益法）將六十甲子每兩干支配屬一音（宮商角徵羽），進一步歸納為五行三十局，如「甲子乙丑海中金」、「丙寅丁卯爐中火」等。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -131,7 +131,7 @@
       "prompt": "何謂「河圖」與「洛書」的數理格局特徵？",
       "reference_answer": "河圖以「一六共宗居北、二七同道居南、三八為朋居東、四九為友居西、五十同途居中」為體現五行生成之數（天一生水，地六成之等）；洛書以「戴九履一，左三右七，二四為肩，六八為足，五居中央」構成三階縱橫圖（幻方），行、列、對角線和皆為十五。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -143,7 +143,7 @@
       "prompt": "先天八卦（伏羲八卦）與後天八卦（文王八卦）的方位配置有何不同？",
       "reference_answer": "先天八卦以對待為義：乾南坤北、離東坎西、兌東南艮西北、震東北巽西南；後天八卦以流行致用為義：離南坎北、震東兌西、巽東南坤西南、乾西北艮東北。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -155,7 +155,7 @@
       "prompt": "何謂「十二辟卦」（十二消息卦）？其如何對應一年十二月份之陰陽消長？",
       "reference_answer": "十二辟卦取乾坤兩卦變爻，象徵陽長陰消與陰長陽消。冬至起為十一月復（一陽生），依序為十二月臨（二陽）、正月泰（三陽）、二月大壯（四陽）、三月夬（五陽）、四月乾（純陽）；夏至起為五月姤（一陰生），依序為六月遯（二陰）、七月否（三陰）、八月觀（四陰）、九月剝（五陰）、十月坤（純陰）。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -167,7 +167,7 @@
       "prompt": "漢代京房易學中的「八宮卦」如何劃分？何謂「世爻」與「應爻」？",
       "reference_answer": "京房將六十四卦歸於乾、震、坎、艮、坤、巽、離、兌八純卦之宮，每宮包含本宮卦、一世、二世、三世、四世、五世、遊魂、歸魂共八卦。世爻代表卦之主體與問事者，應爻代表所問之人、事或對應環境，二者通常相隔兩爻相應（如初爻與四爻、二爻與五爻、三爻與上爻）。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -179,7 +179,7 @@
       "prompt": "何謂「遊魂卦」與「歸魂卦」？其爻變規則為何？",
       "reference_answer": "在八宮卦變中，五世卦後再變第四爻（自上向下反退一爻），稱為「遊魂卦」；遊魂卦之後下三爻全部還原為本宮卦之下卦（即初、二、三爻全變），稱為「歸魂卦」。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -191,7 +191,7 @@
       "prompt": "傳統大衍筮法中「大衍之數五十，其用四十有九」的占筮流程主要包含哪些步驟？",
       "reference_answer": "占筮時虛一不用以象太極，用四十九蓍草，經「分而為二以象兩、掛一以象三、揲之以四以象四時、歸奇於扐以象閏」之三變而成一爻，凡十有八變而成一卦。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -203,7 +203,7 @@
       "prompt": "傳統二十四節氣的命名與劃分依據為何？",
       "reference_answer": "二十四節氣依太陽在黃道上的視運動軌跡劃分，太陽黃經自春分點（零度）起，每行十五度為一個節氣，由十二個「節氣」與十二個「中氣」交替相間組成，用以調協陰陽合曆與農業時序。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -215,7 +215,7 @@
       "prompt": "古代「四象」與二十八宿的配屬與空間方位為何？",
       "reference_answer": "東方蒼龍七宿（角、亢、氐、房、心、尾、箕）；北方玄武七宿（斗、牛、女、虛、危、室、壁）；西方白虎七宿（奎、婁、胃、昴、畢、觜、參）；南方朱雀七宿（井、鬼、柳、星、張、翼、軫）。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -227,7 +227,7 @@
       "prompt": "何謂「分野」說？其基本概念為何？",
       "reference_answer": "分野是古代將天上的星宿、星座（特別是二十八宿與十二次）與地上的州國地理區域建立相互對應的體系，藉由觀測天象變異推演特定地域之吉凶禍福。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -239,7 +239,7 @@
       "prompt": "傳統曆注中的「建除十二神」包含哪些？其排列順序為何？",
       "reference_answer": "建、除、滿、平、定、執、破、危、成、收、開、閉。每月以北斗斗柄所指之辰為「建日」，其後順序排列，用以擇日避凶。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -251,7 +251,7 @@
       "prompt": "數術領域常稱的「三式」指哪三種占術？各自主掌之推演範疇為何？",
       "reference_answer": "三式指「太乙、奇門、六壬」。太乙神數主推天道興亡、朝代治亂與天災大事；奇門遁甲主推地理方位、兵事行軍與運籌取勝；大六壬主推人事百相、日用動靜與吉凶休咎。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -263,7 +263,7 @@
       "prompt": "大六壬排盤中的「天地盤」如何布設？何謂「月將」？",
       "reference_answer": "天地盤係將活動的天盤加臨於固定不動的地盤（十二地支方隅）之上。布盤時，取占卜當月太陽所纏之宮度地支為「月將」（常過中氣換將），將月將加於占問時辰的地支（天盤月將臨地盤時支），依次順布十二神。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -275,7 +275,7 @@
       "prompt": "奇門遁甲排盤的基本結構由哪「四盤」組成？",
       "reference_answer": "由天盤（九星：天蓬、天芮、天衝、天輔、天禽、天心、天柱、天任、天英）、人盤（八門：休、生、傷、杜、景、死、驚、開）、地盤（九宮八卦陣局及三奇六儀）與神盤（八神：值符、騰蛇、太陰、六合、白虎、玄武、九地、九天）層疊構成。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -287,7 +287,7 @@
       "prompt": "何謂風水形法中的「四神砂」？其理想的地理配置格局為何？",
       "reference_answer": "四神砂指穴場周圍之山巒形勢：後有主山靠山為「玄武垂頭」，前有朝山案山為「朱雀翔舞」，左有護砂為「青龍蜿蜒」，右有護砂為「白虎馴俯」，共同構成藏風聚氣的環抱格局。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -299,7 +299,7 @@
       "prompt": "八字命理（四柱推命）中的「四柱」與「十神」概念為何？",
       "reference_answer": "四柱為出生命盤之年柱、月柱、日柱、時柱，共八個干支。以日柱天干（日主）為中心，依據其他干支對日主之生剋陰陽關係，定出十種神煞名目：正官、偏官（七殺）、正印、偏印（梟神）、正財、偏財、食神、傷官、比肩、劫財。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -311,7 +311,7 @@
       "prompt": "何謂「太歲」與「歲破」？在數術方位上有何禁忌？",
       "reference_answer": "「太歲」為假想與歲星（木星）逆向運行之神，其所在之地支方位即為當年太歲方（如子年太歲在子）；其正對相衝之一百八十度方位則為「歲破」（如子年歲破在午）。數術常有「太歲可坐不可向，歲破不可坐亦不可向」之行事動土禁忌。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -323,7 +323,7 @@
       "prompt": "傳統面相學（相法）中之「五嶽」與「四瀆」指人臉的哪些器官部位？",
       "reference_answer": "五嶽指中嶽嵩山（鼻）、東嶽泰山（左顴）、西嶽華山（右顴）、南嶽衡山（額/天庭）、北嶽恆山（地閣/下巴）。四瀆指四條流注面部的器官：江（耳）、河（目）、淮（口）、濟（鼻）。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -335,7 +335,7 @@
       "prompt": "九宮紫白飛星中，一至九星的名稱與五行屬性為何？",
       "reference_answer": "一白水星（坎）、二黑土星（坤）、三碧木星（震）、四綠木星（巽）、五黃土星（中宮）、六白金星（乾）、七赤金星（兌）、八白土星（艮）、九紫火星（離）。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -347,7 +347,7 @@
       "prompt": "古代「五音」與五行的對應關係為何？",
       "reference_answer": "宮配土、商配金、角配木、徵配火、羽配水。古代音律數術常藉五音配干支以用於相術、姓氏避忌與擇日。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -359,7 +359,7 @@
       "prompt": "傳統測字術（拆字）常藉助漢字「六書」中的哪幾種造字法則進行推演？",
       "reference_answer": "常藉助象形（因形取義）、會意（拆合偏旁取意）、指事（增減筆畫取兆）、形聲（諧音雙關借義）以及轉注假借等手法，將字形之筆劃結構與問事者之時空物兆相呼應。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -371,7 +371,7 @@
       "prompt": "放馬灘秦簡與睡虎地秦簡《日書》展現了戰國秦漢之際民間數術的何種面貌？",
       "reference_answer": "簡帛《日書》反映戰國至秦漢時期數術高度世俗化與實用化，內容涵蓋農作、婚喪、出行、築室、病祟、問疾與除盜等多種日常禁忌與時日宜忌，主要以建除、叢辰、人字圖、禹步等時空法術為主，與傳世官修禮制典籍形成鮮明互補。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -383,7 +383,7 @@
       "prompt": "馬王堆漢墓帛書《刑德》甲、乙、丙篇中的「刑德」九宮運行模式與後世奇門遁甲有何淵源？",
       "reference_answer": "帛書《刑德》展示了以九宮八風為地盤框架，刑、德二神依陰陽歲時律令在宮位中逆順運行的數術體系。其太一移宮、刑德相逐與主客勝負規律，奠定了漢代兵陰陽家之式占基礎，被學界確認為後世奇門遁甲神煞與陰陽遁局演變的核心原型之一。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -395,7 +395,7 @@
       "prompt": "出土漢代六壬式盤（如安徽阜陽汝陰侯墓式盤）在形制結構上有何特徵？如何體現古代宇宙觀？",
       "reference_answer": "漢代式盤由圓形天盤與方形地盤以中軸相聯組成，具現「天圓地方」的宇宙模型。天盤繪北斗七星、十二神煞及二十八宿；地盤刻二十八宿度數、十干與十二地支、八卦方隅。天盤隨轉動以象天體運轉，地盤靜止以象大地安立。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -407,7 +407,7 @@
       "prompt": "西漢海昏侯墓與長沙馬王堆帛書《五星占》對五星運行的記載，在數術星占史上有何突破性意義？",
       "reference_answer": "帛書《五星占》與海昏侯墓出土孔子衣鏡及曆算簡文，記載了極為精確的五星會合週期（如金星會合週期精確記載為584.4日），將甘石星官系統與五行德運、分野兵災直接掛鉤，體現漢代星占學兼具精密實測天學與政事符應之雙重面向。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -419,7 +419,7 @@
       "prompt": "何謂「二十八宿距星」？為何古代二十八宿度數非均等劃分？",
       "reference_answer": "距星為各宿中用以測量入宿赤經度數之基準星。由於天空中各星群分布自然疏密不勻，古人依赤道附近明亮標誌星確定各宿界限，故二十八宿廣狹不一（如井宿三十餘度，觜宿僅有一兩度），此非人為均分之數學模型，而是實測天文座標系統。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -431,7 +431,7 @@
       "prompt": "歲差現象（恆星年與回歸年差異）對古代星占與星野分野理論帶來何種長期的衝擊？",
       "reference_answer": "晉代虞喜發現歲差後，冬至點逐漸西移，導致二十八宿宿度與太陽所在之黃道十二次產生位移脫節。此現象迫使後世曆算家（如一行、郭守敬）持續重測距星度數，並引發星占學界關於「從天測象（以實測星宿為準）」或「從氣定局（以二十四節氣劃分為準）」的深刻理論爭辯。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -443,7 +443,7 @@
       "prompt": "唐代李淳風《乙巳占》在風角占候體系中的地位與理論特徵為何？",
       "reference_answer": "《乙巳占》總結了自先秦漢晉以來之星占與占候法，其〈占風〉篇詳細界定八方來風、風色、音響、強弱，並創制八級風力分級法，將自然氣象變化透過感應論昇華為軍政預警體系，是古代「風角」數術集成之作。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -455,7 +455,7 @@
       "prompt": "唐代大興善寺不空所譯《文殊師利菩薩及諸仙所說吉凶時日善惡宿曜經》對中國傳統數術有何影響？",
       "reference_answer": "《宿曜經》引進印度梵曆、七曜（日、月、火、水、木、金、土）星期制、九曜（加入羅睺、計都）與黃道十二宮（西洋白羊至雙魚）系統，與本土二十八宿及干支相融合，催生了唐宋以來的「宿曜占星術」與後世果老星宗十一曜推命體系。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -467,7 +467,7 @@
       "prompt": "沈括在《夢溪筆談》中提出之「十二氣曆」，對傳統數術以陰陽合曆配節氣有何反思？",
       "reference_answer": "沈括主張徹底擺脫以月相朔望為月之「陰陽合曆」，純依十二節氣建月（以立春為歲首，大月三十一日，小月三十日），使四時寒暑與農事完全契合。此論點直接挑戰了依賴朔閏置閏的傳統式占起局法，強調物理節候方為五行生旺之根本。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -479,7 +479,7 @@
       "prompt": "何謂古代兵陰陽家的「孤虛」法？《銀雀山漢簡》與《武經總要》如何論述其軍事應用？",
       "reference_answer": "「孤」為旬空之地支方隅（如甲子旬戌亥），「虛」為其正對相衝之方（辰巳）。兵陰陽家講求「背孤擊虛，一女子可敵百夫」，即行軍布陣背負孤空之方，迎面向擊虛位之敵，藉天地空缺生氣之陰陽位勢壓制敵軍。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -491,7 +491,7 @@
       "prompt": "奇門遁甲中「置閏法」、「拆補法」與「茅山道人法」在處理節氣與局象配合上有何分歧？",
       "reference_answer": "奇門以六十甲子配六十時辰（五日一元），一年三百六十日共七十二元，但實際回歸年有三百六十五日又四分之一，導致「節氣」與「局元」脫節。置閏法在芒種和大雪前，依超神過甚之原則插入重複之閏局；拆補法則隨節氣交接之當下直接拆補更換局數；茅山法則嚴格依節氣交接時刻起換局，不論干支符頭。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -503,7 +503,7 @@
       "prompt": "奇門遁甲如何區分「陰遁九局」與「陽遁九局」？其排布逆順規律為何？",
       "reference_answer": "自冬至起至芒種止為陽遁，氣機陽生，九星八門與六儀順布九宮（戊己庚辛壬癸依一二三四五六七八九宮順飛）；自夏至起至大雪止為陰遁，氣機陰降，六儀逆布九宮（九八七六五四三二一宮逆飛），三奇順逆亦隨陰陽遁局法則而變。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -515,7 +515,7 @@
       "prompt": "奇門遁甲中「值符」與「值使」的定位邏輯為何？",
       "reference_answer": "依據當日時辰之旬首（如甲子旬之戊、甲戌旬之己），尋找地盤上此旬首落於何宮。落宮之原地盤九星即為當局之「值符」（首領星），原落宮之八門即為「值使」（掌令門），再隨時辰干支轉移於天盤與人盤各宮。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -527,7 +527,7 @@
       "prompt": "大六壬「宗門九課」中，何謂「涉害課」？其取初傳的核心標準為何？",
       "reference_answer": "涉害課發生於四課中有兩課或三課以上皆逢地支相剋，且比和（陰陽屬性與日干相比）亦相同無法取用之時。此時須將被剋之神加於地盤本位上，自地盤本位順行數至天盤所在之位，計算其途中歷經孟（寅申巳亥）、仲（子午卯酉）、季（辰戌丑未）受剋深淺（涉害深度），以涉害最深者發端為初傳。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -539,7 +539,7 @@
       "prompt": "大六壬中何謂「伏吟課」與「反吟課」？其天地盤狀態與取初傳機制為何？",
       "reference_answer": "天盤地支完全加臨於地盤本位（子加子、丑加丑）稱為「伏吟」，象徵事多窒礙不動，依日干刑沖取初傳；天盤地支加臨於地盤相對相沖之位（子加午、午加子）稱為「反吟」，象徵反覆變動不定，以日辰驛馬或四課發動為傳。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -551,7 +551,7 @@
       "prompt": "大六壬在月將選用上，為何必須「過中氣換將」而非依交節氣換將？其背後的天文算理為何？",
       "reference_answer": "月將實質為太陽視運動在黃道十二宮（十二次）的停留位置。交「節氣」代表太陽進入某季節之始，而交「中氣」（如雨水、春分、穀雨等）才是太陽正式過宮進入下一星次之分界（如太陽過雨水由玄枵入娵訾），故大六壬嚴格恪守過中氣換月將，以符天文實況。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -563,7 +563,7 @@
       "prompt": "太乙神數中「太乙積年」與「太乙入局」的推算原理為何？",
       "reference_answer": "太乙神數以假想之上元混沌甲子年為起算原點（太乙積年），計算至當前所測年份之總年數，除以太乙局週（三百六十局或七十二局甲子數）以求餘數，據此確定值年太乙星所入十六神煞方隅與內外局，用以占斷國運盛衰。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -575,7 +575,7 @@
       "prompt": "何謂《管氏地理指蒙》與郭璞《葬書》中之「乘氣說」？其對生氣聚散的判定原則為何？",
       "reference_answer": "郭璞《葬書》云：「氣乘風則散，界水則止，古人聚之使不散，行之使有止，故謂之風水。」其核心在於辨別大地陰陽融結之「生氣」，乘風之散在於求得山巒朝拱避風以藏之，界水之止在於藉由水流環繞鎖截生氣，使之蓄結於穴星。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -587,7 +587,7 @@
       "prompt": "三元九運玄空風水中，「挨星」法如何依當令元運與陰陽順逆進行飛布？",
       "reference_answer": "玄空以一百八十年為正元，分為上、中、下三元各三運（每運二十年）。立極時，依坐向將運星入中宮飛布八方，再依坐山星與向水星所對應之天元、地元、人元龍之陰陽純雜，判斷逆飛或順飛，推算宅運之旺山旺向、上山下水。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -599,7 +599,7 @@
       "prompt": "清代蔣大鴻《地理辨正》對宋代以降巒頭與理氣之爭有何理論整飭？",
       "reference_answer": "蔣大鴻嚴厲駁斥明代流行的二十四山三合水法與八宅偽術，主張形氣合一：以形勢巒頭為體，以玄空九宮流行之氣為用，力陳「得形無氣不發，得氣無形不長」，重構了清代玄空理氣正統論述。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -611,7 +611,7 @@
       "prompt": "唐代李虛中命書與宋代徐子平命理術，在推命模型上有何範式轉移（Paradigm Shift）？",
       "reference_answer": "李虛中命法以「年柱」為主體，重視年支納音五行與星煞格局（以年為根、月為苗、日為花、時為實）；徐子平（子平法）轉移至以「日干」（日主）為核心主體，建立以日干五行生剋配合月令司令之格神體系，深化了正格、變格與十神制化之推論精密度。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -623,7 +623,7 @@
       "prompt": "明代《滴天髓》與《子平真詮》在命理取用神理念上有何根本差異？",
       "reference_answer": "《子平真詮》（沈孝瞻）恪守月令格局，專以月令透干本氣定格，重在格局之成敗救應與順逆善惡之護理；《滴天髓》（京圖著、任鐵樵注）則跳脫局限，重在全局氣勢之流通、生剋調候、強弱偏全與五行真機，不拘泥於月令格名。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -635,7 +635,7 @@
       "prompt": "紫微斗數中的「虛星」與「政餘星宗」之實星體系，在編曆算法上有何本質區別？",
       "reference_answer": "星宗（果老星宗）以實際天象運行之七政四餘（日月五星與虛擬交點）為本，需依曆法推步求其實測經緯度；紫微斗數則完全抽離即時天文觀測，係一種依農曆出生月日時辰，純以數理排步之「虛擬符號星群」（十四主星及甲級諸星），本質為純數理邏輯演繹。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -647,7 +647,7 @@
       "prompt": "漢代揚雄《太玄經》如何構造異於《周易》之數理架構？其「三方九序」為何？",
       "reference_answer": "《太玄》以「三」為進位之本（擬易之二進制陰陽），立一玄、三方、九州、二十七部、八十一家，每家四重（方、州、部、家），以象天、地、人三才之始終，並配以七百二十七贊，自成一套嚴密推準歲實三百六十五又四分之一日之曆算哲學體系。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -659,7 +659,7 @@
       "prompt": "漢代京房易之「納甲」體系，如何將十天干納入八卦？其原理與月相何涉？",
       "reference_answer": "納甲係京房取象於月體隨太陽光度變化之消長：乾納甲壬、坤納乙癸；初三震出庚（震納庚，一陽月出）、初八兌現丁（兌納丁，上弦月）、十五乾盈甲（乾納甲，望月）、十六巽生辛（巽納辛，始虧）、二十三艮見丙（艮納丙，下弦月）、三十坤伏乙（坤納乙，晦月）。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -671,7 +671,7 @@
       "prompt": "出土湖北江陵張家山漢簡《引書》與《脈書》，如何反映早期導引、醫學與數術歲氣之交叉關聯？",
       "reference_answer": "簡文表明早期中醫經脈理論與歲月陰陽、四時行氣法術密不可分，人體之血氣循行與天地之日行十二舍、九宮八風存在同構對應，反映漢初「醫卜同源」之實踐樣態。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -683,7 +683,7 @@
       "prompt": "宋代邵雍《皇極經世書》之「元會運世」時間尺度如何劃分？其數理本源為何？",
       "reference_answer": "邵雍以《易》數之十二與三十相乘推衍世界歷史週期：一元統十二會，一會統三十運，一運統十二世，一世統三十年。因此一元總計有十二會、三百六十運、四千三百二十世、十二萬九千六百年，形成周而復始之宇宙歷史演進大曆程。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -695,7 +695,7 @@
       "prompt": "明代劉基《郁離子》及數術文獻中托名劉伯溫之著作（如《黃金策》），在文獻學上應如何辨偽？",
       "reference_answer": "《黃金策》實為明清民間六爻火珠林占筮法集大成之作，出於明代易卜家之手，多偽託開國元勳劉伯溫之名以求權威崇信；考其體例、用詞、體系結構與劉基真作《郁離子》、《覆瓿集》風格迴異，為典型數術史中的「託名託古」現象。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -707,7 +707,7 @@
       "prompt": "近代梁啟超在《陰陽五行說之來歷》中，對鄒衍及陰陽五行學說提出何種學術批判？後世學界對其有何補充反思？",
       "reference_answer": "梁啟超痛斥陰陽五行為「二千年來迷信之大本營」，指責鄒衍雜湊五行以售其術；然當代李零、饒宗頤等學者透過戰國秦漢簡帛（如日書、五行篇）考證，指出陰陽五行實乃先秦古人認知宇宙時空秩序之自然科學與分類框架雛形，不宜簡單斥為一人所撰之欺罔妖言。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     },
     {
@@ -719,7 +719,7 @@
       "prompt": "數術學在中國科技史（特別是李約瑟難題與天文算學史）中，扮演了何種矛盾而雙重的角色？",
       "reference_answer": "數術一方面因天人感應與政治合法性需求，長期驅動國家投入龐大人力觀測天文、精密改曆與發展代數算學（如大衍求一術源於求上元積年）；另一方面，其神秘主義骨架與牽強符應模式，在定型後亦在一定程度上壓抑了走向可證偽之純粹數理實驗科學，呈現「天學之母」與「迷思之源」並存的雙重歷史面相。",
       "source_title": "數術知識問答六十題（初階與高階）",
-      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit?usp=sharing",
+      "source_url": "https://docs.google.com/document/d/1wabQkuJgkI4jiWA7OJjnObbMOXk8gidgO8vdufYNisI/edit",
       "review_status": "待考"
     }
   ]
