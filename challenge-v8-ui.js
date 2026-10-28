@@ -146,7 +146,7 @@
       result.textContent='正在取得會員統計…';
       dlg.showModal();
       try{
-        const rows=await cloudCall('/rest/v1/rpc/quiz_admin_challenger_stats',{
+        const rows=await cloudCall('/rest/v1/rpc/quiz_admin_challenger_stats_nicknames',{
           method:'POST',headers:{'Content-Type':'application/json'},body:'{}'
         },true);
         if(!Array.isArray(rows))throw Error('統計格式不正確');
@@ -154,12 +154,12 @@
         if(!rows.length){result.textContent='尚未有答題紀錄。';return;}
         const table=document.createElement('table');table.className='v8-stats-table';
         const thead=document.createElement('thead'),hr=document.createElement('tr');
-        ['會員帳號','參戰','成功','失敗','成功率'].forEach(t=>{const th=document.createElement('th');th.textContent=t;hr.append(th);});
+        ['會員暱稱','參戰','成功','失敗','成功率'].forEach(t=>{const th=document.createElement('th');th.textContent=t;hr.append(th);});
         thead.append(hr);table.append(thead);
         const body=document.createElement('tbody');
         rows.forEach(r=>{
           const tr=document.createElement('tr');
-          const vals=[r.email||'（無電子郵件）',r.total_attempts,r.correct_attempts,r.wrong_attempts,(Number(r.success_rate)||0).toFixed(1)+'%'];
+          const vals=[r.nickname||'（未設定暱稱）',r.total_attempts,r.correct_attempts,r.wrong_attempts,(Number(r.success_rate)||0).toFixed(1)+'%'];
           vals.forEach(v=>{const td=document.createElement('td');td.textContent=String(v??'—');tr.append(td);});
           body.append(tr);
         });
