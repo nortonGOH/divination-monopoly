@@ -9,6 +9,8 @@
   const levels = ['初階','中階','高階'];
   const fields = 'id,source_question_no,difficulty,category,mansion,prompt,reference_answer,source_title,source_url,review_status';
   let openRows = [], source = '尚未載入', currentId = '', currentOpen = null;
+  // Read-only snapshot for the administrator's type-by-level inventory panel.
+  window.quizGetOpenQuestions=()=>openRows.map(q=>({...q}));
   let reviewCount = 0, masteredCount = 0, editingOpenId = null;
   let openLoadPending = true;
   const baseSelect = selectQuizForMansion;
