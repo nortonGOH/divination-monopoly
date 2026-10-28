@@ -4,12 +4,12 @@
 const $=id=>document.getElementById(id);
 const form=$('questionForm'),dialog=$('bankDialog'),filterBar=$('bankFilter')?.closest('.bank-filters');
 if(!form||!dialog||!filterBar||typeof inferKnowledgeType!=='function')return;
-const types=[['all','全部五術類型'],['山','山（修練）'],['醫','醫（漢醫）'],['命','命（星、命）'],['卜','卜（占卜）'],['相','相（相術、風水）'],['天文曆法','天文曆法'],['易學','易學'],['待分類','待分類']];
+const types=[['all','數術類型'],['山','山（修練）'],['醫','醫（漢醫）'],['命','命（星、命）'],['卜','卜（占卜）'],['相','相（相術、風水）'],['天文曆法','天文曆法'],['易學','易學'],['待分類','待分類']];
 const chooser=(id,all)=>{const select=document.createElement('select');select.id=id;for(const [v,name] of types){if(!all&&v==='all')continue;const opt=document.createElement('option');opt.value=v;opt.textContent=name;select.append(opt);}return select;};
-const editLabel=document.createElement('label');editLabel.textContent='五術類型';
+const editLabel=document.createElement('label');editLabel.textContent='數術類型';
 const editSelect=chooser('editKnowledgeType',false);editLabel.append(editSelect);
 form.querySelector('.editor-columns')?.append(editLabel);
-const filterLabel=document.createElement('label');filterLabel.textContent='五術類型篩選';
+const filterLabel=document.createElement('label');filterLabel.textContent='數術類型篩選';
 const filterSelect=chooser('bankKnowledgeType',true);filterLabel.append(filterSelect);filterBar.append(filterLabel);
 const challengeHeader=$('quizTitle')?.closest('.quiz-heading');
 const challengeLabel=document.createElement('label');challengeLabel.className='level-chooser';challengeLabel.textContent='挑戰類型';
@@ -46,7 +46,7 @@ window.quizFiveArtsSelection=()=>challengeSelect.value;
 challengeSelect.addEventListener('change',()=>{
   const panel=document.querySelector('.quiz-section .quiz-panel');
   if(panel)panel.hidden=true;
-  const note=document.querySelector('.v8-empty-note');if(note){note.hidden=false;note.textContent='已切換五術類型；請重新抽宿取得符合條件的四選一題目。';}
+  const note=document.querySelector('.v8-empty-note');if(note){note.hidden=false;note.textContent='已切換數術類型；請重新抽宿取得符合條件的四選一題目。';}
 });
 const save=form.querySelector('#saveQuestionBtn');
 if(save){
