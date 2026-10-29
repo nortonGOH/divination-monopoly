@@ -21,10 +21,10 @@ test('keyboard skip link goes to main content',async({page})=>{
   await expect(page).toHaveURL(/#mainContent$/);
   await expect(page.locator('#mainContent')).toBeFocused();
 });
-test('quick navigation targets actual challenge, quiz and history',async({page})=>{
+test('quick navigation targets challenge and quiz without history',async({page})=>{
   const nav=page.getByRole('navigation',{name:'網站快速導覽'});
-  await expect(nav.getByRole('link')).toHaveCount(3);
-  for(const [name,target] of [['開始挑戰','spinBtn'],['題目與難度','quizTitle'],['史料閱覽','historyHeading']]){
+  await expect(nav.getByRole('link')).toHaveCount(2);
+  for(const [name,target] of [['開始挑戰','spinBtn'],['題目與難度','quizTitle']]){
     const item=nav.getByRole('link',{name});
     await expect(item).toHaveAttribute('href','#'+target);
     await expect(page.locator('#'+target)).toHaveCount(1);
@@ -59,4 +59,15 @@ test('mobile touch targets and back to top work at 375px',async({page})=>{
   await top.click();
   await expect(page).toHaveURL(/#pageStart$/);
   await expect.poll(()=>page.evaluate(()=>window.scrollY)).toBeLessThan(10);
+});
+
+test('historical reader is removed and quiz management is still available',async({page})=>{
+  await expect(page.locator('.history-panel,#historyNextBtn,#historyLink,#libraryOpenBtn,#libraryDialog,#libraryStandaloneBtn')).toHaveCount(0);
+  await expect(page.locator('script[src*="history-supabase-reader"]')).toHaveCount(0);
+  await expect(page.locator('#skyWheel')).toBeVisible();
+  await expect(page.locator('#quizTitle')).toBeVisible();
+  const shortcut=page.getByRole('button',{name:'開啟題庫管理'});
+  await expect(shortcut).toBeVisible();
+  await shortcut.click();
+  await expect(page.locator('#loginDialog')).toBeVisible();
 });

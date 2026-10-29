@@ -13,18 +13,16 @@
 .ux-back-to-top{position:fixed;left:max(14px,env(safe-area-inset-left));right:auto;bottom:max(16px,env(safe-area-inset-bottom));z-index:30;display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:11px 17px;background:#13263a;color:#fff;border-radius:999px;font-size:.86rem;line-height:1.2;font-weight:700;box-shadow:0 6px 24px #13263a66;text-decoration:none}
 .ux-back-to-top[hidden]{display:none!important}
 .ux-back-to-top:hover{background:#1d4260}
-#mainContent,#spinBtn,#quizTitle,#historyHeading{scroll-margin-top:15px}
+#mainContent,#spinBtn,#quizTitle{scroll-margin-top:15px}
 button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid #c38429;outline-offset:3px}
-#manageBankBtn,#historyNextBtn,.history-actions button,.bank-toolbar button,.bank-item-actions button,.bank-head .close-btn,.library-dialog button,.bank-filters select,.bank-filters input{min-height:44px}
+#manageBankBtn,.bank-toolbar button,.bank-item-actions button,.bank-head .close-btn,.bank-filters select,.bank-filters input{min-height:44px}
 @media(max-width:540px){
- .ux-quick-nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+ .ux-quick-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
  .ux-quick-nav a{padding:10px 5px;font-size:.79rem;white-space:normal}
  .ux-howto{margin-bottom:14px}
  .quiz-heading{flex-wrap:wrap}
  .quiz-heading #manageBankBtn{flex-shrink:0}
  .bank-toolbar button,.bank-toolbar select{white-space:normal;max-width:100%}
- .history-bar{flex-wrap:wrap}
- .history-bar #historyNextBtn{white-space:normal}
  .ux-back-to-top{left:12px;right:auto;bottom:12px}
 }
 @media(prefers-reduced-motion:reduce){.ux-skip-link{transition:none!important}}
