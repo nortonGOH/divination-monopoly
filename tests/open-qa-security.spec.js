@@ -4,6 +4,7 @@ const question={id:'isolated-open-001',source_question_no:1,difficulty:'初階',
 const answer='僅供 Mock 測試的參考答案，絕非正式題庫資料';
 async function setup(page,{mode='anon',locked=false}={}){
  const seen=[];
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/config.js',route=>route.fulfill({status:200,contentType:'application/javascript',body:`window.QUIZ_AUTH_CONFIG={supabaseUrl:'${MOCK_URL}',publishableKey:'mock-public-key-0123456789'};`}));
  await page.route('**/quiz-challenge-v7.js',route=>route.fulfill({status:200,contentType:'application/javascript',body:`window.quizRevealOpenAnswer=async(id)=>{const r=await fetch('${MOCK_URL}/rest/v1/rpc/quiz_reveal_open_answer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p_question_id:id})});const j=await r.json();if(!r.ok)throw Error(j.message);return j;};`}));
  await page.route('**/rest/v1/**',async route=>{
@@ -27,7 +28,7 @@ async function setup(page,{mode='anon',locked=false}={}){
  await page.route('**/auth/v1/**',route=>route.fulfill({status:401,contentType:'application/json',body:'{"message":"No test session"}'}));
  await page.goto('/');
  await expect(page.locator('#quizDifficulty')).toBeVisible();
- await expect(page.locator('#questionText')).toContainText(question.prompt);
+ await expect.poll(async()=>({display:await page.locator('#questionText').innerText(),errors,openReady:await page.evaluate(()=>typeof window.quizRefreshOpenBank),requests:seen.map(x=>x.path)}),{timeout:8000}).toMatchObject({display:expect.stringContaining(question.prompt)});
  return seen;
 }
 test('anonymous sees question without answer in public API, reveal denied',async({page})=>{
