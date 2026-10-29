@@ -1,0 +1,33 @@
+name: Verify live administrator bank preload
+on:
+  push:
+    branches:
+      - verify/live-admin-snapshot-fix-20261029
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify official GitHub Pages matches merged editor
+        shell: bash
+        run: |
+          set -euo pipefail
+          url='https://nortongoh.github.io/divination-monopoly'
+          for n in $(seq 1 18); do
+            if curl -fsSL --retry 2 --retry-delay 2 --max-time 25 "$url/?admin_preload_check=$GITHUB_RUN_ID-$n" -o /tmp/verified-index.html && cmp -s index.html /tmp/verified-index.html; then
+              break
+            fi
+            if test "$n" = 18; then echo 'FAIL: Live HTML differs from merged main'; exit 1; fi
+            sleep 5
+          done
+          grep -Fq 'async function openBank()' /tmp/verified-index.html
+          grep -Fq 'await persistBank();' /tmp/verified-index.html
+          grep -Fq '正在載入管理員完整題庫' /tmp/verified-index.html
+          grep -Fq 'FALLBACK_QUESTIONS = []' /tmp/verified-index.html
+          if grep -Fq 'function openBank(){' /tmp/verified-index.html; then
+            echo 'FAIL: old editor entry point still deployed'; exit 1
+          fi
+          echo 'PASS: GitHub Pages serves the merged admin snapshot preload and retains empty public answer fallback.'
