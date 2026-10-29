@@ -1,0 +1,35 @@
+name: Verify live new knowledge types
+on:
+  push:
+    branches: [verify/live-general-bingyinyang-20261029]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare live assets and options
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://nortongoh.github.io/divination-monopoly'
+          mkdir -p /tmp/live-types
+          for n in $(seq 1 18); do
+            ok=1
+            for file in index.html challenge-v10-fivearts.js challenge-v19-bank-stats.js challenge-v22-bank-taxonomy-and-highlight.js; do
+              if ! curl -fsSL --retry 2 --retry-delay 2 --max-time 25 "$base/$file?test=$GITHUB_RUN_ID-$n" -o "/tmp/live-types/$file"; then ok=0
+              elif ! cmp -s "$file" "/tmp/live-types/$file"; then ok=0; fi
+            done
+            if test "$ok" = 1; then break; fi
+            if test "$n" = 18; then echo 'FAIL: GitHub Pages not in sync'; exit 1; fi
+            sleep 5
+          done
+          for name in '通識' '兵陰陽'; do
+            grep -Fq "$name" /tmp/live-types/index.html
+            grep -Fq "$name" /tmp/live-types/challenge-v10-fivearts.js
+            grep -Fq "$name" /tmp/live-types/challenge-v19-bank-stats.js
+            grep -Fq "$name" /tmp/live-types/challenge-v22-bank-taxonomy-and-highlight.js
+          done
+          echo 'PASS: live Pages matches main with 通識 and 兵陰陽 in editor, filters and statistics.'
