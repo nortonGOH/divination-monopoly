@@ -1,0 +1,45 @@
+name: Authorized atomic Git history cleanup
+on:
+  push:
+    branches: [security/history-rewrite-apply-20261029]
+permissions:
+  contents: write
+jobs:
+  coordinated-history-cleanup:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_HISTORY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pinned git-filter-repo
+        run: |
+          python3 -m venv "$RUNNER_TEMP/filter-venv"
+          "$RUNNER_TEMP/filter-venv/bin/pip" install --disable-pip-version-check 'git-filter-repo==2.47.0'
+          echo "$RUNNER_TEMP/filter-venv/bin" >> "$GITHUB_PATH"
+      - name: Encrypted backup and dry-run verification
+        run: bash scripts/preflight_history_cleanup.sh
+      - name: Upload encrypted backup before any remote mutation
+        uses: actions/upload-artifact@v4
+        with:
+          name: encrypted-history-before-atomic-rewrite
+          path: |
+            .history-preflight-output/backup/*.cms
+            .history-preflight-output/backup/*.sha256
+          if-no-files-found: error
+          retention-days: 30
+      - name: Apply authorized atomic force-with-lease update
+        run: bash scripts/apply_history_cleanup.sh
+      - name: Upload sanitization report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: atomic-rewrite-audit
+          path: |
+            .history-preflight-output/report/branches.txt
+            .history-preflight-output/report/original-refs.txt
+            .history-preflight-output/report/preserved-branches.txt
+            .history-preflight-output/report/filter-repo-log.txt
+          if-no-files-found: ignore
+          retention-days: 30
