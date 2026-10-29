@@ -189,9 +189,11 @@
     @media(max-width:740px){.library-toolbar{grid-template-columns:1fr 1fr;padding:12px 15px}.library-meta{padding:12px 15px}.library-text{padding:17px 18px;font-size:.94rem}.library-foot{padding:10px 15px}}
     @media(max-width:430px){.library-toolbar{grid-template-columns:1fr}.library-text{max-height:60dvh}}
   </style>
+  <link rel="stylesheet" href="./site-ux.css">
 </head>
 <body>
-<div class="shell">
+<a class="ux-skip-link" href="#mainContent">跳至主要內容</a>
+<div class="shell" id="pageStart">
   <header class="site-head">
     <div>
       <p class="eyebrow">二十八宿星盤 · 數術知識問答</p>
@@ -200,7 +202,20 @@
     </div>
     <div class="head-seal" aria-hidden="true">斗宿</div>
   </header>
-  <main class="layout">
+  <nav class="ux-quick-nav" aria-label="網站快速導覽">
+    <a href="#spinBtn">開始挑戰</a>
+    <a href="#quizTitle">題目與難度</a>
+    <a href="#historyHeading">史料閱覽</a>
+  </nav>
+  <details class="ux-howto">
+    <summary>第一次使用？查看三步玩法</summary>
+    <ol>
+      <li>瀏覽星宿與史料不需要登入；正式計分挑戰請先登入會員。</li>
+      <li>選擇挑戰難度與數術類型，點「抽宿挑戰」，等候轉盤停下。</li>
+      <li>抽中星宿後回答四選一題目；抽到特殊格或沒有符合條件的題目，可調整條件再試。</li>
+    </ol>
+  </details>
+  <main class="layout" id="mainContent" tabindex="-1">
     <section class="wheel-card" aria-label="二十八星宿與北斗七星互動圓盤">
       <div class="wheel-header"><span>二十八宿＋四特殊格 · 32格圓盤</span><strong>上南　下北　左東　右西</strong></div>
       <div class="wheel-wrap">
@@ -305,6 +320,7 @@
   </main>
   <footer class="page-foot">數術知識題庫為可編輯的學習素材，非史料引文。題庫管理採伺服器端權限控制。引用原始天文史料須分辨正文、古注與後代解釋；星宿圖為交互式示意，非精確天文觀測圖。</footer>
 </div>
+<a id="uxBackTop" class="ux-back-to-top" href="#pageStart" hidden>↑ 回到頁首</a>
 <dialog id="loginDialog" class="login-dialog" aria-labelledby="loginTitle">
   <div class="bank-head"><div><p class="side-label">ADMIN ACCESS · 安全登入</p><h2 id="loginTitle">題庫管理員登入</h2><p class="bank-description">密碼由 Supabase Auth 伺服器驗證；網站原始碼不包含管理密碼或密碼雜湊。</p></div><button type="button" class="close-btn" id="closeLoginBtn" aria-label="關閉登入">✕</button></div>
   <form id="loginForm" class="login-form">
@@ -1155,5 +1171,6 @@ el('librarySearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.prevent
 <script src="./challenge-v19-bank-stats.js"></script>
 <script src="./challenge-v22-bank-taxonomy-and-highlight.js"></script>
 <script src="./challenge-v23-bank-tools.js"></script>
+<script src="./site-ux.js"></script>
 </body>
 </html>

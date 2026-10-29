@@ -1,0 +1,30 @@
+/* Progressive usability improvements; does not alter answer or auth behavior. */
+.ux-skip-link{position:fixed;top:10px;left:10px;z-index:1000;transform:translateY(-180%);padding:12px 17px;border-radius:9px;background:#13263a;color:#fff;font-weight:700;box-shadow:0 5px 15px #0003}
+.ux-skip-link:focus,.ux-skip-link:focus-visible{transform:translateY(0);outline:3px solid #c38429;outline-offset:2px}
+.ux-quick-nav{display:flex;flex-wrap:wrap;gap:9px;margin:-5px 0 18px}
+.ux-quick-nav a{min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:10px 16px;border:1px solid #cabb9c;border-radius:10px;background:#fffcf5;color:#26313a;font-size:.88rem;font-weight:700;text-decoration:none;line-height:1.45;text-align:center}
+.ux-quick-nav a:hover{border-color:#967340;background:#f3e8d5}
+.ux-quick-nav a:focus-visible,.ux-howto summary:focus-visible,.ux-back-to-top:focus-visible{outline:3px solid #c38429;outline-offset:3px}
+.ux-howto{border:1px solid #dfd3bb;border-radius:12px;background:#fffaf0;padding:0 15px;margin:0 0 19px;font-size:.87rem;line-height:1.8;color:#465159}
+.ux-howto summary{padding:11px 0;cursor:pointer;font-weight:700;color:#4b604f;min-height:44px}
+.ux-howto[open]{padding-bottom:12px}
+.ux-howto ol{margin:0 0 6px;padding-left:1.6em}
+.ux-howto li{padding:2px 0}
+.ux-back-to-top{position:fixed;left:max(14px,env(safe-area-inset-left));right:auto;bottom:max(16px,env(safe-area-inset-bottom));z-index:30;display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:11px 17px;background:#13263a;color:#fff;border-radius:999px;font-size:.86rem;line-height:1.2;font-weight:700;box-shadow:0 6px 24px #13263a66;text-decoration:none}
+.ux-back-to-top[hidden]{display:none!important}
+.ux-back-to-top:hover{background:#1d4260}
+#mainContent,#spinBtn,#quizTitle,#historyHeading{scroll-margin-top:15px}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid #c38429;outline-offset:3px}
+#manageBankBtn,#historyNextBtn,.history-actions button,.bank-toolbar button,.bank-item-actions button,.bank-head .close-btn,.library-dialog button,.bank-filters select,.bank-filters input{min-height:44px}
+@media(max-width:540px){
+ .ux-quick-nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+ .ux-quick-nav a{padding:10px 5px;font-size:.79rem;white-space:normal}
+ .ux-howto{margin-bottom:14px}
+ .quiz-heading{flex-wrap:wrap}
+ .quiz-heading #manageBankBtn{flex-shrink:0}
+ .bank-toolbar button,.bank-toolbar select{white-space:normal;max-width:100%}
+ .history-bar{flex-wrap:wrap}
+ .history-bar #historyNextBtn{white-space:normal}
+ .ux-back-to-top{left:12px;right:auto;bottom:12px}
+}
+@media(prefers-reduced-motion:reduce){.ux-skip-link{transition:none!important}}
