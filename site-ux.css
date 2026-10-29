@@ -10,7 +10,7 @@
 .ux-howto[open]{padding-bottom:12px}
 .ux-howto ol{margin:0 0 6px;padding-left:1.6em}
 .ux-howto li{padding:2px 0}
-.ux-back-to-top{position:fixed;right:max(14px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));z-index:30;display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:11px 17px;background:#13263a;color:#fff;border-radius:999px;font-size:.86rem;line-height:1.2;font-weight:700;box-shadow:0 6px 24px #13263a66;text-decoration:none}
+.ux-back-to-top{position:fixed;left:max(14px,env(safe-area-inset-left));right:auto;bottom:max(16px,env(safe-area-inset-bottom));z-index:30;display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:11px 17px;background:#13263a;color:#fff;border-radius:999px;font-size:.86rem;line-height:1.2;font-weight:700;box-shadow:0 6px 24px #13263a66;text-decoration:none}
 .ux-back-to-top[hidden]{display:none!important}
 .ux-back-to-top:hover{background:#1d4260}
 #mainContent,#spinBtn,#quizTitle,#historyHeading{scroll-margin-top:15px}
@@ -25,6 +25,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
  .bank-toolbar button,.bank-toolbar select{white-space:normal;max-width:100%}
  .history-bar{flex-wrap:wrap}
  .history-bar #historyNextBtn{white-space:normal}
- .ux-back-to-top{right:12px;bottom:12px}
+ .ux-back-to-top{left:12px;right:auto;bottom:12px}
 }
 @media(prefers-reduced-motion:reduce){.ux-skip-link{transition:none!important}}
