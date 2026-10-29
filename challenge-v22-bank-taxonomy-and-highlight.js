@@ -38,7 +38,7 @@
     if(!$('quizClassificationNote')){
       const note=document.createElement('small');
       note.id='quizClassificationNote';
-      note.textContent='選擇要歸屬的數術類型。儲存成功後，題目將移至新分類，統計表同步更新；原題號與來源題材不變。';
+      note.textContent='題目 ID 保持不變，以保留既有作答紀錄；數術類型與題材分類可在編輯表單分別調整。儲存成功後，題目將移至新分類，統計表同步更新。';
       picker.insertAdjacentElement('afterend',note);
     }
   }
