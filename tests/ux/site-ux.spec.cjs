@@ -23,8 +23,8 @@ test('keyboard skip link goes to main content',async({page})=>{
 });
 test('quick navigation targets challenge and quiz without history',async({page})=>{
   const nav=page.getByRole('navigation',{name:'網站快速導覽'});
-  await expect(nav.getByRole('link')).toHaveCount(2);
-  for(const [name,target] of [['開始挑戰','spinBtn'],['題目與難度','quizTitle']]){
+  await expect(nav.getByRole('link')).toHaveCount(3);
+  for(const [name,target] of [['開始挑戰','spinBtn'],['題目與難度','quizTitle'],['會員留言板','guestbookTitle']]){
     const item=nav.getByRole('link',{name});
     await expect(item).toHaveAttribute('href','#'+target);
     await expect(page.locator('#'+target)).toHaveCount(1);
