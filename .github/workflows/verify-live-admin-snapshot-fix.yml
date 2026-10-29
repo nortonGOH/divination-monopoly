@@ -27,7 +27,7 @@ jobs:
           grep -Fq 'await persistBank();' /tmp/verified-index.html
           grep -Fq '正在載入管理員完整題庫' /tmp/verified-index.html
           grep -Fq 'FALLBACK_QUESTIONS = []' /tmp/verified-index.html
-          if grep -Fq 'function openBank(){' /tmp/verified-index.html; then
+          if grep -Eq '^[[:space:]]*function openBank\(\)\{' /tmp/verified-index.html; then
             echo 'FAIL: old editor entry point still deployed'; exit 1
           fi
           echo 'PASS: GitHub Pages serves the merged admin snapshot preload and retains empty public answer fallback.'
