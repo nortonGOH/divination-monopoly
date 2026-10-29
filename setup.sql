@@ -1,0 +1,8 @@
+-- RETIRED SECURITY-SENSITIVE BOOTSTRAP SCRIPT.
+-- This file formerly granted anonymous SELECT on the full quiz_questions table,
+-- including the answer key. NEVER reapply the historical setup.sql.
+-- Database schema and security policies are managed by reviewed Supabase migrations.
+-- This is an intentional non-executable placeholder retained to warn maintainers.
+-- To inspect active privileges (read-only), use:
+-- SELECT has_table_privilege('anon','public.quiz_questions','SELECT');
+-- SELECT has_column_privilege('anon','public.quiz_open_questions','reference_answer','SELECT');
