@@ -21,6 +21,11 @@ async function boot(page){
   return route.fulfill({status:200,contentType:'application/json',headers,body:JSON.stringify(reply)});
  });
  await page.goto('/');
+ // Test an already-solved Turnstile challenge without calling Cloudflare or Auth.
+ await page.evaluate(()=>{
+   window.quizCaptcha.token=()=> 'mock-turnstile-proof';
+   window.quizCaptcha.reset=()=>{};
+ });
  return calls;
 }
 test('signup requests point Supabase confirmation back to the GitHub Pages project path',async({page})=>{
