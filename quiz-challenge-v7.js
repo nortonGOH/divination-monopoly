@@ -15,7 +15,7 @@ const EMAIL_CONFIRM_REDIRECT='https://nortongoh.github.io/divination-monopoly/';
 let playerToken=null, playerEmail='', playerNickname='', playerState=null, busy=false;
 window.quizMemberToken=()=>playerToken;
 let lastAnnouncedMemberToken;
-let trialInfo=null,trialRequest=false;
+let trialInfo=null,trialRequest=false,trialError='';
 const trialBanner=document.getElementById('trialBanner');
 let unlockTimer=null, unlockAt='';
 let completedIds=new Set();window.quizCompletedIds=completedIds;
@@ -50,17 +50,17 @@ function showTrialBanner(error=''){
 async function refreshTrial(){
   if(playerToken)return;
   if(trialRequest)return;
-  trialRequest=true;showTrialBanner();
+  trialRequest=true;trialError='';showTrialBanner();
   try{
     const result=await trialApi('status');
     if(playerToken)return;
     if(!Number.isInteger(result.used)||!Number.isInteger(result.remaining)||
       result.used<0||result.used>5||result.remaining!==5-result.used)
       throw Error('伺服器試玩額度回應異常');
-    trialInfo=result;showTrialBanner();drawState();
+    trialInfo=result;trialError='';showTrialBanner();drawState();
     if(!result.locked)selectQuizForMansion(activeMansion);
   }catch(error){
-    trialInfo=null;showTrialBanner(error.message);drawState();
+    trialInfo=null;trialError=error.message;showTrialBanner(trialError);drawState();
   }finally{trialRequest=false;}
 }
 const node=(tag,text='',cls='')=>{const x=document.createElement(tag);x.textContent=text;if(cls)x.className=cls;return x;};
@@ -302,7 +302,7 @@ function drawState(){
      },Math.min(remaining,2147483647));
    }
  }
- showTrialBanner();
+ showTrialBanner(trialError);
  summary.textContent=playerToken?`${playerNickname||'尚未設定暱稱'}｜參戰 ${playerState?.total_attempts??0} 次｜答對 ${playerState?.correct_attempts??0} 次｜成功率 ${Number(playerState?.success_rate??0).toFixed(1)}%｜當期答錯 ${playerState?.wrong_count??0}/5${locked?'｜暫停至 '+dateText(playerState.locked_until):''}`:trialInfo&&!trialInfo.locked?'訪客試玩：剩餘 '+trialInfo.remaining+' 次答題｜登入會員可保存成績與使用文昌星救援。':'請註冊或登入，才能開始正式數術挑戰。';
  logoutBtn.hidden=!playerToken;signInBtn.hidden=!!playerToken;profileBtn.hidden=!playerToken;
  if(locked){alertBox.hidden=false;}else{alertBox.hidden=true;alertBox.textContent='';}
