@@ -56,7 +56,7 @@ test('five anonymous graded answers permanently exhaust IP quota after reload; n
   await expect(page.locator('.quiz-panel')).toBeVisible();
   await page.evaluate(id=>showQuestion(questionBank.find(q=>q.id===id),6),'trial-q-'+i);
   await page.locator('#answerOptions button').nth(i===1?0:1).click();
-  await expect(page.locator('#trialBanner')).toContainText('已答 '+i+'／5');
+  await expect(page.locator('#trialBanner')).toContainText(i===5?'已使用 5／5':'已答 '+i+'／5');
   expect(state.used).toBe(i);
   if(i===2)await expect(page.locator('#answerFeedback')).not.toContainText('不應公開的解析');
  }
