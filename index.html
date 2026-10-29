@@ -336,7 +336,7 @@
         <label for="bankFilter">篩選星宿</label>
         <select id="bankFilter"><option value="all">全部二十八宿</option></select>
         <label for="bankSearch">搜尋題目</label>
-        <input type="search" id="bankSearch" placeholder="搜尋題目、分類、說明">
+        <input type="search" id="bankSearch" placeholder="搜尋題目、數術類型、說明">
       </div>
       <div id="bankList" class="bank-list" aria-live="polite"></div>
     </section>
@@ -345,7 +345,7 @@
       <form id="questionForm">
         <div class="editor-columns">
           <label>對應星宿<select id="editMansion" required></select></label>
-          <label>數術分類<select id="editCategory" required><option>二十八宿</option><option>干支</option><option>五行</option><option>八卦</option><option>九宮</option><option>奇門遁甲</option><option>六壬</option><option>太乙</option><option>其他</option></select></label>
+          <select id="editCategory" hidden aria-hidden="true"><option>其他</option></select>
         </div>
         <label>題目內容<textarea id="editPrompt" rows="3" maxlength="300" required placeholder="請輸入可明確判定正誤的問題"></textarea></label>
         <div class="option-editor"><label>A 選項<input id="editOption0" required maxlength="120"></label><label>B 選項<input id="editOption1" required maxlength="120"></label><label>C 選項<input id="editOption2" required maxlength="120"></label><label>D 選項<input id="editOption3" required maxlength="120"></label></div>
@@ -952,12 +952,12 @@ function renderBankList(){
   const list=el('bankList'),selected=el('bankFilter').value;
   const query=el('bankSearch').value.trim().toLowerCase();
   list.replaceChildren();
-  const rows=questionBank.filter(q=>(selected==='all'||q.mansion===selected)&&(!query||[q.prompt,q.category,q.explanation,q.mansion].join(' ').toLowerCase().includes(query)));
+  const rows=questionBank.filter(q=>(selected==='all'||q.mansion===selected)&&(!query||[q.prompt,q.category,inferKnowledgeType(q),q.explanation,q.mansion].join(' ').toLowerCase().includes(query)));
   el('bankListCount').textContent=`${rows.length} / ${questionBank.length} 題`;
   if(!rows.length){const p=document.createElement('p');p.className='bank-list-empty';p.textContent='找不到符合的題目；可點選「新增題目」。';list.appendChild(p);return;}
   for(const q of rows){
     const item=document.createElement('article');item.className='bank-item';
-    const top=document.createElement('div');top.className='bank-item-top';top.textContent=`${q.mansion} · ${q.category}`;
+    const top=document.createElement('div');top.className='bank-item-top';top.textContent=`${q.mansion} · ${inferKnowledgeType(q)}`;
     const prompt=document.createElement('div');prompt.className='bank-item-question';prompt.textContent=q.prompt;
     const buttons=document.createElement('div');buttons.className='bank-item-actions';
     const edit=document.createElement('button');edit.type='button';edit.textContent='編輯';edit.addEventListener('click',()=>editQuestion(q.id));
@@ -973,7 +973,7 @@ el('questionForm').addEventListener('submit',async event=>{
   event.preventDefault();
   const proposed={
     id:editingQuestionId||('custom-'+(window.crypto&&crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random().toString(36).slice(2))),
-    mansion:el('editMansion').value,category:el('editCategory').value,knowledge_type:el('editKnowledgeType')?.value||'待分類',difficulty:el('editDifficulty')?.value||'中階',
+    mansion:el('editMansion').value,category:editingQuestionId?(questionBank.find(q=>q.id===editingQuestionId)?.category||'其他'):(el('editKnowledgeType')?.value||'待分類'),knowledge_type:el('editKnowledgeType')?.value||'待分類',difficulty:el('editDifficulty')?.value||'中階',
     prompt:el('editPrompt').value.trim(),options:[0,1,2,3].map(i=>el('editOption'+i).value.trim()),
     answer:Number(el('editAnswer').value),explanation:el('editExplanation').value.trim()
   };
