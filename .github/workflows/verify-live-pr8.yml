@@ -1,0 +1,38 @@
+name: Verify live PR8 admin editor and shizhan
+on:
+  push:
+    branches: [verify/live-pr8-shizhan-20261029]
+permissions:
+  contents: read
+jobs:
+  verify-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare production assets with main and check save feedback
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://nortongoh.github.io/divination-monopoly'
+          mkdir -p /tmp/live-pr8
+          for attempt in $(seq 1 18); do
+            ok=1
+            for file in index.html challenge-v10-fivearts.js challenge-v19-bank-stats.js challenge-v22-bank-taxonomy-and-highlight.js; do
+              if ! curl -fsSL --retry 2 --retry-delay 2 --max-time 25 "$base/$file?check=$GITHUB_RUN_ID-$attempt" -o "/tmp/live-pr8/$file"; then
+                ok=0
+              elif ! cmp -s "$file" "/tmp/live-pr8/$file"; then
+                ok=0
+              fi
+            done
+            if test "$ok" = 1; then break; fi
+            if test "$attempt" -eq 18; then echo 'FAIL: production assets differ from approved main' >&2; exit 1; fi
+            sleep 5
+          done
+          grep -Fq "questionSaveStatus" /tmp/live-pr8/index.html
+          grep -Fq "'式占'" /tmp/live-pr8/index.html
+          grep -Fq "式占" /tmp/live-pr8/challenge-v10-fivearts.js
+          grep -Fq "式占" /tmp/live-pr8/challenge-v19-bank-stats.js
+          grep -Fq "式占" /tmp/live-pr8/challenge-v22-bank-taxonomy-and-highlight.js
+          grep -Fq 'FALLBACK_QUESTIONS = []' /tmp/live-pr8/index.html
+          echo 'PASS: live Pages includes 式占 choices and visible save status with empty answer fallback.'
