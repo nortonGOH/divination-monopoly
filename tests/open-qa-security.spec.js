@@ -10,7 +10,8 @@ async function setup(page,{mode='anon',locked=false}={}){
  await page.route('**/rest/v1/**',async route=>{
   const req=route.request(),url=new URL(req.url()),path=url.pathname;
   seen.push({path,method:req.method(),url:req.url(),body:req.postData()});
-  const json=(status,data)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(data)});
+  const json=(status,data)=>route.fulfill({status,contentType:'application/json',headers:{'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'*','Access-Control-Allow-Methods':'GET,POST,OPTIONS'},body:JSON.stringify(data)});
+  if(req.method()==='OPTIONS')return route.fulfill({status:204,headers:{'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'*','Access-Control-Allow-Methods':'GET,POST,OPTIONS'},body:''});
   if(path.endsWith('/rpc/quiz_public_question_bank'))return json(200,[]);
   if(path.endsWith('/quiz_open_questions') && req.method()==='GET'){
     const select=url.searchParams.get('select')||'';
@@ -28,7 +29,7 @@ async function setup(page,{mode='anon',locked=false}={}){
  await page.route('**/auth/v1/**',route=>route.fulfill({status:401,contentType:'application/json',body:'{"message":"No test session"}'}));
  await page.goto('/');
  await expect(page.locator('#quizDifficulty')).toBeVisible();
- await expect.poll(async()=>({display:await page.locator('#questionText').innerText(),errors,openReady:await page.evaluate(()=>typeof window.quizRefreshOpenBank),requests:seen.map(x=>x.path)}),{timeout:8000}).toMatchObject({display:expect.stringContaining(question.prompt)});
+ await expect.poll(async()=>({display:await page.locator('#questionText').innerText(),errors,openReady:await page.evaluate(()=>typeof window.quizRefreshOpenBank),requests:seen.map(x=>x.path)}),{timeout:8000,message:JSON.stringify({errors,seen})}).toMatchObject({display:expect.stringContaining(question.prompt)});
  return seen;
 }
 test('anonymous sees question without answer in public API, reveal denied',async({page})=>{
