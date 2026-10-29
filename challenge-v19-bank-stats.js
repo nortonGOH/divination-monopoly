@@ -9,7 +9,10 @@ const levels=['初階','中階','高階'];
 const styles=document.createElement('style');
 styles.textContent=`
 .bank-inventory{padding:17px 25px 20px;background:#fcf7ed;border-bottom:1px solid #e3d7c2}
-.bank-inventory h3{font-size:1.06rem;margin:0 0 6px}
+.bank-inventory h3{font-size:1.06rem;margin:0}
+.bank-inventory-titlebar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:8px}
+.bank-inventory-titlebar button{min-height:44px;padding:8px 15px;border:1px solid #94713d;border-radius:9px;background:#fff4d7;color:#654618;font-size:.84rem;font-weight:700}
+.bank-inventory-refresh-status{margin:0 0 10px;font-size:.8rem;line-height:1.6;color:#456854;min-height:1em}
 .bank-inventory p{font-size:.79rem;color:#6c6b65;margin:0 0 12px;line-height:1.6}
 .bank-inventory-summary{display:flex;flex-wrap:wrap;gap:9px;margin:0 0 12px}
 .bank-inventory-summary span{padding:7px 11px;border-radius:8px;border:1px solid #dfd1b8;background:#fffdf7;font-size:.83rem}
@@ -31,11 +34,12 @@ document.head.append(styles);
 const section=document.createElement('section');section.className='bank-inventory';
 section.setAttribute('aria-label','數術題庫類型與難度統計');
 const heading=document.createElement('h3');heading.textContent='題庫類型與難度統計';
+const titlebar=document.createElement('div');titlebar.className='bank-inventory-titlebar';titlebar.append(heading);
 const description=document.createElement('p');description.textContent='四選一題目可用於抽宿挑戰；開放問答另行統計。點選題數可篩選題庫並修改難度。';
 const summary=document.createElement('div');summary.className='bank-inventory-summary';
 const scroller=document.createElement('div');scroller.className='bank-inventory-scroll';
 const foot=document.createElement('p');foot.className='bank-inventory-footer';
-section.append(heading,description,summary,scroller,foot);toolbar.after(section);
+section.append(titlebar,description,summary,scroller,foot);toolbar.after(section);
 const filterType=document.getElementById('bankKnowledgeType');
 const filterLevel=document.getElementById('bankDifficulty');
 const mansion=document.getElementById('bankFilter');
