@@ -48,6 +48,12 @@ test('five anonymous graded answers permanently exhaust IP quota after reload; n
  await expect(page.locator('#wenchangCard')).toBeVisible();
  await expect(page.locator('#wenchangCardStatus')).toContainText('訪客試玩不消耗');
  for(let i=1;i<=5;i++){
+  // Exercise v8's real wheel-completed gate rather than forcing a hidden panel.
+  await page.evaluate(()=>{
+    const slot=BOARD_SLOTS.findIndex(c=>c.type==='mansion'&&c.mansionIndex===0);
+    finishSpin(slot);
+  });
+  await expect(page.locator('.quiz-panel')).toBeVisible();
   await page.evaluate(id=>showQuestion(questionBank.find(q=>q.id===id),6),'trial-q-'+i);
   await page.locator('#answerOptions button').nth(i===1?0:1).click();
   await expect(page.locator('#trialBanner')).toContainText('已答 '+i+'／5');
