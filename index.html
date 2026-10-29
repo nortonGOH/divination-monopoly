@@ -564,7 +564,7 @@ function fairRandomInt(limit){
   return Math.floor(Math.random()*limit);
 }
 /* 五術學習類型與原始題材分類分離，避免抹除原作者主題。 */
-const KNOWLEDGE_TYPES=['山','醫','命','卜','相','天文曆法','易學','待分類'];
+const KNOWLEDGE_TYPES=['山','醫','命','卜','相','式占','天文曆法','易學','待分類'];
 function inferKnowledgeType(question){
   if(KNOWLEDGE_TYPES.includes(question.knowledge_type))return question.knowledge_type;
   const c=String(question.category||'').trim();
