@@ -1,0 +1,42 @@
+name: Verify deployed member guestbook
+on:
+  push:
+    branches:
+      - verify/live-guestbook-wenchang-20261029
+permissions:
+  contents: read
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify Pages serves current authorized guestbook files
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://nortongoh.github.io/divination-monopoly"
+          mkdir -p /tmp/live-guestbook
+          for attempt in $(seq 1 18); do
+            ok=1
+            for file in index.html guestbook.js guestbook.css quiz-challenge-v7.js; do
+              if ! curl --fail --silent --show-error --location --retry 2 --retry-delay 2 --max-time 25 "$base/$file?verify=$GITHUB_RUN_ID-$attempt" -o "/tmp/live-guestbook/$file"; then
+                ok=0
+              elif ! cmp -s "$file" "/tmp/live-guestbook/$file"; then
+                ok=0
+              fi
+            done
+            if test "$ok" = 1; then break; fi
+            if test "$attempt" -eq 18; then echo "FAIL: deployed assets differ from main"; exit 1; fi
+            sleep 5
+          done
+          grep -Fq 'id="guestbookTitle"' /tmp/live-guestbook/index.html
+          grep -Fq 'id="guestbookForm"' /tmp/live-guestbook/index.html
+          grep -Fq 'id="guestbookRefresh"' /tmp/live-guestbook/index.html
+          grep -Fq 'quiz_guestbook_grant_wenchang' /tmp/live-guestbook/guestbook.js
+          grep -Fq 'quiz_guestbook_delete' /tmp/live-guestbook/guestbook.js
+          grep -Fq 'window.quizMemberToken=' /tmp/live-guestbook/quiz-challenge-v7.js
+          grep -Fq 'FALLBACK_QUESTIONS = []' /tmp/live-guestbook/index.html
+          node --check /tmp/live-guestbook/guestbook.js
+          node --check /tmp/live-guestbook/quiz-challenge-v7.js
+          echo 'PASS: deployed GitHub Pages includes guestbook, member auth integration and admin Wenchang awards.'
