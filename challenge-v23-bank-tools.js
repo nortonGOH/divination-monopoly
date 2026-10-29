@@ -3,13 +3,16 @@
 const dlg=document.getElementById('bankDialog'),toolbar=dlg?.querySelector('.bank-toolbar');
 if(!toolbar||typeof fetchCloudBank!=='function')return;
 const wrap=document.createElement('section');wrap.style.cssText='padding:14px 22px;border-bottom:1px solid #e3d7c2;background:#fffcf6';
-const title=document.createElement('strong');title.textContent='更新統計與安全校正版匯入';
-const desc=document.createElement('p');desc.textContent='更新統計會從 Supabase 重新讀取正式題庫；校正版先逐題比對差異，不直接覆寫或清空資料庫。';
+const title=document.createElement('strong');title.textContent='安全校正版匯入';
+const desc=document.createElement('p');desc.textContent='校正版先逐題比對差異，不直接覆寫或清空資料庫；上方統計區的「更新統計」只讀取最新資料。';
 const refresh=document.createElement('button'),importBtn=document.createElement('button'),file=document.createElement('input'),message=document.createElement('p'),results=document.createElement('div'),apply=document.createElement('button');
-refresh.type='button';refresh.textContent='↻ 更新統計';importBtn.type='button';importBtn.textContent='校正版 JSON：比對後更新';apply.type='button';apply.textContent='確認套用勾選的題目';apply.hidden=true;
+refresh.type='button';refresh.id='bankRefreshStatsBtn';refresh.textContent='↻ 更新統計';refresh.setAttribute('aria-label','從伺服器更新題庫類型與難度統計');importBtn.type='button';importBtn.textContent='校正版 JSON：比對後更新';apply.type='button';apply.textContent='確認套用勾選的題目';apply.hidden=true;
 file.type='file';file.accept='.json,application/json';file.hidden=true;message.setAttribute('role','status');
 for(const b of [refresh,importBtn,apply])b.style.cssText='margin:8px 8px 8px 0;padding:8px 12px;cursor:pointer;border:1px solid #b9a87e;border-radius:7px;background:#fff4db;color:#31574a';
-wrap.append(title,desc,refresh,importBtn,file,message,results,apply);toolbar.after(wrap);
+wrap.append(title,desc,importBtn,file,results,apply);toolbar.after(wrap);
+const statsTitlebar=dlg.querySelector('.bank-inventory-titlebar');
+if(statsTitlebar){statsTitlebar.append(refresh);message.className='bank-inventory-refresh-status';statsTitlebar.after(message);}
+else{wrap.prepend(refresh,message);}
 const oldImport=document.getElementById('importBankBtn'),mode=document.getElementById('importMode'),reset=document.getElementById('resetBankBtn');
 for(const btn of [oldImport,mode,reset]){if(btn){btn.disabled=true;btn.title='為保護校正資料，請改用安全校正版匯入';}}
 for(const btn of toolbar.querySelectorAll('button')){if(/匯入新增題目並均分28宿|重新均分現有題庫/.test(btn.textContent)){btn.disabled=true;btn.title='此功能可能改寫既有答案／星宿，已停用；請改用校正版比對匯入';}}
@@ -18,7 +21,19 @@ const norm=q=>{const o={id:String(q.id)};for(const k of fieldNames)o[k]=k==='opt
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 async function fresh(){if(!adminAccessToken)throw Error('請先登入管理員');return fetchCloudBank(true);}
 async function sync(){const rows=await fresh();questionBank=rows;questionSource='Supabase 正式題庫（已更新）';refreshBankInterface();return rows;}
-refresh.onclick=async()=>{refresh.disabled=true;message.textContent='讀取中…';try{const rows=await sync();message.textContent='統計已更新：四選一 '+rows.length+' 題；開放問答 '+(window.quizGetOpenQuestions?.().length||0)+' 題。';}catch(e){message.textContent='更新失敗：'+e.message;}finally{refresh.disabled=false;}};
+refresh.onclick=async()=>{
+  refresh.disabled=true;
+  refresh.textContent='更新中…';
+  message.textContent='正在從伺服器重新讀取題庫與統計…';
+  try{
+    const rows=await sync();
+    await window.quizRefreshOpenBank?.();
+    renderBankList();
+    message.textContent='已更新：四選一 '+rows.length+' 題；開放問答 '+(window.quizGetOpenQuestions?.().length||0)+' 題。';
+  }catch(e){
+    message.textContent='更新失敗：'+e.message;
+  }finally{refresh.disabled=false;refresh.textContent='↻ 更新統計';}
+};
 let plan=[];
 importBtn.onclick=()=>file.click();
 file.onchange=async()=>{
