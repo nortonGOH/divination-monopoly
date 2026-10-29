@@ -146,13 +146,16 @@
     .bank-list-empty{padding:20px 6px;font-size:.85rem;color:#7c756b;line-height:1.7}
     #questionForm{display:grid;gap:13px}
     #questionForm>label{display:block}
-    .editor-columns{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+    .editor-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;align-items:end}
+    .editor-columns>label{min-width:0;display:block;line-height:1.65}
+    .editor-columns input[type="hidden"]{display:none!important}
     .option-editor{display:grid;grid-template-columns:1fr 1fr;gap:10px}
     .editor-actions{display:flex;gap:8px;align-items:center}
     .editor-save{width:auto;padding:11px 22px;font-size:.9rem;letter-spacing:.03em}
     .editor-help{font-size:.76rem;line-height:1.8;color:#77736e;background:#f2ebdf;padding:12px;border-radius:8px;margin:13px 0 0}
     .bank-toast{margin:0 25px 19px;font-size:.83rem;line-height:1.65;color:#456854;min-height:17px}
     @media(max-width:760px){.bank-content{grid-template-columns:1fr}.bank-list-panel{border-right:0;border-bottom:1px solid #e1d7c4}.bank-list{max-height:230px}.bank-dialog{max-height:94dvh}.bank-head{padding:17px 16px}.bank-toolbar{padding:12px 16px}.bank-list-panel,.bank-edit-panel{padding:15px 16px}.bank-toast{margin:4px 16px 16px}}
+    @media(max-width:540px){.editor-columns{grid-template-columns:1fr}.option-editor{grid-template-columns:1fr}}
     @media(max-width:400px){.option-editor,.editor-columns{grid-template-columns:1fr}.quiz-heading h3{font-size:1.1rem}.quiz-panel{padding:12px}.quiz-hint{font-size:.7rem}}
     .history-panel{border:1px solid #e3d3ad;border-radius:13px;padding:15px 15px 12px;margin:0 0 22px;background:linear-gradient(140deg,#fff9eb,#f5ede0)}
     .history-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.history-bar h3{font-size:1.07rem;margin:0}.history-bar .side-label{margin:0 0 5px}
@@ -352,7 +355,8 @@
       <form id="questionForm">
         <div class="editor-columns">
           <label>對應星宿<select id="editMansion" required></select></label>
-          <!-- Retain original source category internally; never overwrite it when changing knowledge type. -->\n          <input id="editCategory" name="source_category" type="hidden" value="其他">
+          <!-- 保留原始題材欄位，不顯示第二組數術分類選項。 -->
+          <input id="editCategory" name="source_category" type="hidden" value="其他">
         </div>
         <label>題目內容<textarea id="editPrompt" rows="3" maxlength="300" required placeholder="請輸入可明確判定正誤的問題"></textarea></label>
         <div class="option-editor"><label>A 選項<input id="editOption0" required maxlength="120"></label><label>B 選項<input id="editOption1" required maxlength="120"></label><label>C 選項<input id="editOption2" required maxlength="120"></label><label>D 選項<input id="editOption3" required maxlength="120"></label></div>
@@ -923,10 +927,43 @@ el('bankFilter').addEventListener('change',renderBankList);
 el('bankSearch').addEventListener('input',renderBankList);
 el('newQuestionBtn').addEventListener('click',()=>{clearEditor();el('editPrompt').focus();el('editPrompt').scrollIntoView({block:'nearest'});});
 el('cancelEditBtn').addEventListener('click',clearEditor);
+// Use the existing administrator-only, audited RPC for individual edits.
+// A direct REST upsert can report HTTP success without changing an existing
+// question when the browser role lacks SELECT on quiz_questions.
+const authoredQuestionFields=['id','mansion','category','knowledge_type','difficulty','prompt','options','answer','explanation'];
+function comparableQuestion(row){
+  const q=validBank([row])[0];
+  return Object.fromEntries(authoredQuestionFields.map(key=>[key,q[key]]));
+}
+async function saveAuditedChoice(proposed,original){
+  const data=await cloudCall('/rest/v1/rpc/quiz_admin_question_bank',
+    {method:'POST',headers:{'Content-Type':'application/json'},body:'{}'},true);
+  if(!Array.isArray(data))throw Error('無法取得管理員題庫快照，已停止儲存。');
+  const current=data.find(q=>q.id===proposed.id);
+  if(original){
+    if(!current)throw Error('原題已不存在，請更新題庫後重新編輯。');
+    if(JSON.stringify(comparableQuestion(original))!==JSON.stringify(comparableQuestion(current))){
+      throw Error('這道題目已被其他管理員更新，請先更新題庫，再重新編輯。');
+    }
+  }else if(current){
+    throw Error('新題號已存在，為避免覆寫已停止新增。');
+  }
+  const before=current?{...current}:null;
+  if(before)delete before.updated_at;
+  const after=comparableQuestion(proposed);
+  const result=await cloudCall('/rest/v1/rpc/quiz_admin_apply_question_changes',
+    {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      p_changes:[{mode:original?'update':'insert',id:proposed.id,before,after}]
+    })},true);
+  const count=original?result?.updated:result?.inserted;
+  if(count!==1||result?.audit_logged!==1)throw Error('伺服器未確認更新 1 題及寫入修訂紀錄。');
+}
 el('questionForm').addEventListener('submit',async event=>{
   event.preventDefault();
+  const originalId=editingQuestionId;
+  const original=originalId?questionBank.find(q=>q.id===originalId):null;
   const proposed={
-    id:editingQuestionId||('custom-'+(window.crypto&&crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random().toString(36).slice(2))),
+    id:originalId||('custom-'+(window.crypto&&crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random().toString(36).slice(2))),
     mansion:el('editMansion').value,category:el('editCategory').value,knowledge_type:el('editKnowledgeType')?.value||'待分類',difficulty:el('editDifficulty')?.value||'中階',
     prompt:el('editPrompt').value.trim(),options:[0,1,2,3].map(i=>el('editOption'+i).value.trim()),
     answer:Number(el('editAnswer').value),explanation:el('editExplanation').value.trim()
@@ -934,16 +971,24 @@ el('questionForm').addEventListener('submit',async event=>{
   if(!proposed.prompt||proposed.options.some(option=>!option)){
     displayBankToast('請填寫題目及四個選項。');return;
   }
-  if(editingQuestionId&&!window.confirm('確定儲存這道四選一題目的修改？原題號會保留。'))return;
+  if(originalId&&!original){displayBankToast('找不到原題目，請重新載入題庫。');return;}
+  if(originalId&&!window.confirm('確定儲存這道四選一題目的修改？原題號會保留。'))return;
+  let serverAccepted=false;
   try{
     validBank([proposed]);
     el('saveQuestionBtn').disabled=true;
-    await upsertCloud([proposed]);
+    await saveAuditedChoice(proposed,original);
+    serverAccepted=true;
     await persistBank();
+    const verified=questionBank.find(q=>q.id===proposed.id);
+    if(!verified||JSON.stringify(comparableQuestion(verified))!==JSON.stringify(comparableQuestion(proposed))){
+      throw Error('重新讀取的題目與本次修改不一致，請檢查修訂紀錄。');
+    }
     clearEditor();
-    displayBankToast('題目已儲存至共用題庫。');
-  }catch(error){displayBankToast('儲存失敗：'+error.message);}
-  finally{el('saveQuestionBtn').disabled=false;}
+    displayBankToast(originalId?'已確認修改成功，伺服器已重新讀取並核對數術類型。':'已確認新增成功，題目已重新讀取並核對。');
+  }catch(error){
+    displayBankToast((serverAccepted?'伺服器已回報寫入，但重新核對失敗：':'儲存失敗（未確認寫入）：')+error.message);
+  }finally{el('saveQuestionBtn').disabled=false;}
 });
 function downloadBank(){
   const content=JSON.stringify({version:1,questions:questionBank},null,2);
