@@ -205,12 +205,11 @@
   <nav class="ux-quick-nav" aria-label="網站快速導覽">
     <a href="#spinBtn">開始挑戰</a>
     <a href="#quizTitle">題目與難度</a>
-    <a href="#historyHeading">史料閱覽</a>
   </nav>
   <details class="ux-howto">
     <summary>第一次使用？查看三步玩法</summary>
     <ol>
-      <li>瀏覽星宿與史料不需要登入；正式計分挑戰請先登入會員。</li>
+      <li>瀏覽星宿不需要登入；正式計分挑戰請先登入會員。</li>
       <li>選擇挑戰難度與數術類型，點「抽宿挑戰」，等候轉盤停下。</li>
       <li>抽中星宿後回答四選一題目；抽到特殊格或沒有符合條件的題目，可調整條件再試。</li>
     </ol>
@@ -283,14 +282,6 @@
         <div class="detail"><div class="label">十二次 · 分野資料</div><div class="value" id="starDomain">壽星 · 辰</div></div>
       </div>
       <p class="description" id="starDescription">青龍七宿之首。此處展示星宿位置。</p>
-      <section class="history-panel" aria-labelledby="historyHeading">
-        <div class="history-bar"><div><p class="side-label">HISTORICAL ASTRONOMY · 原始史料</p><h3 id="historyHeading">史書天文文獻</h3></div><button id="historyNextBtn" class="outline-btn" type="button">換一則史料 ↻</button></div>
-        <p id="historySource" class="history-source"></p>
-        <blockquote id="historyQuote" class="history-quote"></blockquote>
-        <p id="historyContext" class="history-context"></p>
-        <div class="history-actions"><button id="historyLink" class="outline-btn" type="button">站內查閱相關文獻</button><button id="libraryOpenBtn" class="outline-btn" type="button">文獻庫</button></div>
-        <p class="history-note">史料摘錄與說明是現有示範資料；只有匯入並校對 EPUB 後，才能在站內查閱對應全文。無全文時會明示未匯入。</p>
-      </section>
       <button class="primary" type="button" id="spinBtn">✦　抽宿挑戰</button>
       <section class="quiz-section" aria-labelledby="quizTitle">
         <div class="quiz-heading">
@@ -315,10 +306,10 @@
           <span class="quiz-hint">每個星宿有獨立題組；可自行增修</span>
         </div>
       </section>
-      <p class="notes">此為數術知識練習遊戲。題目與星宿配對是互動設計；歷史文獻僅作閱讀參考，不等於現代的隨機占驗規則。</p>
+      <p class="notes">此為數術知識練習遊戲。題目與星宿配對是互動設計，並非天文觀測或占驗規則。</p>
     </aside>
   </main>
-  <footer class="page-foot">數術知識題庫為可編輯的學習素材，非史料引文。題庫管理採伺服器端權限控制。引用原始天文史料須分辨正文、古注與後代解釋；星宿圖為交互式示意，非精確天文觀測圖。</footer>
+  <footer class="page-foot">數術知識題庫為可編輯的學習素材，題庫管理採伺服器端權限控制。星宿圖為互動示意，並非精確天文觀測圖。</footer>
 </div>
 <a id="uxBackTop" class="ux-back-to-top" href="#pageStart" hidden>↑ 回到頁首</a>
 <dialog id="loginDialog" class="login-dialog" aria-labelledby="loginTitle">
@@ -373,18 +364,6 @@
     </section>
   </div>
   <p id="bankToast" class="bank-toast" role="status" aria-live="polite"></p>
-</dialog>
-<dialog id="libraryDialog" class="library-dialog" aria-labelledby="libraryTitle">
-  <div class="bank-head"><div><p class="side-label">LOCAL TEXT · EPUB 轉製文獻</p><h2 id="libraryTitle">站內史料閱覽室</h2><p class="bank-description">文獻由使用者提供 EPUB 轉製，依原 EPUB 的閱讀順序與段落顯示；此處不連往外部網站。</p></div><button class="close-btn" id="closeLibraryBtn" type="button" aria-label="關閉文獻閱覽室">✕</button></div>
-  <div class="library-toolbar">
-    <label>書籍<select id="libraryBook" aria-label="選擇書籍"></select></label>
-    <label>章節<select id="libraryChapter" aria-label="選擇章節"></select></label>
-    <label>全文檢索（本章）<input id="librarySearch" type="search" placeholder="輸入查找詞，例如：角、斗、天極"></label>
-    <button class="outline-btn" id="librarySearchBtn" type="button">查找</button>
-  </div>
-  <div class="library-meta" id="libraryMeta" role="status"></div>
-  <article id="libraryText" class="library-text" aria-live="polite"></article>
-  <p class="library-foot">EPUB 為流式排版，原無固定紙本頁碼。每段顯示章節段序及原 EPUB 內部檔案路徑；正式學術引用仍須對勘指定版本。</p>
 </dialog>
 <script src="./config.js"></script>
 <script src="./captcha-integration.js"></script>
@@ -541,43 +520,6 @@ function setStatus(message,type=''){
   node.className=`result-status ${type}`;
   node.textContent=message;
 }
-// 可核對的五種正史天文文獻摘要／短句；未核實逐字者只作「編者說明」。
-// scope: all / mansion initials / group direction. 每次切換星宿或點「換一則」均重新抽選。
-// 摘錄尚未與將來匯入的 EPUB 底本逐條校核，不應自動視為 EPUB 引文。
-const HISTORIES=[
- {book:'《史記》卷二十七〈天官書〉',scope:['東'],quote:'東宮蒼龍，房、心',context:'正文以房、心標識東宮蒼龍；這是東方星區的相關說明，並不表示東方七宿僅有房、心二宿。'},
- {book:'《史記》卷二十七〈天官書〉',scope:['北'],quote:'北宮玄武，虚、危',context:'正文將虛、危列為北宮玄武的重要星宿；原文「虚」為異體寫法，這裡未任意改動原文。'},
- {book:'《史記》卷二十七〈天官書〉',scope:['all'],quote:'斗爲帝車，運於中央',context:'描述北斗與四時節度的關聯。請注意《史記》正文與〈索隱〉注所載七星名應區分。'},
- {book:'《漢書》卷二十六〈天文志〉',scope:['all'],quote:'斗為帝車，運于中央，臨制四海。',context:'將北斗置於天文秩序與王權象徵的脈絡；不是盤面隨機抽題的古代根據。'},
- {book:'《漢書》卷二十六〈天文志〉',scope:['all'],quote:'中宮天極星，其一明者，泰一之常居也。',context:'屬中宮天極星的敘述。天極星及今日所稱北極星的歷史辨認與時代天極位置不可逕行等同。'},
- {book:'《後漢書》志第十〈天文上〉',scope:['all'],quote:'二十八宿各布列，下應十二子。',context:'〈天文上〉開篇將星官與二十八宿放在天象、地分的制度性論述中。此志出自司馬彪《續漢書》，劉昭補注後附入今本《後漢書》。'},
- {book:'《後漢書》志第十〈天文上〉',scope:['all'],quote:null,context:'此志以王莽至東漢末年的天文變異紀錄為重，不能把它誤說成逐一解釋二十八宿寓意的星官全書。'},
- {book:'《晉書》卷十一〈天文上·中宮〉',scope:['all'],quote:'其紐星，天之樞也。',context:'〈中宮〉論及北極諸星與天樞之象。此處「樞」不應直接等同北斗第一星「天樞」的現代星圖位置。'},
- {book:'《晉書》卷十一〈天文上·二十八舍〉',scope:['all'],quote:null,context:'〈天文上〉獨設「二十八舍」、「十二次度數」、「州郡躔次」等段落，適合進一步考察宿度和分野系統。'},
- {book:'《宋書》卷二十三〈天文一〉',scope:['all'],quote:'南北二極規二十八宿，北斗極星',context:'宋文帝元嘉十三年，詔錢樂之更鑄渾儀；這段材料涉及天文儀器上的二十八宿、北斗與極星標示。'},
- {book:'《宋書》卷二十三〈天文一〉',scope:['北','南'],quote:null,context:'該卷記述渾天儀中的南北極、黃赤道與二十八宿配置，並比較古代不同天體結構理論。它並非本網頁互動圓盤的歷史原型。'},
- {book:'《宋書》卷二十三〈天文一〉',scope:['all'],quote:null,context:'《宋書》記載元嘉十七年再製小渾天，並於儀器上安置二十八宿中外宮和日月五星；可供追索南朝天文儀象實踐。'},
- {book:'《宋史》卷四十八〈天文一·極度〉',scope:['all'],quote:null,context:'〈極度〉分辨北極與極星，並記述歷代測量發現兩者並非完全重合；本頁固定中心是便於操作的天極示意。'},
- {book:'《宋史》卷四十八〈天文一·黃赤道〉',scope:['all'],quote:'以二十八宿為綱維，分列四方',context:'〈黃赤道〉以二十八宿為區分天區的綱維，並論黃道、赤道與極距。'},
- {book:'《元史》卷四十八〈天文一〉',scope:['all'],quote:null,context:'〈天文一〉詳述郭守敬簡儀等測量器具與宿度測驗，屬天文觀測儀器史材料，不能等同本頁的四方等分扇形。'},
- {book:'《明史》卷二十五〈天文〉',scope:['all'],quote:null,context:'〈天文〉比較歷代天文志取材取向，並提及明代曆算及儀器發展；正文亦指出《遼史》未立天文志，故不可將二十四史一概說成皆有天文志。'}
-];
-let historyLast=-1, historyIndex=0, currentHistory=null;
-function showRandomHistory(index){
-  historyIndex=index;
-  const m=MANSIONS[index];
-  const candidates=HISTORIES.map((entry,i)=>({...entry,position:i})).filter(entry=>entry.scope.includes('all') || entry.scope.includes(m.quad[0]) || entry.scope.includes(m.name[0]));
-  const choices=candidates.length>1?candidates.filter(e=>e.position!==historyLast):candidates;
-  const entry=choices[fairRandomInt(choices.length)];
-  historyLast=entry.position;
-  el('historySource').textContent=entry.book;
-  el('historyQuote').textContent=entry.quote?'既有文字摘錄（待與 EPUB 核對）：'+entry.quote:'此則採用編者摘要，未提供直接引文。';
-  el('historyContext').textContent='編者說明：'+entry.context;
-  currentHistory=entry;
-  el('historyLink').textContent=`站內查閱 ${entry.book.split('》')[0]}》`;
-}
-el('historyNextBtn').addEventListener('click',()=>showRandomHistory(historyIndex));
-
 function renderInfo(index){
   const m=MANSIONS[index];
   document.getElementById('starName').textContent=m.name;
@@ -586,7 +528,6 @@ function renderInfo(index){
   document.getElementById('starYao').textContent=m.yao;
   document.getElementById('starDomain').textContent=m.domain;
   document.getElementById('starDescription').textContent=m.desc;
-  showRandomHistory(index);
 }
 function inspectMansion(index){
   inspection=index;
@@ -1036,130 +977,7 @@ el('resetBankBtn').addEventListener('click',()=>displayBankToast('公開預設�
 clearEditor();
 initializeBank();
 
-// ----- 本站文獻庫：僅讀取 GitHub Pages 自己的 library/catalog.json 和 books/*.json。
-// 不向外連結、不自動將既有摘錄冒充成已匯入的 EPUB 全文。
-const libraryDialog=el('libraryDialog');
-const libraryCache=new Map();
-let libraryCatalog=null, libraryBook=null, libraryChapter=null;
-const makeOption=(value,label)=>{const o=document.createElement('option');o.value=value;o.textContent=label;return o;};
-async function fetchLocalJSON(url){
-  const absolute=new URL(url,document.baseURI);
-  if(absolute.origin!==location.origin)throw new Error('僅允許讀取本站文獻資料');
-  const r=await fetch(absolute.toString(),{cache:'no-store'});
-  if(!r.ok)throw new Error(`讀取站內檔案失敗：HTTP ${r.status}`);
-  return r.json();
-}
-function libraryMessage(msg){el('libraryText').replaceChildren();const p=document.createElement('p');p.className='library-placeholder';p.textContent=msg;el('libraryText').appendChild(p);}
-function historyBookId(entry){
-  if(!entry||!libraryCatalog)return '';
-  const key=entry.book.match(/《([^》]+)》/)?.[1];
-  return libraryCatalog.books.find(b=>b.title.includes(key||'###')||b.id===key)?.id||'';
-}
-function preferredChapter(entry,chapters){
-  const volume=entry?.book?.match(/卷[一二三四五六七八九十百零〇兩\d]+|志第[一二三四五六七八九十百零〇兩\d]+/g)?.[0];
-  if(!volume)return chapters[0]?.id;
-  return (chapters.find(c=>c.title.includes(volume))||chapters[0])?.id;
-}
-async function openLibrary(entry=null){
-  if(typeof libraryDialog.showModal==='function'){if(!libraryDialog.open)libraryDialog.showModal();}
-  else libraryDialog.setAttribute('open','');
-  libraryMessage('正在讀取本地文獻目錄…');
-  try{
-    libraryCatalog=await fetchLocalJSON('./library/catalog.json');
-    if(!Array.isArray(libraryCatalog.books))throw new Error('catalog.json 格式無效');
-    const books=libraryCatalog.books;
-    const chooser=el('libraryBook');chooser.replaceChildren();
-    if(!books.length){
-      el('libraryMeta').textContent='尚未提供 EPUB 原文；目前網站只有既有的史料摘錄和編者說明。';
-      el('libraryChapter').replaceChildren();
-      libraryMessage('本站尚無可閱讀的 EPUB 正文。請先以 tools/epub_to_library.py 轉換合法持有的 EPUB，將產出的 library/catalog.json 與 books/*.json 上傳 GitHub；匯入後即可在本站選書、選章及檢索。');
-      return;
-    }
-    books.forEach(b=>chooser.appendChild(makeOption(b.id,b.title)));
-    const preferred=entry?historyBookId(entry):books[0].id;
-    if(entry && !preferred){
-      chooser.value='';el('libraryChapter').replaceChildren();
-      el('libraryMeta').textContent=`目前所引 ${entry.book} 尚未匯入 EPUB 全文。`;
-      libraryMessage('本站尚無這部史書的 EPUB 轉製正文。請匯入此書，或在上方書籍選單另選已匯入文獻；系統不會以其他書冒充來源。');
-      return;
-    }
-    chooser.value=preferred;
-    await selectLibraryBook(entry);
-  }catch(err){
-    el('libraryMeta').textContent='文獻目錄尚不可用';
-    libraryMessage('請確認已上傳 library/catalog.json 並經由 GitHub Pages 開啟本站。錯誤：'+err.message);
-  }
-}
-async function selectLibraryBook(reference=null){
-  const item=libraryCatalog.books.find(b=>b.id===el('libraryBook').value);
-  if(!item)return;
-  try{
-    if(!libraryCache.has(item.id))libraryCache.set(item.id,await fetchLocalJSON(item.file));
-    libraryBook=libraryCache.get(item.id);
-    if(!Array.isArray(libraryBook.chapters))throw new Error('章節資料格式錯誤');
-    const chooser=el('libraryChapter');chooser.replaceChildren();
-    for(const c of libraryBook.chapters)chooser.appendChild(makeOption(c.id,c.title));
-    chooser.value=preferredChapter(reference,libraryBook.chapters)||'';
-    renderLibraryChapter();
-  }catch(err){libraryMessage('讀取文獻失敗：'+err.message);el('libraryMeta').textContent='';}
-}
-function renderLibraryChapter(){
-  const ch=libraryBook?.chapters?.find(c=>c.id===el('libraryChapter').value);
-  libraryChapter=ch||null;
-  const pane=el('libraryText');pane.replaceChildren();
-  if(!ch){libraryMessage('此 EPUB 尚無可用章節。');return;}
-  el('libraryMeta').textContent=`書名：${libraryBook.title||''}｜版本／底本：${libraryBook.edition||'尚未填寫'}
-章節：${ch.title}｜EPUB 檔案：${ch.source_path||'未提供'}｜段數：${ch.paragraphs.length}`;
-  const frag=document.createDocumentFragment();
-  ch.paragraphs.forEach((item,i)=>{
-    const txt=typeof item==='string'?item:(item.text||'');
-    if(!txt)return;
-    const kind=typeof item==='object'&&/^h[1-6]$/.test(item.kind)?'h3':'p';
-    const row=document.createElement(kind);
-    const label=document.createElement('span');label.className='para-index';label.textContent=`[${i+1}]`;
-    row.append(label,document.createTextNode(txt));frag.appendChild(row);
-  });
-  pane.appendChild(frag);
-  if(!pane.childElementCount)libraryMessage('此章未取得可見文字，請檢查來源 EPUB。');
-  el('librarySearch').value='';
-  pane.scrollTop=0;
-}
-function searchLibrary(){
-  if(!libraryChapter)return;
-  const term=el('librarySearch').value.trim();
-  const pane=el('libraryText');
-  let matches=0,first=null;
-  for(const row of pane.querySelectorAll('p,h3')){
-    if(row.classList.contains('library-placeholder'))continue;
-    const original=row.textContent.replace(/^\[\d+\]/,'');
-    const label=row.querySelector('.para-index');
-    row.replaceChildren();
-    if(label)row.appendChild(label);
-    if(!term){row.appendChild(document.createTextNode(original));continue;}
-    let cursor=0,next=original.indexOf(term,cursor);
-    while(next>=0){
-      row.appendChild(document.createTextNode(original.slice(cursor,next)));
-      const mark=document.createElement('mark');mark.textContent=term;row.appendChild(mark);
-      if(!first)first=mark;
-      matches++;
-      cursor=next+term.length;next=original.indexOf(term,cursor);
-    }
-    row.appendChild(document.createTextNode(original.slice(cursor)));
-  }
-  if(first)first.scrollIntoView({block:'nearest',behavior:'auto'});
-  el('libraryMeta').textContent=el('libraryMeta').textContent.replace(/\n查找結果：.*$/s,'')+(term?`
-查找結果：「${term}」共 ${matches} 處（僅本章）`:'');
-}
-el('historyLink').addEventListener('click',()=>openLibrary(currentHistory));
-el('libraryOpenBtn').addEventListener('click',()=>openLibrary());
-el('closeLibraryBtn').addEventListener('click',()=>libraryDialog.close());
-el('libraryBook').addEventListener('change',()=>selectLibraryBook());
-el('libraryChapter').addEventListener('change',renderLibraryChapter);
-el('librarySearchBtn').addEventListener('click',searchLibrary);
-el('librarySearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();searchLibrary();}});
-
 </script>
-<script src="./history-supabase-reader.js"></script>
 <script src="./quiz-open-qa.js"></script>
 <script src="./quiz-challenge-v7.js"></script>
 <script src="./challenge-v8-ui.js"></script>
