@@ -1,0 +1,65 @@
+name: Member top-five leaderboard and password reset
+on:
+  push:
+    branches: [feature/top-five-all-members-password-reset-20261029]
+  pull_request:
+    paths:
+      - quiz-challenge-v7.js
+      - challenge-v12-leaderboard.js
+      - supabase/28_mandatory_top_five_leaderboard.sql
+      - tests/leaderboard/**
+      - tests/ux/**
+      - .github/workflows/member-leaderboard-recovery.yml
+permissions:
+  contents: read
+jobs:
+  postgres-leaderboard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: isolated-ranking-ci
+          POSTGRES_DB: ranking_ci
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d ranking_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: isolated-ranking-ci
+      PGDATABASE: ranking_ci
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+      - name: Prepare isolated eight-member fixtures
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/leaderboard/postgres-fixture.sql
+      - name: Apply leaderboard RPC migration in isolated database
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/28_mandatory_top_five_leaderboard.sql
+      - name: Verify five ranks, member count and data isolation
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/leaderboard/postgres-security.sql
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: tests/ux
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate JS syntax
+        run: |
+          node --check ../../quiz-challenge-v7.js
+          node --check ../../challenge-v12-leaderboard.js
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - run: npm test

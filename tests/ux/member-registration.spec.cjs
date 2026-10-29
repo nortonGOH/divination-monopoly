@@ -69,7 +69,7 @@ test('signup Enter submits signup only and shows honest email verification guida
  expect(requests.filter(r=>r.path==='/auth/v1/token')).toHaveLength(0);
  expect(signup[0].query).toContain('redirect_to=');
  expect(signup[0].body).toMatchObject({
-   email:'tester@example.test',data:{nickname:'測試會員',leaderboard_opt_in:false},
+   email:'tester@example.test',data:{nickname:'測試會員'},
    gotrue_meta_security:{captcha_token:'mock-turnstile-token'}
  });
  expect(requests.every(x=>!x.path.includes('/rest/v1/quiz_questions'))).toBe(true);
