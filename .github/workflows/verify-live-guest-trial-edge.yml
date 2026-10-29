@@ -1,0 +1,17 @@
+name: Verify live anonymous trial IP status
+on:
+  push:
+    branches: [verify/guest-trial-edge-ip-20261029]
+permissions:
+  contents: read
+jobs:
+  edge-status:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Check deployed Edge status only (no answer submission)
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsS -X POST 'https://pqwuskgkkpsqkycmnxsp.supabase.co/functions/v1/quiz-guest-trial' -H 'Origin: https://nortongoh.github.io' -H 'Content-Type: application/json' -d '{"action":"status"}' -o /tmp/trial-status.json
+          node -e 'let x=require("/tmp/trial-status.json"); if(!(Number.isInteger(x.used)&&Number.isInteger(x.remaining)&&x.limit===5&&x.used+x.remaining===5&&typeof x.locked==="boolean")){console.error("FAIL: live Edge status did not return valid allowance",JSON.stringify(x));process.exit(1)}console.log("PASS: live anonymous Edge received a trusted IP; remaining:",x.remaining)'
