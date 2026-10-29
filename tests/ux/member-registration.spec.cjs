@@ -61,7 +61,7 @@ test('signup Enter submits signup only and shows honest email verification guida
  await page.locator('#playerConfirmPassword').press('Enter');
  await expect(page.getByRole('heading',{name:'驗證電子郵件'})).toBeVisible();
  await expect(page.locator('#playerAuthNotice')).toContainText('註冊請求已受理');
- await expect(page.locator('#playerAuthNotice')).not.toContainText('已登入');
+ await expect(page.locator('#playerAuthNotice')).toContainText('尚未代表已登入');
  await expect(page.locator('#playerAuthForm')).toContainText('重新寄送驗證信');
  await expect(page.getByRole('button',{name:/可於 .* 秒後重寄/})).toBeDisabled();
  const signup=requests.filter(r=>r.path==='/auth/v1/signup');
@@ -77,7 +77,7 @@ test('signup Enter submits signup only and shows honest email verification guida
 test('signup password mismatch prevents all Auth calls, preserves draft and permits correction',async({page})=>{
  const {requests}=await setup(page);
  await openSignup(page);await fillSignup(page);
- await page.locator('#playerConfirmPassword').fill('not-equal');
+ await page.locator('#playerConfirmPassword').fill('not-equal-at-least-ten');
  await page.getByRole('button',{name:'送出註冊'}).click();
  await expect(page.locator('#playerAuthNotice')).toContainText('兩次輸入的密碼不同');
  expect(requests.filter(x=>x.path==='/auth/v1/signup')).toHaveLength(0);
