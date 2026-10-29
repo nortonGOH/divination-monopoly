@@ -1,0 +1,10 @@
+# Historical answer-bearing artifacts: never commit to this public repository.
+seed.sql
+qa-source-60.json
+questions.json
+new-choice-70.json
+mountain-*.json
+calendar-questions-*.json
+quiz-imports/
+# Keep private answer-key backups outside this repository.
+*.answer-key-backup.json
