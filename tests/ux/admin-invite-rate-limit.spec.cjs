@@ -22,7 +22,7 @@ async function setup(page,{inviteStatus=400,inviteError='email rate limit exceed
   return route.fulfill({status,contentType:'application/json',headers:h,body:JSON.stringify(response)});
  });
  await page.goto('/');
- await page.evaluate(()=>{adminAccessToken='mock-admin-token';});
+ await page.evaluate(()=>{adminAccessToken='mock-admin-token';document.getElementById('bankDialog').showModal();});
  await page.getByRole('button',{name:'會員帳號管理'}).click();
  await expect(page.getByRole('heading',{name:'會員帳號管理（限管理員）'})).toBeVisible();
  return {requests};
