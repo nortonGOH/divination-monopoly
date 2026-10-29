@@ -4,7 +4,7 @@
 const $=id=>document.getElementById(id);
 const form=$('questionForm'),dialog=$('bankDialog'),filterBar=$('bankFilter')?.closest('.bank-filters');
 if(!form||!dialog||!filterBar||typeof inferKnowledgeType!=='function')return;
-const types=[['all','數術類型'],['山','山（修練）'],['醫','醫（漢醫）'],['命','命（星、命）'],['卜','卜（占卜）'],['相','相（相術、風水）'],['式占','式占'],['天文曆法','天文曆法'],['易學','易學'],['待分類','待分類']];
+const types=[['all','數術類型'],['山','山（修練）'],['醫','醫（漢醫）'],['命','命（星、命）'],['卜','卜（占卜）'],['相','相（相術、風水）'],['式占','式占'],['兵陰陽','兵陰陽'],['通識','通識'],['天文曆法','天文曆法'],['易學','易學'],['待分類','待分類']];
 const chooser=(id,all)=>{const select=document.createElement('select');select.id=id;for(const [v,name] of types){if(!all&&v==='all')continue;const opt=document.createElement('option');opt.value=v;opt.textContent=name;select.append(opt);}return select;};
 const editLabel=document.createElement('label');editLabel.textContent='數術類型';
 const editSelect=chooser('editKnowledgeType',false);editLabel.append(editSelect);
