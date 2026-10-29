@@ -5,7 +5,7 @@ test.beforeEach(async({page})=>{
     const u=new URL(route.request().url());
     if(u.hostname==='127.0.0.1'){
       if(u.pathname==='/config.js')
-        return route.fulfill({status:200,contentType:'application/javascript',body:"window.QUIZ_AUTH_CONFIG={supabaseUrl:'https://mock-ux.supabase.co',publishableKey:'mock-key',turnstileSiteKey:''};"});
+        return route.fulfill({status:200,contentType:'application/javascript',body:"window.QUIZ_AUTH_CONFIG={supabaseUrl:'https://mock-ux.supabase.co',publishableKey:'mock-key-123456789012345',turnstileSiteKey:''};"});
       return route.continue();
     }
     return route.fulfill({status:200,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:'[]'});
