@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "description": "Isolated website usability tests",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.58.2"
+  }
+}
