@@ -1,0 +1,31 @@
+name: Verify live member registration update
+on:
+  push:
+    branches: [verify/live-registration-ux-20261029]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare deployed Auth script to reviewed main without sending mail
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://nortongoh.github.io/divination-monopoly'
+          for n in $(seq 1 18); do
+            if curl -fsSL --retry 2 --retry-delay 2 --max-time 25 "$base/quiz-challenge-v7.js?verify=$GITHUB_RUN_ID-$n" -o /tmp/live-auth-v7.js && cmp -s quiz-challenge-v7.js /tmp/live-auth-v7.js; then
+              break
+            fi
+            if [ "$n" -eq 18 ]; then echo 'FAIL: production Auth UI does not match main'; exit 1; fi
+            sleep 5
+          done
+          node --check /tmp/live-auth-v7.js
+          grep -Fq "confirmPassword.required=signup" /tmp/live-auth-v7.js
+          grep -Fq "resendAvailableAt=Date.now()+90*1000" /tmp/live-auth-v7.js
+          grep -Fq "EMAIL_CONFIRM_REDIRECT='https://nortongoh.github.io/divination-monopoly/'" /tmp/live-auth-v7.js
+          grep -Fq "if(dialogMode==='signup')" /tmp/live-auth-v7.js
+          grep -Fq "over_email_send_rate_limit" /tmp/live-auth-v7.js
+          echo 'PASS: live GitHub Pages serves exactly the merged member registration and email verification script.'
