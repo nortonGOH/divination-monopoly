@@ -9,6 +9,9 @@ if (!$('quizTitle') || typeof cloudCall!=='function') return;
 const cfg=window.QUIZ_AUTH_CONFIG||{};
 const base=String(cfg.supabaseUrl||'').replace(/\/$/,'');
 const key=String(cfg.publishableKey||'');
+// GitHub Pages publishes this project under /divination-monopoly/, not at the account root.
+// Supabase Auth must allow this exact URL in Authentication > URL Configuration.
+const EMAIL_CONFIRM_REDIRECT='https://nortongoh.github.io/divination-monopoly/';
 let playerToken=null, playerEmail='', playerNickname='', playerState=null, busy=false;
 window.quizMemberToken=()=>playerToken;
 let lastAnnouncedMemberToken;
@@ -236,7 +239,7 @@ registerBtn.addEventListener('click',async()=>{
  if(!email.reportValidity()||!password.reportValidity())return;
  busy=true;
  try{if(!validNick(nickname.value))throw Error('請輸入2–18字的暱稱（中英文、數字、底線或連字號）。');
-  await endpoint('/auth/v1/signup','POST',{email:email.value.trim(),password:password.value,data:{nickname:nickname.value.trim(),leaderboard_opt_in:privacyCheck.checked},gotrue_meta_security:{captcha_token:window.quizCaptcha.token(form)}});
+  await endpoint('/auth/v1/signup?redirect_to='+encodeURIComponent(EMAIL_CONFIRM_REDIRECT),'POST',{email:email.value.trim(),password:password.value,data:{nickname:nickname.value.trim(),leaderboard_opt_in:privacyCheck.checked},gotrue_meta_security:{captcha_token:window.quizCaptcha.token(form)}});
   password.value='';setDialogMode('login');
   showError('註冊請求已送出。若需郵件驗證，請先到信箱完成確認，再登入；暱稱會在登入後自動載入。');
  }catch(err){showError('註冊失敗：'+err.message);}finally{window.quizCaptcha.reset(form);busy=false;}
