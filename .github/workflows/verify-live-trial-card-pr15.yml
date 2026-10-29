@@ -1,0 +1,35 @@
+name: Verify deployed IP trial and Wenchang card
+on:
+  push:
+    branches: [verify/live-trial-card-pr15-20261029]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify live website matches main for trial and rescue assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://nortongoh.github.io/divination-monopoly'
+          mkdir -p /tmp/live-guest-trial
+          for attempt in $(seq 1 18); do
+            ok=1
+            for file in index.html quiz-challenge-v7.js trial-wenchang-card.js trial-wenchang-ui.css; do
+              if ! curl -fsSL --retry 2 --retry-delay 2 --max-time 25 "$base/$file?verify=$GITHUB_RUN_ID-$attempt" -o "/tmp/live-guest-trial/$file"; then ok=0
+              elif ! cmp -s "$file" "/tmp/live-guest-trial/$file"; then ok=0; fi
+            done
+            if test "$ok" = 1; then break; fi
+            if test "$attempt" = 18; then echo 'FAIL: deployed Pages assets are stale'; exit 1; fi
+            sleep 5
+          done
+          node --check /tmp/live-guest-trial/quiz-challenge-v7.js
+          node --check /tmp/live-guest-trial/trial-wenchang-card.js
+          grep -Fq 'id="trialBanner"' /tmp/live-guest-trial/index.html
+          grep -Fq 'id="wenchangCard"' /tmp/live-guest-trial/index.html
+          grep -Fq '/functions/v1/quiz-guest-trial' /tmp/live-guest-trial/quiz-challenge-v7.js
+          grep -Fq 'quiz_wenchang_status' /tmp/live-guest-trial/trial-wenchang-card.js
+          echo 'PASS: live GitHub Pages has IP trial entry and Wenchang card exactly as approved main.'
