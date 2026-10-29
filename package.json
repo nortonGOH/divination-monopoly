@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "scripts": {
+    "test:security": "playwright test tests/open-qa-security.spec.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.58.2"
+  }
+}
