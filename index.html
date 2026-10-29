@@ -603,7 +603,7 @@ function fairRandomInt(limit){
   return Math.floor(Math.random()*limit);
 }
 /* 五術學習類型與原始題材分類分離，避免抹除原作者主題。 */
-const KNOWLEDGE_TYPES=['山','醫','命','卜','相','天文曆法','待分類'];
+const KNOWLEDGE_TYPES=['山','醫','命','卜','相','天文曆法','易學','待分類'];
 function inferKnowledgeType(question){
   if(KNOWLEDGE_TYPES.includes(question.knowledge_type))return question.knowledge_type;
   const c=String(question.category||'').trim();
@@ -1165,5 +1165,6 @@ el('librarySearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.prevent
 <script src="./challenge-v15-admin-users.js"></script>
 <script src="./challenge-v17-wheel-feedback.js"></script>
 <script src="./challenge-v19-bank-stats.js"></script>
+<script src="./challenge-v22-bank-taxonomy-and-highlight.js"></script>
 </body>
 </html>
