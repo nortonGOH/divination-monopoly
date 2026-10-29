@@ -16,8 +16,25 @@ const email=document.createElement('input');email.type='email';email.placeholder
 const invite=document.createElement('button');invite.textContent='寄送邀請';invite.type='submit';
 const close=document.createElement('button');close.textContent='關閉';close.type='button';close.onclick=()=>dialog.close();
 form.append(email,invite);
-const status=document.createElement('p');status.setAttribute('role','status');
-const output=document.createElement('div');dialog.append(title,note,footnote,form,status,output,close);document.body.append(dialog);
+const status=document.createElement('p');
+status.setAttribute('role','status');
+status.setAttribute('aria-live','polite');
+status.style.whiteSpace='pre-wrap';
+const mailHelp=document.createElement('p');
+mailHelp.style.cssText='font-size:.83rem;line-height:1.7;margin:4px 0 12px;';
+mailHelp.textContent='邀請信與註冊驗證信共用 Supabase Auth 郵件額度。正式網站建議設定專用 SMTP。';
+const smtpGuide=document.createElement('a');
+smtpGuide.href='https://supabase.com/docs/guides/auth/auth-smtp';
+smtpGuide.target='_blank';smtpGuide.rel='noopener noreferrer';
+smtpGuide.textContent='查看 Supabase SMTP 設定說明';
+mailHelp.append(' ',smtpGuide);
+const inviteErrorMessage=message=>{
+ const text=String(message||'');
+ if(/email rate limit exceeded|over_email_send_rate_limit|too many emails/i.test(text))
+   return '邀請尚未寄出：Supabase Auth 郵件額度已用盡。若使用內建寄信服務，預設整個專案每小時最多 2 封認證郵件。請等額度恢復再試，或在 Supabase Authentication 設定專用 SMTP；不要連續重送。';
+ return '邀請失敗：'+(text||'請檢查管理員登入狀態及郵件服務設定。');
+};
+const output=document.createElement('div');dialog.append(title,note,footnote,form,mailHelp,status,output,close);document.body.append(dialog);
 const call=async body=>{
  if(!adminAccessToken)throw Error('請先登入題庫管理員');
  const r=await fetch(base+'/functions/v1/quiz-admin-users',{method:'POST',headers:{apikey:publicKey,Authorization:'Bearer '+adminAccessToken,'Content-Type':'application/json'},body:JSON.stringify(body)});
@@ -56,6 +73,6 @@ btn.onclick=()=>{if(!adminAccessToken){displayBankToast('請先完成管理員�
 form.addEventListener('submit',async e=>{
  e.preventDefault();invite.disabled=true;
  try{const data=await call({action:'invite',email:email.value});status.textContent=data.message||'邀請已寄出';email.value='';await load();}
- catch(err){status.textContent='邀請失敗：'+err.message;}finally{invite.disabled=false;}
+ catch(err){status.textContent=inviteErrorMessage(err.message);}finally{invite.disabled=false;}
 });
 })();
