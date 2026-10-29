@@ -152,6 +152,11 @@
     .option-editor{display:grid;grid-template-columns:1fr 1fr;gap:10px}
     .editor-actions{display:flex;gap:8px;align-items:center}
     .editor-save{width:auto;padding:11px 22px;font-size:.9rem;letter-spacing:.03em}
+    .question-save-status{margin:4px 0 0;padding:11px 13px;border-radius:9px;font-size:.85rem;line-height:1.7;background:#f1eee5;color:#44504a;overflow-wrap:anywhere}
+    .question-save-status[data-state="error"]{background:#fff0e7;border:1px solid #b96954;color:#8d3525}
+    .question-save-status[data-state="success"]{background:#eaf4ed;border:1px solid #57916b;color:#235936}
+    .question-save-status[data-state="pending"]{background:#fff3cf;border:1px solid #bc964b;color:#665020}
+    .question-save-status:empty{display:none}
     .editor-help{font-size:.76rem;line-height:1.8;color:#77736e;background:#f2ebdf;padding:12px;border-radius:8px;margin:13px 0 0}
     .bank-toast{margin:0 25px 19px;font-size:.83rem;line-height:1.65;color:#456854;min-height:17px}
     @media(max-width:760px){.bank-content{grid-template-columns:1fr}.bank-list-panel{border-right:0;border-bottom:1px solid #e1d7c4}.bank-list{max-height:230px}.bank-dialog{max-height:94dvh}.bank-head{padding:17px 16px}.bank-toolbar{padding:12px 16px}.bank-list-panel,.bank-edit-panel{padding:15px 16px}.bank-toast{margin:4px 16px 16px}}
@@ -363,6 +368,7 @@
         <label>正確答案<select id="editAnswer" required><option value="0">A 選項</option><option value="1">B 選項</option><option value="2">C 選項</option><option value="3">D 選項</option></select></label>
         <label>答案說明／文獻備註（選填）<textarea id="editExplanation" rows="3" maxlength="1600" placeholder="建議填入來源或解釋；不要杜撰引文"></textarea></label>
         <div class="editor-actions"><button type="submit" class="primary editor-save" id="saveQuestionBtn">儲存題目</button><button type="button" class="outline-btn" id="cancelEditBtn">清除表單</button></div>
+        <p id="questionSaveStatus" class="question-save-status" role="status" aria-live="polite"></p>
       </form>
       <p class="editor-help">已登入的授權管理員可直接更新 Supabase 雲端題庫（訪客即可讀取）；匯出 JSON 可另存備份。未設定安全後端時，管理功能將鎖定。</p>
     </section>
@@ -878,8 +884,15 @@ function closeBank(){if(typeof dialog.close==='function')dialog.close();else dia
 el('manageBankBtn').addEventListener('click',openBank);
 el('closeBankBtn').addEventListener('click',closeBank);
 dialog.addEventListener('click',event=>{if(event.target===dialog)closeBank();});
+function setQuestionSaveStatus(message,state='info'){
+  const node=el('questionSaveStatus');
+  if(!node)return;
+  node.dataset.state=state;
+  node.textContent=message;
+}
 function clearEditor(){
   editingQuestionId=null;el('questionForm').reset();
+  setQuestionSaveStatus('');
   el('editorHeading').textContent='新增題目';
   el('saveQuestionBtn').textContent='新增到題庫';
   el('editMansion').value=MANSIONS[activeMansion].name;
@@ -887,6 +900,7 @@ function clearEditor(){
 }
 function editQuestion(id){
   const q=questionBank.find(q=>q.id===id);if(!q)return;
+  setQuestionSaveStatus('');
   editingQuestionId=id;
   el('editorHeading').textContent='編輯題目';
   el('saveQuestionBtn').textContent='儲存修改';
@@ -969,25 +983,33 @@ el('questionForm').addEventListener('submit',async event=>{
     answer:Number(el('editAnswer').value),explanation:el('editExplanation').value.trim()
   };
   if(!proposed.prompt||proposed.options.some(option=>!option)){
-    displayBankToast('請填寫題目及四個選項。');return;
+    setQuestionSaveStatus('請填寫題目及四個選項。','error');return;
   }
-  if(originalId&&!original){displayBankToast('找不到原題目，請重新載入題庫。');return;}
+  if(originalId&&!original){
+    setQuestionSaveStatus('找不到原題目，請按「更新統計」重新載入題庫。','error');return;
+  }
   if(originalId&&!window.confirm('確定儲存這道四選一題目的修改？原題號會保留。'))return;
   let serverAccepted=false;
   try{
     validBank([proposed]);
     el('saveQuestionBtn').disabled=true;
+    setQuestionSaveStatus('正在核對管理員權限與題目版本，尚未確認儲存…','pending');
     await saveAuditedChoice(proposed,original);
     serverAccepted=true;
+    setQuestionSaveStatus('伺服器已確認修訂，正在重新讀取驗證…','pending');
     await persistBank();
     const verified=questionBank.find(q=>q.id===proposed.id);
     if(!verified||JSON.stringify(comparableQuestion(verified))!==JSON.stringify(comparableQuestion(proposed))){
       throw Error('重新讀取的題目與本次修改不一致，請檢查修訂紀錄。');
     }
     clearEditor();
-    displayBankToast(originalId?'已確認修改成功，伺服器已重新讀取並核對數術類型。':'已確認新增成功，題目已重新讀取並核對。');
+    const message=originalId?'修改已儲存並重新讀取驗證成功（含數術類型）。':'新增題目已儲存並重新讀取驗證成功。';
+    setQuestionSaveStatus(message,'success');
+    displayBankToast(message);
   }catch(error){
-    displayBankToast((serverAccepted?'伺服器已回報寫入，但重新核對失敗：':'儲存失敗（未確認寫入）：')+error.message);
+    const reason=(serverAccepted?'資料庫回報寫入，但重新讀取核對失敗：':'未完成儲存：')+error.message;
+    setQuestionSaveStatus(reason,'error');
+    displayBankToast(reason);
   }finally{el('saveQuestionBtn').disabled=false;}
 });
 function downloadBank(){
