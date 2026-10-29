@@ -1,0 +1,46 @@
+name: Verify live PR7 editor and statistics deployment
+on:
+  push:
+    branches: [verify/live-pr7-admin-editor-20261029]
+permissions:
+  contents: read
+jobs:
+  check-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare public Pages assets with approved main
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://nortongoh.github.io/divination-monopoly'
+          mkdir -p /tmp/pr7-live
+          for attempt in $(seq 1 15); do
+            ok=1
+            for name in index.html challenge-v19-bank-stats.js challenge-v23-bank-tools.js; do
+              if ! curl -fsSL --retry 2 --retry-delay 2 --max-time 25 "$base/$name?pr7=$GITHUB_RUN_ID-$attempt" -o "/tmp/pr7-live/$name"; then
+                ok=0
+              elif ! cmp -s "$name" "/tmp/pr7-live/$name"; then
+                ok=0
+              fi
+            done
+            if test "$ok" = 1; then break; fi
+            if test "$attempt" = 15; then echo 'FAIL: live assets did not update' >&2; exit 1; fi
+            sleep 5
+          done
+          python3 - <<'PY'
+          from pathlib import Path
+          html=Path('/tmp/pr7-live/index.html').read_text()
+          stat=Path('/tmp/pr7-live/challenge-v19-bank-stats.js').read_text()
+          tools=Path('/tmp/pr7-live/challenge-v23-bank-tools.js').read_text()
+          assert 'id="editCategory" name="source_category" type="hidden"' in html
+          assert '<!-- 保留原始題材欄位，不顯示第二組數術分類選項。 -->\\n' not in html
+          assert 'saveAuditedChoice(proposed,original)' in html
+          assert 'quiz_admin_apply_question_changes' in html
+          assert 'FALLBACK_QUESTIONS = []' in html
+          assert 'bank-inventory-titlebar' in stat
+          assert 'bankRefreshStatsBtn' in tools
+          assert 'await window.quizRefreshOpenBank?.()' in tools
+          print('PASS: official Pages serves PR7 layout, refresh and verified RPC code; answer fallback still empty.')
+          PY
