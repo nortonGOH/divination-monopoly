@@ -29,6 +29,7 @@ async function setup(page,{mode='anon',locked=false}={}){
  await page.route('**/auth/v1/**',route=>route.fulfill({status:401,contentType:'application/json',body:'{"message":"No test session"}'}));
  await page.goto('/');
  await expect(page.locator('#quizDifficulty')).toBeVisible();
+ await page.evaluate(async()=>{await window.quizRefreshOpenBank();selectQuizForMansion(0);});
  await expect.poll(async()=>({display:await page.locator('#questionText').innerText(),errors,openReady:await page.evaluate(()=>typeof window.quizRefreshOpenBank),requests:seen.map(x=>x.path)}),{timeout:8000,message:JSON.stringify({errors,seen})}).toMatchObject({display:expect.stringContaining(question.prompt)});
  return seen;
 }
