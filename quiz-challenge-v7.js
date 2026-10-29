@@ -204,7 +204,7 @@ let recoveryEmailAvailableAt=0;
 const recoveryHash=new URLSearchParams(window.location.hash.startsWith('#')?window.location.hash.slice(1):'');
 const isRecoveryLink=recoveryHash.get('type')==='recovery';
 const recoveryError=recoveryHash.get('error')||recoveryHash.get('error_code');
-if(isRecoveryLink||recoveryError){
+if(recoveryHash.has('access_token')||recoveryError){
   recoveryAccessToken=isRecoveryLink?recoveryHash.get('access_token'):null;
   // Credentials and one-time recovery tokens must never linger in the address bar.
   window.history.replaceState(null,'',window.location.pathname+window.location.search);
@@ -367,8 +367,8 @@ async function completeMemberLogin(data,address){
 form.addEventListener('submit',async e=>{
  e.preventDefault();
  if(busy||dialogMode==='verify'||dialogMode==='profile')return;
- if(dialogMode==='signup'){
-   if(!validNick(nickname.value)){
+ if(dialogMode==='signup'||dialogMode==='reset'){
+   if(dialogMode==='signup'&&!validNick(nickname.value)){
      showError('暱稱需為 2～18 字，僅可使用中英文、數字、底線或連字號。');
      nickname.focus();return;
    }
@@ -379,11 +379,34 @@ form.addEventListener('submit',async e=>{
    }
  }
  busy=true;loginBtn.disabled=true;registerBtn.disabled=true;backBtn.disabled=true;
- const signup=dialogMode==='signup',address=email.value.trim().toLowerCase();
- showError(signup?'正在送出註冊請求，請勿重複點擊…':'正在驗證帳號，請稍候…');
+ const signup=dialogMode==='signup',recover=dialogMode==='recover',reset=dialogMode==='reset';
+ const address=email.value.trim().toLowerCase();
+ showError(reset?'正在安全更新密碼…':recover?'正在申請重設信，請勿重複寄送…':signup?'正在送出註冊請求，請勿重複點擊…':'正在驗證帳號，請稍候…');
  try{
-   const captcha=window.quizCaptcha.token(form);
-   if(signup){
+   if(recover){
+     if(Date.now()<recoveryEmailAvailableAt)throw Error('重設信已送出，請等候至少 90 秒並檢查收件匣及垃圾郵件。');
+     const captcha=window.quizCaptcha.token(form);
+     await endpoint('/auth/v1/recover?redirect_to='+encodeURIComponent(EMAIL_CONFIRM_REDIRECT),
+       'POST',{email:address,gotrue_meta_security:{captcha_token:captcha}});
+     recoveryEmailAvailableAt=Date.now()+90000;
+     showError('若此電子郵件已註冊，系統將寄送密碼重設連結。請檢查收件匣與垃圾郵件；此訊息不代表郵件已送達。');
+   }else if(reset){
+     if(!recoveryAccessToken)throw Error('重設連結無效，請重新申請重設信。');
+     const response=await fetch(base+'/auth/v1/user',{
+       method:'PUT',headers:{apikey:key,Authorization:'Bearer '+recoveryAccessToken,'Content-Type':'application/json'},
+       body:JSON.stringify({password:password.value}),cache:'no-store'
+     });
+     const result=await response.json().catch(()=>({}));
+     if(!response.ok){
+       const err=Error(result?.message||result?.msg||result?.error_description||'重設連結已過期或新密碼無效');
+       err.status=response.status;throw err;
+     }
+     recoveryAccessToken=null;password.value='';confirmPassword.value='';
+     setDialogMode('login',true);
+     showError('密碼已更新成功。請使用新密碼重新登入；原有成績與文昌星救援點數不變。');
+   }else{
+     const captcha=window.quizCaptcha.token(form);
+     if(signup){
      const result=await endpoint('/auth/v1/signup?redirect_to='+encodeURIComponent(EMAIL_CONFIRM_REDIRECT),
        'POST',{email:address,password:password.value,
          data:{nickname:nickname.value.trim()},
@@ -401,15 +424,20 @@ form.addEventListener('submit',async e=>{
      const result=await endpoint('/auth/v1/token?grant_type=password','POST',{
        email:address,password:password.value,gotrue_meta_security:{captcha_token:captcha}});
      await completeMemberLogin(result,address);
+     }
    }
  }catch(err){
-   showError(normalAuthError(err,signup?'註冊':'登入'));
+   if(reset&&(err.status===401||err.status===403)){
+     recoveryAccessToken=null;password.value='';confirmPassword.value='';setDialogMode('recover',true);
+     showError('密碼重設連結已失效或過期，請重新申請重設信。');
+   }else showError(normalAuthError(err,reset?'更新密碼':recover?'寄送重設信':signup?'註冊':'登入'));
  }finally{
    window.quizCaptcha.reset(form);
    busy=false;loginBtn.disabled=false;registerBtn.disabled=false;backBtn.disabled=false;
    updateResendButton();
  }
 });
+forgotBtn.addEventListener('click',()=>{if(busy)return;password.value='';confirmPassword.value='';setDialogMode('recover');showDlg();email.focus();});
 registerBtn.addEventListener('click',()=>{
  if(busy)return;
  setDialogMode('signup');nickname.focus();
@@ -435,6 +463,7 @@ verifiedLoginBtn.addEventListener('click',()=>{
 });
 function dismissPlayerDialog(){
  if(busy)return;
+ recoveryAccessToken=null;
  password.value='';confirmPassword.value='';password.type='password';
  showPassword.textContent='顯示密碼';showPassword.setAttribute('aria-pressed','false');
  dialog.close();setDialogMode('login');
@@ -442,7 +471,7 @@ function dismissPlayerDialog(){
 closeBtn.addEventListener('click',dismissPlayerDialog);
 backBtn.addEventListener('click',()=>{
  if(busy)return;
- password.value='';confirmPassword.value='';setDialogMode('login');email.focus();
+ password.value='';confirmPassword.value='';recoveryAccessToken=null;setDialogMode('login');email.focus();
 });
 signInBtn.addEventListener('click',()=>{setDialogMode('login');showDlg();});
 const profileBtn=node('button','修改暱稱');profileBtn.type='button';profileBtn.hidden=true;actions.append(profileBtn);
@@ -640,5 +669,11 @@ for(const elem of [$('spinBtn'),$('polaris-trigger')]){
 }
 setDialogMode('login');
 const oldStatus=drawState;oldStatus();void refreshTrial();
+if(recoveryAccessToken){
+  setDialogMode('reset');showDlg();password.focus();
+}else if(isRecoveryLink||recoveryError){
+  setDialogMode('recover');showDlg();
+  showError('密碼重設連結無效或已過期。請重新輸入電子郵件申請新的重設信。');
+}
 // Keep no bearer token in GitHub, localStorage, cookies or URL; re-login after page refresh.
 })();
