@@ -37,6 +37,7 @@ async function prepare(page,{open=[],rpcMode='normal'}={}){
       const change=payload.p_changes?.[0];
       writes.push({path,change});
       if(rpcMode==='zero')return reply(200,{updated:0,inserted:0,audit_logged:0});
+      if(rpcMode==='deny')return reply(403,{message:'Administrator privileges required'});
       if(!change || !['update','insert'].includes(change.mode))
         return reply(400,{message:'Invalid change'});
       const index=store.findIndex(q=>q.id===change.id);
@@ -112,7 +113,8 @@ test('editing choice knowledge type persists via audited RPC and server re-read'
   expect(state.writes[0].change.after.knowledge_type).toBe('命');
   expect(state.writes[0].change.after.category).toBe('二十八宿');
   expect(state.writes[0].change.before.knowledge_type).toBe('山');
-  await expect(page.locator('#bankToast')).toContainText('已確認修改成功');
+  await expect(page.locator('#questionSaveStatus')).toContainText('修改已儲存並重新讀取驗證成功');
+  await expect(page.locator('#questionSaveStatus')).toHaveAttribute('data-state','success');
   await expect.poll(()=>page.evaluate(()=>questionBank.find(q=>q.id==='mock-choice-a')?.knowledge_type)).toBe('命');
   await page.locator('#bankKnowledgeType').selectOption('命');
   await expect.poll(()=>ids(page)).toEqual(['mock-choice-a','mock-choice-b']);
@@ -141,7 +143,8 @@ test('a false-positive RPC response never displays success',async({page})=>{
   page.once('dialog',d=>d.accept());
   await page.locator('#saveQuestionBtn').click();
   await expect.poll(()=>state.writes.length).toBe(1);
-  await expect(page.locator('#bankToast')).toContainText('未確認寫入');
+  await expect(page.locator('#questionSaveStatus')).toContainText('未完成儲存');
+  await expect(page.locator('#questionSaveStatus')).toHaveAttribute('data-state','error');
   expect(state.store[0].knowledge_type).toBe('山');
   await expect(page.locator('#editKnowledgeType')).toHaveValue('命');
 });
@@ -177,4 +180,39 @@ test('editor has no visible literal newline and uses responsive aligned controls
   await page.setViewportSize({width:375,height:812});
   const m=await inputs.nth(0).boundingBox(),d=await inputs.nth(1).boundingBox();
   expect(d.y).toBeGreaterThan(m.y);
+});
+
+test('式占 is offered in editor, list filter, player type and inventory and persists after save',async({page})=>{
+  const state=await prepare(page);
+  for(const id of ['#editKnowledgeType','#bankKnowledgeType','#challengeKnowledgeType'])
+    await expect(page.locator(id).locator('option[value="式占"]')).toHaveCount(1);
+  await page.locator('#bankList .bank-item[data-question-id="mock-choice-a"] button').filter({hasText:'修改題目'}).click();
+  await page.locator('#editKnowledgeType').selectOption('式占');
+  await page.locator('#saveQuestionBtn').click();
+  await expect.poll(()=>state.writes.length).toBe(1);
+  await expect(page.locator('#questionSaveStatus')).toHaveAttribute('data-state','success');
+  expect(state.writes[0].change.after.knowledge_type).toBe('式占');
+  await page.locator('#bankKnowledgeType').selectOption('式占');
+  await expect.poll(()=>ids(page)).toEqual(['mock-choice-a']);
+  await expect(page.getByRole('button',{name:'式占／初階：1題，點擊篩選'})).toBeVisible();
+  expect(state.store[0].knowledge_type).toBe('式占');
+});
+test('server permission errors are visible next to save and leave edit form intact',async({page})=>{
+  const state=await prepare(page,{rpcMode:'deny'});
+  await page.locator('#bankList .bank-item[data-question-id="mock-choice-a"] button').filter({hasText:'修改題目'}).click();
+  await page.locator('#editPrompt').fill('測試新題目內容');
+  await page.locator('#saveQuestionBtn').click();
+  await expect(page.locator('#questionSaveStatus')).toHaveAttribute('data-state','error');
+  await expect(page.locator('#questionSaveStatus')).toContainText('未完成儲存');
+  await expect(page.locator('#editPrompt')).toHaveValue('測試新題目內容');
+  expect(state.store[0].prompt).not.toBe('測試新題目內容');
+});
+test('browser validation reports required fields instead of a silent no-op',async({page})=>{
+  const state=await prepare(page);
+  await page.locator('#bankList .bank-item[data-question-id="mock-choice-a"] button').filter({hasText:'修改題目'}).click();
+  await page.locator('#editPrompt').fill('');
+  await page.locator('#saveQuestionBtn').click();
+  await expect(page.locator('#questionSaveStatus')).toHaveAttribute('data-state','error');
+  await expect(page.locator('#questionSaveStatus')).toContainText('尚未送出');
+  expect(state.writes).toHaveLength(0);
 });
