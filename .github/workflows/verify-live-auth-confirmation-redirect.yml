@@ -1,0 +1,29 @@
+name: Verify deployed signup callback URL
+on:
+  push:
+    branches: [verify/live-auth-confirmation-redirect-20261029]
+permissions:
+  contents: read
+jobs:
+  verify-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare production signup code with merged main
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://nortongoh.github.io/divination-monopoly'
+          for attempt in $(seq 1 18); do
+            if curl --fail --silent --show-error --location --retry 2 --retry-delay 2 --max-time 25 "$base/quiz-challenge-v7.js?verify=$GITHUB_RUN_ID-$attempt" -o /tmp/live-auth-redirect.js && cmp -s quiz-challenge-v7.js /tmp/live-auth-redirect.js; then
+              break
+            fi
+            if test "$attempt" = 18; then echo 'FAIL: official Pages JS differs from merged main'; exit 1; fi
+            sleep 5
+          done
+          node --check /tmp/live-auth-redirect.js
+          grep -Fq "redirect_to='+encodeURIComponent(EMAIL_CONFIRM_REDIRECT)" /tmp/live-auth-redirect.js
+          grep -Fq "https://nortongoh.github.io/divination-monopoly/" /tmp/live-auth-redirect.js
+          echo 'PASS: official GitHub Pages has exact-path signup confirmation redirect.'
+          echo 'NOTE: Supabase Site URL and Redirect URL allowlist still require dashboard verification.'
