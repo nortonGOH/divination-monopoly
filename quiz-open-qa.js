@@ -201,9 +201,8 @@
     $('editorHeading').textContent='編輯開放問答';$('saveQuestionBtn').textContent='儲存修改';
     typeSelect.value='open';levelEditorSelect.value=q.difficulty;
     $('editMansion').value=q.mansion;
-    const category=$('editCategory');
-    if(![...category.options].some(x=>x.value===q.category)){const o=node('option','',q.category);o.value=q.category;category.append(o);}
-    category.value=q.category;
+    // Source category is historical metadata, not a second classification selector.
+    $('editCategory').value=q.category||'其他';
     $('editPrompt').value=q.prompt;
     $('editReferenceAnswer').value=q.reference_answer;
     $('editSourceTitle').value=q.source_title;
@@ -224,16 +223,22 @@
   renderBankList=function(){
     const target=$('bankList');target.replaceChildren();
     const mansion=oldFilter.value, difficulty=managerLevelSelect.value, keyword=search.value.trim().toLowerCase();
+    const kind=$('bankKnowledgeType')?.value||'all';
     const all=[...questionBank.map(q=>({...q,type:'choice',difficulty:q.difficulty||'中階'})),...openRows];
-    const rows=all.filter(q=>(mansion==='all'||q.mansion===mansion) && (difficulty==='all'||q.difficulty===difficulty) &&
-       (!keyword||[q.prompt,q.category,q.mansion,q.explanation,q.reference_answer].filter(Boolean).join(' ').toLowerCase().includes(keyword)));
-    $('bankListCount').textContent=`${rows.length} / ${all.length} 題`;
+    // Filter the data by its stable question ID and persisted knowledge_type.
+    // Open Q&A has no knowledge_type database column, so type-filtered views
+    // include only choice questions. Do not guess from duplicate question text.
+    const rows=all.filter(q=>(mansion==='all'||q.mansion===mansion) &&
+       (difficulty==='all'||q.difficulty===difficulty) &&
+       (kind==='all'||(q.type==='choice'&&inferKnowledgeType(q)===kind)) &&
+       (!keyword||[q.prompt,q.category,q.mansion,q.explanation,q.reference_answer,q.knowledge_type].filter(Boolean).join(' ').toLowerCase().includes(keyword)));
+    $('bankListCount').textContent=`${rows.length} / ${all.length} 題`+(kind==='all'?'':'（數術類型僅篩選四選一）');
     if(!rows.length){target.append(node('p','bank-list-empty','目前沒有符合條件的題目。'));return;}
     for(const q of rows){
       const item=node('article','bank-item');
       item.dataset.questionId=q.id;item.dataset.questionType=q.type;
       if(form.dataset.editingId===q.id)item.classList.add('quiz-being-edited');
-      item.append(node('div','bank-item-top',`${q.difficulty} · ${q.mansion} · ${q.category} · ${q.type==='open'?'開放問答':'四選一'}`));
+      item.append(node('div','bank-item-top',`${q.difficulty} · ${q.mansion} · ${q.type==='open'?'開放問答':inferKnowledgeType(q)+' · 四選一'}`));
       item.append(node('div','bank-item-question',q.prompt));
       const actions=node('div','bank-item-actions');
       const edit=node('button','', '修改題目');edit.type='button';edit.addEventListener('click',()=>editQuestion(q.id));

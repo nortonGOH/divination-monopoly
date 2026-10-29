@@ -32,13 +32,13 @@
     const label=picker.closest('label');
     if(label){
       for(const node of label.childNodes){
-        if(node.nodeType===Node.TEXT_NODE){node.textContent='數術類型（可人工重新歸類）';break;}
+        if(node.nodeType===Node.TEXT_NODE){node.textContent='數術類型（四選一題目）';break;}
       }
     }
     if(!$('quizClassificationNote')){
       const note=document.createElement('small');
       note.id='quizClassificationNote';
-      note.textContent='題目 ID 保持不變，以保留既有作答紀錄；數術類型與題材分類可由管理員分別調整。儲存成功後，題目將移至新分類，統計表同步更新。';
+      note.textContent='數術類型僅適用四選一題目。變更時保留題號與原始題材資料，儲存後將以新的數術類型篩選並更新統計。';
       picker.insertAdjacentElement('afterend',note);
     }
   }
