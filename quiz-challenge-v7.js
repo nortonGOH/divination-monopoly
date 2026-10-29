@@ -1,4 +1,4 @@
-/* v7 player registrations & account-based 5 wrong answers -> 4 hour cooldown.
+/* v7 player registrations & account-based 5 wrong answers -> 30 minute cooldown.
  * Supabase Auth validates passwords; PostgreSQL RPCs count wrong answers atomically.
  * Existing administrator login and the library reader remain separate.
  */
@@ -49,7 +49,7 @@ $('quizAvailable').closest('.quiz-panel').prepend(alertBox);
 const cooldownDialog=node('dialog','','player-dialog');
 const cooldownTitle=node('h2','挑戰暫停・解鎖倒數');
 const cooldownDetail=node('p','');
-const cooldownExplanation=node('p','連續答錯累計達五次後，挑戰暫停四小時。「文昌星救援」僅用於查看正確答案及解析，不會抵銷答錯次數，也不會提前解除鎖定。');
+const cooldownExplanation=node('p','連續答錯累計達五次後，挑戰暫停三十分鐘。「文昌星救援」僅用於查看正確答案及解析，不會抵銷答錯次數，也不會提前解除鎖定。');
 const cooldownActions=node('div','','account-actions');
 const cooldownCheck=node('button','重新檢查解鎖狀態','player-main');cooldownCheck.type='button';
 const cooldownClose=node('button','知道了');cooldownClose.type='button';
@@ -71,7 +71,7 @@ function renderCooldown(){
    return;
  }
  const line=cooldownRemaining();
- alertBox.textContent='本次已累計五次答錯，挑戰暫停四小時。'+line.replace('\n','；')+'。點擊北極星可查看詳情。';
+ alertBox.textContent='本次已累計五次答錯，挑戰暫停三十分鐘。'+line.replace('\n','；')+'。點擊北極星可查看詳情。';
  cooldownDetail.textContent=line;
  if(!cooldownTicker)cooldownTicker=setInterval(renderCooldown,1000);
 }
@@ -113,7 +113,7 @@ function onLockedWheelClick(){
 }
 const dialog=node('dialog','','player-dialog');
 const heading=node('h2','數術知識挑戰・帳號登入');
-const intro=node('p','請使用自己的電子郵件註冊。同一帳號累計答錯五次，將暫停挑戰四小時；期滿歸零。');
+const intro=node('p','請使用自己的電子郵件註冊。同一帳號累計答錯五次，將暫停挑戰三十分鐘；期滿歸零。\n\n✦ 文昌星救援：答錯時，可自行選擇是否使用 1 次救援，查看正確答案與解析。每位會員起始有 3 次救援機會，每兩小時補充 3 次，最多累積 10 次。救援不會抵銷答錯次數，也不會提前解除挑戰鎖定。');
 const form=node('form');form.id='playerAuthForm';
 const elabel=node('label','電子郵件'),email=node('input');email.type='email';email.required=true;email.autocomplete='username';elabel.append(email);
 const nicknameLabel=node('label','暱稱（2–18字，可使用中英文、數字、底線、連字號）'),nickname=node('input');nickname.type='text';nickname.id='playerNickname';nickname.maxLength=18;nickname.autocomplete='nickname';nicknameLabel.append(nickname);
@@ -323,7 +323,7 @@ wenchangYes.addEventListener('click',async()=>{
     wenchangAnswer.textContent='正確答案：'+label+(result.explanation?'\n\n解析：'+result.explanation:'');
     wenchangAnswer.hidden=false;
     wenchangInfo.textContent=result.used_credit?'已扣除 1 次文昌星救援；下次仍可重新挑戰這道題目。':'本題答案已解鎖，不重複扣除救援次數。';
-    if(playerState?.locked)wenchangInfo.textContent+='\n您已累計五次答錯，目前仍須等候四小時鎖定期結束；救援不會解除鎖定。';
+    if(playerState?.locked)wenchangInfo.textContent+='\n您已累計五次答錯，目前仍須等候三十分鐘鎖定期結束；救援不會解除鎖定。';
     wenchangCredits.textContent='目前剩餘：'+Number(result.status?.credits??0)+' / 10 次';
     wenchangYes.hidden=true;wenchangNo.textContent='關閉';
     if(activeQuestion?.id===id)$('answerFeedback').textContent='✕ 回答錯誤。已使用「文昌星救援」查看解析。'+(playerState?.locked?'\n本次已達五次答錯，請等待解鎖；點北極星可查看倒數。':'');
