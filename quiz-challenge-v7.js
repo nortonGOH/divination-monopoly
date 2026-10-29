@@ -15,11 +15,54 @@ const EMAIL_CONFIRM_REDIRECT='https://nortongoh.github.io/divination-monopoly/';
 let playerToken=null, playerEmail='', playerNickname='', playerState=null, busy=false;
 window.quizMemberToken=()=>playerToken;
 let lastAnnouncedMemberToken;
+let trialInfo=null,trialRequest=false,trialError='';
+const trialBanner=document.getElementById('trialBanner');
 let unlockTimer=null, unlockAt='';
 let completedIds=new Set();window.quizCompletedIds=completedIds;
-window.quizPlayerMayChallenge=()=>Boolean(playerToken&&!playerState?.locked);
+window.quizPlayerMayChallenge=()=>Boolean((playerToken&&!playerState?.locked)||(!playerToken&&trialInfo&&!trialInfo.locked));
 async function reloadCompleted(){completedIds=new Set(await endpoint('/rest/v1/rpc/quiz_answered_question_ids','POST',{}));window.quizCompletedIds=completedIds;}
 const loginReady=Boolean(base&&key);
+async function trialApi(action,extras={}){
+  if(!loginReady)throw Error('試玩服務尚未設定。');
+  const response=await fetch(base+'/functions/v1/quiz-guest-trial',{
+    method:'POST',headers:{apikey:key,'Content-Type':'application/json'},
+    body:JSON.stringify({action,...extras}),cache:'no-store'
+  });
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok)throw Error(result.error||result.message||'試玩伺服器無法連線');
+  return result;
+}
+function showTrialBanner(error=''){
+  if(!trialBanner)return;
+  if(playerToken){
+    trialBanner.dataset.state='member';
+    trialBanner.textContent='會員正式挑戰模式｜試玩 IP 額度不影響註冊會員答題。';
+  }else if(error){
+    trialBanner.dataset.state='error';trialBanner.textContent='訪客試玩無法啟用：'+error+'。可註冊登入正式挑戰。';
+  }else if(!trialInfo){
+    trialBanner.dataset.state='loading';trialBanner.textContent='正在讀取 IP 試玩額度…';
+  }else if(trialInfo.locked){
+    trialBanner.dataset.state='locked';trialBanner.textContent='此 IP 已使用 5／5 次試玩答題，試玩已鎖定。請註冊或登入繼續挑戰。';
+  }else{
+    trialBanner.dataset.state='ready';trialBanner.textContent='訪客試玩｜此 IP 已答 '+trialInfo.used+'／5 題，剩餘 '+trialInfo.remaining+' 次。共用網路可能共用額度；試玩不含文昌星救援。';
+  }
+}
+async function refreshTrial(){
+  if(playerToken)return;
+  if(trialRequest)return;
+  trialRequest=true;trialError='';showTrialBanner();
+  try{
+    const result=await trialApi('status');
+    if(playerToken)return;
+    if(!Number.isInteger(result.used)||!Number.isInteger(result.remaining)||
+      result.used<0||result.used>5||result.remaining!==5-result.used)
+      throw Error('伺服器試玩額度回應異常');
+    trialInfo=result;trialError='';showTrialBanner();drawState();
+    if(!result.locked)selectQuizForMansion(activeMansion);
+  }catch(error){
+    trialInfo=null;trialError=error.message;showTrialBanner(trialError);drawState();
+  }finally{trialRequest=false;}
+}
 const node=(tag,text='',cls='')=>{const x=document.createElement(tag);x.textContent=text;if(cls)x.className=cls;return x;};
 const style=node('style');
 style.textContent=`
@@ -259,21 +302,22 @@ function drawState(){
      },Math.min(remaining,2147483647));
    }
  }
- summary.textContent=playerToken?`${playerNickname||'尚未設定暱稱'}｜參戰 ${playerState?.total_attempts??0} 次｜答對 ${playerState?.correct_attempts??0} 次｜成功率 ${Number(playerState?.success_rate??0).toFixed(1)}%｜當期答錯 ${playerState?.wrong_count??0}/5${locked?'｜暫停至 '+dateText(playerState.locked_until):''}`:'請註冊或登入，才能開始數術問答挑戰。';
+ showTrialBanner(trialError);
+ summary.textContent=playerToken?`${playerNickname||'尚未設定暱稱'}｜參戰 ${playerState?.total_attempts??0} 次｜答對 ${playerState?.correct_attempts??0} 次｜成功率 ${Number(playerState?.success_rate??0).toFixed(1)}%｜當期答錯 ${playerState?.wrong_count??0}/5${locked?'｜暫停至 '+dateText(playerState.locked_until):''}`:trialInfo&&!trialInfo.locked?'訪客試玩：剩餘 '+trialInfo.remaining+' 次答題｜登入會員可保存成績與使用文昌星救援。':'請註冊或登入，才能開始正式數術挑戰。';
  logoutBtn.hidden=!playerToken;signInBtn.hidden=!!playerToken;profileBtn.hidden=!playerToken;
  if(locked){alertBox.hidden=false;}else{alertBox.hidden=true;alertBox.textContent='';}
  renderCooldown();
- const allowed=!!playerToken && !locked;
+ const allowed=(!!playerToken && !locked)||(!playerToken&&!!trialInfo&&!trialInfo.locked);
  if(!spinning){
-   $('spinBtn').disabled=!playerToken;
+   $('spinBtn').disabled=!allowed;
    if(locked){$('spinBtn').textContent='🔒 挑戰暫停・查看解鎖時間';$('spinBtn').title='點擊可查看解鎖倒數與原因';}
    else if($('spinBtn').textContent.startsWith('🔒')){$('spinBtn').textContent='✦　再次抽宿挑戰';$('spinBtn').title='';}
    $('nextQuestionBtn').disabled=!allowed || $('nextQuestionBtn').disabled;
  }
  if(!allowed && !spinning){
   $('answerOptions').replaceChildren();
-  $('questionText').textContent=locked?'本次挑戰已達五次答錯，請於解鎖後繼續。':'請登入或註冊帳號，再開始抽宿挑戰。';
-  $('quizCategory').textContent=locked?'挑戰暫停':'會員模式';
+  $('questionText').textContent=locked?'本次挑戰已達五次答錯，請於解鎖後繼續。':trialInfo?.locked?'此 IP 的 5 次試玩額度已用完，請註冊或登入會員繼續。':'請登入或等待試玩服務載入後再挑戰。';
+  $('quizCategory').textContent=locked?'挑戰暫停':trialInfo?.locked?'試玩已達上限':'試玩／會員模式';
  }
 }
 async function refresh(){
@@ -401,7 +445,7 @@ saveProfileBtn.addEventListener('click',async()=>{
 });
 logoutBtn.addEventListener('click',async()=>{
  const old=playerToken;playerToken=null;playerEmail='';playerNickname='';playerState=null;completedIds=new Set();window.quizCompletedIds=completedIds;
- nickname.value='';privacyCheck.checked=false;setDialogMode('login');closeWenchang();drawState();
+ nickname.value='';privacyCheck.checked=false;setDialogMode('login');closeWenchang();drawState();void refreshTrial();
  if(old)try{await fetch(base+'/auth/v1/logout',{method:'POST',headers:{'apikey':key,'Authorization':'Bearer '+old}});}catch(e){}
 });
 // The old site had local-only scoring. Intercept it, validate and count on the server first.
@@ -480,7 +524,46 @@ wenchangYes.addEventListener('click',async()=>{
 const previousAnswer=answerQuestion;
 answerQuestion=async function(index){
  if(busy)return;
- if(!playerToken){showDlg();return;}
+ if(!playerToken){
+   if(!trialInfo||trialInfo.locked){
+     drawState();setDialogMode('login');showDlg();return;
+   }
+   if(!activeQuestion||questionAnswered||spinning)return;
+   busy=true;
+   try{
+     const response=await trialApi('answer',{
+       question_id:activeQuestion.id,answer_index:index
+     });
+     if(!Number.isInteger(response.used)||!Number.isInteger(response.remaining)||
+       response.remaining!==5-response.used)
+       throw Error('試玩次數回應異常');
+     trialInfo={used:response.used,remaining:response.remaining,limit:5,locked:response.locked};
+     if(response.accepted){
+       questionAnswered=true;answeredCount++;if(response.correct)correctCount++;
+       [...$('answerOptions').children].forEach((b,i)=>{
+         b.disabled=true;
+         if(i===index)b.classList.add(response.correct?'correct':'wrong');
+       });
+       $('answerFeedback').textContent=response.correct?
+         '✓ 試玩回答正確！正式會員可保存成績。':
+         '✕ 試玩回答錯誤。訪客不公開正確答案或解析，註冊會員可使用文昌星救援。';
+       $('quizScore').textContent='試玩已答 '+response.used+'／5 題';
+     }else{
+       $('answerFeedback').textContent=response.reason==='already_answered'?
+         '這題已在目前 IP 的試玩中作答，請換一題。':
+         '此 IP 已用完 5 次試玩額度，請註冊／登入。';
+     }
+     showTrialBanner();
+     if(trialInfo.locked){
+       $('spinBtn').disabled=true;
+       $('nextQuestionBtn').disabled=true;
+       $('questionText').textContent='此 IP 的 5 次試玩已結束，請註冊／登入以繼續挑戰。';
+       $('answerOptions').querySelectorAll('button').forEach(b=>b.disabled=true);
+     }
+   }catch(error){$('answerFeedback').textContent='試玩提交失敗（不計入答題）：'+error.message;}
+   finally{busy=false;}
+   return;
+ }
  if(playerState?.locked){drawState();return;}
  if(!activeQuestion||questionAnswered||spinning)return;
  busy=true;
@@ -529,7 +612,7 @@ window.challengeRecordOpen=async(q,mastered)=>{
 const priorSelect=selectQuizForMansion;
 selectQuizForMansion=function(index){
  activeMansion=index;
- if(!playerToken||playerState?.locked){drawState();return;}
+ if((playerToken&&playerState?.locked)||(!playerToken&&(!trialInfo||trialInfo.locked))){drawState();return;}
  priorSelect(index);
 };
 // The original spin handler was registered earlier; capture events before it executes.
@@ -537,11 +620,11 @@ for(const elem of [$('spinBtn'),$('polaris-trigger')]){
  if(!elem)continue;
  for(const eventName of ['click','keydown'])elem.addEventListener(eventName,e=>{
   if(eventName==='keydown'&&!['Enter',' '].includes(e.key))return;
-  if(!playerToken||playerState?.locked){e.preventDefault();e.stopImmediatePropagation();
+  if((playerToken&&playerState?.locked)||(!playerToken&&(!trialInfo||trialInfo.locked))){e.preventDefault();e.stopImmediatePropagation();
     if(playerState?.locked)onLockedWheelClick();else{setDialogMode('login');showDlg();}}
  },true);
 }
 setDialogMode('login');
-const oldStatus=drawState;oldStatus();
+const oldStatus=drawState;oldStatus();void refreshTrial();
 // Keep no bearer token in GitHub, localStorage, cookies or URL; re-login after page refresh.
 })();

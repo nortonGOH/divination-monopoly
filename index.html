@@ -199,6 +199,7 @@
   </style>
   <link rel="stylesheet" href="./site-ux.css">
   <link rel="stylesheet" href="./guestbook.css">
+  <link rel="stylesheet" href="./trial-wenchang-ui.css">
 </head>
 <body>
 <a class="ux-skip-link" href="#mainContent">跳至主要內容</a>
@@ -301,6 +302,7 @@
           </div>
           <button class="outline-btn" type="button" id="manageBankBtn">管理題庫</button>
         </div>
+        <div class="trial-banner" id="trialBanner" role="status" aria-live="polite">正在讀取訪客試玩額度…</div>
         <div class="quiz-topline">
           <span id="quizScope">目前星宿：角木蛟</span>
           <span id="quizScore">已答 0 題 · 答對 0 題</span>
@@ -311,6 +313,15 @@
           <div class="answer-options" id="answerOptions" role="group" aria-label="選擇題答案"></div>
           <p class="answer-feedback" id="answerFeedback" role="status" aria-live="polite"></p>
         </div>
+        <section class="wenchang-visual-card" id="wenchangCard" aria-labelledby="wenchangCardTitle">
+          <span class="wenchang-card-symbol" aria-hidden="true">✦</span>
+          <div class="wenchang-card-copy">
+            <p class="wenchang-card-kicker">文昌星 · 學習救援</p>
+            <h4 id="wenchangCardTitle">文昌星救援卡</h4>
+            <p id="wenchangCardStatus">註冊會員答錯後，可使用救援點數查看答案與解析。</p>
+          </div>
+          <button class="wenchang-card-action" id="wenchangCardAction" type="button">查看救援餘額</button>
+        </section>
         <div class="quiz-foot">
           <button class="secondary-btn" type="button" id="nextQuestionBtn">換一題 <span aria-hidden="true">↻</span></button>
           <span class="quiz-hint">每個星宿有獨立題組；可自行增修</span>
@@ -1103,5 +1114,6 @@ initializeBank();
 <script src="./challenge-v23-bank-tools.js"></script>
 <script src="./site-ux.js"></script>
 <script src="./guestbook.js"></script>
+<script src="./trial-wenchang-card.js"></script>
 </body>
 </html>
