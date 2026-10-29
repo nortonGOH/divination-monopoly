@@ -894,6 +894,7 @@ async function logout(){
   if(old)try{const resp=await fetch(SUPABASE_URL+'/auth/v1/logout',{method:'POST',headers:{...cloudHeaders(),Authorization:'Bearer '+old}});if(!resp.ok)console.warn('登出請求回應',resp.status);}catch(e){console.warn('登出時網路連線中斷',e);}
   el('manageBankBtn').textContent='管理題庫';
   closeBank();
+  window.quizRefreshOpenBank?.();
 }
 el('logoutBtn').addEventListener('click',logout);
 
@@ -910,6 +911,7 @@ function openBank(){
   if(!adminAccessToken){openLogin();return;}
   if(typeof dialog.showModal==='function')dialog.showModal();else dialog.setAttribute('open','');
   refreshBankInterface();
+  window.quizRefreshOpenBank?.();
 }
 function closeBank(){if(typeof dialog.close==='function')dialog.close();else dialog.removeAttribute('open');}
 el('manageBankBtn').addEventListener('click',openBank);
