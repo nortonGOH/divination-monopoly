@@ -40,6 +40,17 @@ clearEditor=function(){
   const note=$('quizClassificationNote');
   if(note)note.textContent=defaultNote;
 };
+const questionTypeSelect=$('editQuestionType');
+questionTypeSelect?.addEventListener('change',()=>{
+  // No knowledge_type column exists on open questions. Prevent phantom edits.
+  if(questionTypeSelect.value==='open'){
+    updateEditorType(null);
+  }else{
+    editSelect.disabled=false;
+    const note=$('quizClassificationNote');
+    if(note)note.textContent=defaultNote;
+  }
+});
 // quiz-open-qa.js applies category, difficulty, search and persisted type
 // together before DOM creation. Filtering rendered text loses question identity.
 
