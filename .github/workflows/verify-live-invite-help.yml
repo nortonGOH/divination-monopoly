@@ -1,0 +1,29 @@
+name: Verify live invitation rate limit help
+on:
+  push:
+    branches: [verify/live-invite-rate-limit-20261029]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare live member management and validate safe error guidance
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://nortongoh.github.io/divination-monopoly'
+          for attempt in $(seq 1 18); do
+            if curl --fail --silent --show-error --location --retry 2 --retry-delay 2 --max-time 25 "$base/challenge-v15-admin-users.js?verify=$GITHUB_RUN_ID-$attempt" -o /tmp/invite-live.js && cmp -s challenge-v15-admin-users.js /tmp/invite-live.js; then
+              break
+            fi
+            if test "$attempt" = 18; then echo 'FAIL: live invite UI did not deploy'; exit 1; fi
+            sleep 5
+          done
+          node --check /tmp/invite-live.js
+          grep -Fq 'over_email_send_rate_limit' /tmp/invite-live.js
+          grep -Fq 'Supabase Auth 郵件額度已用盡' /tmp/invite-live.js
+          grep -Fq 'auth/auth-smtp' /tmp/invite-live.js
+          echo 'PASS: live website serves current invitation error explanation. Sending quota remains a separate Supabase Auth configuration.'
