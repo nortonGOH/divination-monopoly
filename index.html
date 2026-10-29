@@ -927,10 +927,43 @@ el('bankFilter').addEventListener('change',renderBankList);
 el('bankSearch').addEventListener('input',renderBankList);
 el('newQuestionBtn').addEventListener('click',()=>{clearEditor();el('editPrompt').focus();el('editPrompt').scrollIntoView({block:'nearest'});});
 el('cancelEditBtn').addEventListener('click',clearEditor);
+// Use the existing administrator-only, audited RPC for individual edits.
+// A direct REST upsert can report HTTP success without changing an existing
+// question when the browser role lacks SELECT on quiz_questions.
+const authoredQuestionFields=['id','mansion','category','knowledge_type','difficulty','prompt','options','answer','explanation'];
+function comparableQuestion(row){
+  const q=validBank([row])[0];
+  return Object.fromEntries(authoredQuestionFields.map(key=>[key,q[key]]));
+}
+async function saveAuditedChoice(proposed,original){
+  const data=await cloudCall('/rest/v1/rpc/quiz_admin_question_bank',
+    {method:'POST',headers:{'Content-Type':'application/json'},body:'{}'},true);
+  if(!Array.isArray(data))throw Error('無法取得管理員題庫快照，已停止儲存。');
+  const current=data.find(q=>q.id===proposed.id);
+  if(original){
+    if(!current)throw Error('原題已不存在，請更新題庫後重新編輯。');
+    if(JSON.stringify(comparableQuestion(original))!==JSON.stringify(comparableQuestion(current))){
+      throw Error('這道題目已被其他管理員更新，請先更新題庫，再重新編輯。');
+    }
+  }else if(current){
+    throw Error('新題號已存在，為避免覆寫已停止新增。');
+  }
+  const before=current?{...current}:null;
+  if(before)delete before.updated_at;
+  const after=comparableQuestion(proposed);
+  const result=await cloudCall('/rest/v1/rpc/quiz_admin_apply_question_changes',
+    {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      p_changes:[{mode:original?'update':'insert',id:proposed.id,before,after}]
+    })},true);
+  const count=original?result?.updated:result?.inserted;
+  if(count!==1||result?.audit_logged!==1)throw Error('伺服器未確認更新 1 題及寫入修訂紀錄。');
+}
 el('questionForm').addEventListener('submit',async event=>{
   event.preventDefault();
+  const originalId=editingQuestionId;
+  const original=originalId?questionBank.find(q=>q.id===originalId):null;
   const proposed={
-    id:editingQuestionId||('custom-'+(window.crypto&&crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random().toString(36).slice(2))),
+    id:originalId||('custom-'+(window.crypto&&crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random().toString(36).slice(2))),
     mansion:el('editMansion').value,category:el('editCategory').value,knowledge_type:el('editKnowledgeType')?.value||'待分類',difficulty:el('editDifficulty')?.value||'中階',
     prompt:el('editPrompt').value.trim(),options:[0,1,2,3].map(i=>el('editOption'+i).value.trim()),
     answer:Number(el('editAnswer').value),explanation:el('editExplanation').value.trim()
@@ -938,16 +971,24 @@ el('questionForm').addEventListener('submit',async event=>{
   if(!proposed.prompt||proposed.options.some(option=>!option)){
     displayBankToast('請填寫題目及四個選項。');return;
   }
-  if(editingQuestionId&&!window.confirm('確定儲存這道四選一題目的修改？原題號會保留。'))return;
+  if(originalId&&!original){displayBankToast('找不到原題目，請重新載入題庫。');return;}
+  if(originalId&&!window.confirm('確定儲存這道四選一題目的修改？原題號會保留。'))return;
+  let serverAccepted=false;
   try{
     validBank([proposed]);
     el('saveQuestionBtn').disabled=true;
-    await upsertCloud([proposed]);
+    await saveAuditedChoice(proposed,original);
+    serverAccepted=true;
     await persistBank();
+    const verified=questionBank.find(q=>q.id===proposed.id);
+    if(!verified||JSON.stringify(comparableQuestion(verified))!==JSON.stringify(comparableQuestion(proposed))){
+      throw Error('重新讀取的題目與本次修改不一致，請檢查修訂紀錄。');
+    }
     clearEditor();
-    displayBankToast('題目已儲存至共用題庫。');
-  }catch(error){displayBankToast('儲存失敗：'+error.message);}
-  finally{el('saveQuestionBtn').disabled=false;}
+    displayBankToast(originalId?'已確認修改成功，伺服器已重新讀取並核對數術類型。':'已確認新增成功，題目已重新讀取並核對。');
+  }catch(error){
+    displayBankToast((serverAccepted?'伺服器已回報寫入，但重新核對失敗：':'儲存失敗（未確認寫入）：')+error.message);
+  }finally{el('saveQuestionBtn').disabled=false;}
 });
 function downloadBank(){
   const content=JSON.stringify({version:1,questions:questionBank},null,2);
