@@ -34,9 +34,10 @@ test('signup requests point Supabase confirmation back to the GitHub Pages proje
  await page.getByRole('button',{name:'建立新帳號'}).click();
  await page.locator('#playerAuthForm input[type="email"]').fill('fixture@valid.test');
  await page.locator('#playerPassword').fill('test-password-123');
+ await page.locator('#playerConfirmPassword').fill('test-password-123');
  await page.locator('#playerNickname').fill('測試會員');
- await page.getByRole('button',{name:'確認建立新帳號'}).click();
- await expect(page.getByRole('status').filter({hasText:'註冊請求已送出'})).toBeVisible();
+ await page.getByRole('button',{name:'送出註冊'}).click();
+ await expect(page.getByRole('status').filter({hasText:'註冊請求已受理'})).toBeVisible();
  const requests=calls.filter(item=>new URL(item.url).pathname==='/auth/v1/signup');
  expect(requests).toHaveLength(1);
  const url=new URL(requests[0].url);
