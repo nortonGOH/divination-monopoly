@@ -10,6 +10,8 @@ const cfg=window.QUIZ_AUTH_CONFIG||{};
 const base=String(cfg.supabaseUrl||'').replace(/\/$/,'');
 const key=String(cfg.publishableKey||'');
 let playerToken=null, playerEmail='', playerNickname='', playerState=null, busy=false;
+window.quizMemberToken=()=>playerToken;
+let lastAnnouncedMemberToken;
 let unlockTimer=null, unlockAt='';
 let completedIds=new Set();window.quizCompletedIds=completedIds;
 window.quizPlayerMayChallenge=()=>Boolean(playerToken&&!playerState?.locked);
@@ -38,7 +40,7 @@ document.head.append(style);
 const strip=node('div','','player-strip');
 const summary=node('span','帳號模式：請先註冊或登入才能答題。');summary.id='playerStateText';
 const actions=node('div');
-const signInBtn=node('button','註冊／登入','player-main');signInBtn.type='button';
+const signInBtn=node('button','註冊／登入','player-main');signInBtn.type='button';signInBtn.id='playerSignInBtn';
 const logoutBtn=node('button','登出');logoutBtn.type='button';logoutBtn.hidden=true;
 actions.append(signInBtn,logoutBtn);strip.append(summary,actions);
 $('quizTitle').closest('.quiz-heading').after(strip);
@@ -168,6 +170,7 @@ async function endpoint(path,method='GET',obj=null){
 }
 function dateText(value){return value?new Date(value).toLocaleString('zh-TW',{hour12:false}):'';}
 function drawState(){
+ if(playerToken!==lastAnnouncedMemberToken){lastAnnouncedMemberToken=playerToken;window.dispatchEvent(new Event('quiz-member-session-changed'));}
  const locked=Boolean(playerState?.locked);
  const nextUnlock=locked?String(playerState.locked_until||''):'';
  if(nextUnlock!==unlockAt){

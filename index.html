@@ -198,6 +198,7 @@
     @media(max-width:430px){.library-toolbar{grid-template-columns:1fr}.library-text{max-height:60dvh}}
   </style>
   <link rel="stylesheet" href="./site-ux.css">
+  <link rel="stylesheet" href="./guestbook.css">
 </head>
 <body>
 <a class="ux-skip-link" href="#mainContent">跳至主要內容</a>
@@ -213,6 +214,7 @@
   <nav class="ux-quick-nav" aria-label="網站快速導覽">
     <a href="#spinBtn">開始挑戰</a>
     <a href="#quizTitle">題目與難度</a>
+    <a href="#guestbookTitle">會員留言板</a>
   </nav>
   <details class="ux-howto">
     <summary>第一次使用？查看三步玩法</summary>
@@ -317,6 +319,29 @@
       <p class="notes">此為數術知識練習遊戲。題目與星宿配對是互動設計，並非天文觀測或占驗規則。</p>
     </aside>
   </main>
+  <section class="guestbook" id="guestbook" aria-labelledby="guestbookTitle">
+    <div class="guestbook-heading">
+      <div>
+        <p class="side-label">MEMBER GUESTBOOK · 交流留言</p>
+        <h2 id="guestbookTitle">數術交流留言板</h2>
+        <p>歡迎交流學習心得、題目建議與使用意見。所有訪客可以閱讀留言，發表、修改及刪除自己的留言須先登入會員。</p>
+      </div>
+      <button type="button" id="guestbookRefresh" class="outline-btn">↻ 更新留言</button>
+    </div>
+    <p class="guestbook-rule">✦ 文昌星救援贈點由管理員自行審核決定，留言不保證獲得點數；每則最多核發一次、1～3 點，會員餘額上限仍為 10 點。</p>
+    <form id="guestbookForm">
+      <label for="guestbookBody">我要留言（2～500 字）</label>
+      <textarea id="guestbookBody" name="body" required minlength="2" maxlength="500" rows="3" placeholder="分享心得、提出改善建議或交流數術知識…"></textarea>
+      <div class="guestbook-compose-actions">
+        <span id="guestbookCount">0／500 字</span>
+        <button type="button" id="guestbookCancelEdit" class="outline-btn" hidden>取消修改</button>
+        <button type="submit" id="guestbookSubmit" class="primary" disabled>登入後才能留言</button>
+        <button type="button" id="guestbookLogin" class="outline-btn">註冊／登入會員</button>
+      </div>
+    </form>
+    <p id="guestbookStatus" class="guestbook-status" role="status" aria-live="polite"></p>
+    <div id="guestbookList" class="guestbook-list" aria-live="polite"><p>正在讀取留言…</p></div>
+  </section>
   <footer class="page-foot">數術知識題庫為可編輯的學習素材，題庫管理採伺服器端權限控制。星宿圖為互動示意，並非精確天文觀測圖。</footer>
 </div>
 <a id="uxBackTop" class="ux-back-to-top" href="#pageStart" hidden>↑ 回到頁首</a>
@@ -848,6 +873,7 @@ el('loginForm').addEventListener('submit',async e=>{
     }catch(err){adminAccessToken=old;throw err;}
     closeLogin();
     el('manageBankBtn').textContent='管理題庫 · 已登入';
+    window.dispatchEvent(new Event('quiz-admin-session-changed'));
     el('loginStatus').textContent='';
     openBank();
   }catch(error){
@@ -858,6 +884,7 @@ el('loginForm').addEventListener('submit',async e=>{
 async function logout(){
   const old=adminAccessToken;
   adminAccessToken=null;adminEmail=null;
+  window.dispatchEvent(new Event('quiz-admin-session-changed'));
   if(old)try{const resp=await fetch(SUPABASE_URL+'/auth/v1/logout',{method:'POST',headers:{...cloudHeaders(),Authorization:'Bearer '+old}});if(!resp.ok)console.warn('登出請求回應',resp.status);}catch(e){console.warn('登出時網路連線中斷',e);}
   el('manageBankBtn').textContent='管理題庫';
   closeBank();
@@ -1075,5 +1102,6 @@ initializeBank();
 <script src="./challenge-v22-bank-taxonomy-and-highlight.js"></script>
 <script src="./challenge-v23-bank-tools.js"></script>
 <script src="./site-ux.js"></script>
+<script src="./guestbook.js"></script>
 </body>
 </html>
