@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#101e2d">
+  <meta name="description" content="二十八宿互動圖鑑：四象星宿索引、可追溯的《史記・天官書》星官記載、歷史星圖比較與即時測驗。">
+  <title>二十八宿互動圖鑑｜數術知識大挑戰</title>
+  <link rel="stylesheet" href="./mansions-atlas.css">
+  <script src="./mansions-atlas.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#atlasMain">跳至圖鑑內容</a>
+  <header class="masthead">
+    <div class="topline"><a class="home-link" href="./index.html">← 返回數術知識大挑戰</a><span>STAR ATLAS · 28 LUNAR MANSIONS</span></div>
+    <p class="eyebrow">天文史 × 數術文化 × 互動學習</p>
+    <h1>二十八宿<span>互動圖鑑</span></h1>
+    <p class="lead">循四象認識二十八宿，從早期天官文獻讀到傳世星圖。點選任一星宿，探索星官、史料與專屬測驗。</p>
+    <div class="stats" aria-label="圖鑑規模"><span><strong>28</strong> 宿</span><span><strong>4</strong> 象</span><span><strong>3</strong> 組史料節點</span><span>訪客免登入</span></div>
+  </header>
+
+  <main id="atlasMain" tabindex="-1">
+    <section class="explore" aria-labelledby="exploreTitle">
+      <div class="section-head"><div><p class="eyebrow">01 · 星宿導覽</p><h2 id="exploreTitle">四象星宿總覽</h2></div><p>選擇星宿，右側即時更新。</p></div>
+      <div class="tools">
+        <div class="filters" role="group" aria-label="依四象篩選星宿" id="quadrantFilters">
+          <button type="button" data-filter="全部" aria-pressed="true">全部 28 宿</button>
+          <button type="button" data-filter="東方青龍" aria-pressed="false">東 · 青龍</button>
+          <button type="button" data-filter="北方玄武" aria-pressed="false">北 · 玄武</button>
+          <button type="button" data-filter="西方白虎" aria-pressed="false">西 · 白虎</button>
+          <button type="button" data-filter="南方朱雀" aria-pressed="false">南 · 朱雀</button>
+        </div>
+        <label class="search-label">搜尋宿名<input id="mansionSearch" type="search" placeholder="例：心、奎、東壁" autocomplete="off"></label>
+      </div>
+      <div class="atlas-layout">
+        <div class="sky-panel">
+          <div class="sky-top"><span>周天二十八宿 · 導覽式星盤</span><span>點擊選宿</span></div>
+          <svg id="atlasWheel" viewBox="0 0 600 600" role="group" aria-labelledby="wheelTitle wheelDesc">
+            <title id="wheelTitle">二十八宿互動圓環</title>
+            <desc id="wheelDesc">依東方青龍、北方玄武、西方白虎、南方朱雀各七宿排列的教學用等分圓環，非古代實測宿度或星官實際位置圖。</desc>
+            <circle cx="300" cy="300" r="292" fill="#0d1a2b" stroke="#c1a875" stroke-opacity=".5"/>
+            <g id="wheelSectors"></g>
+            <circle cx="300" cy="300" r="169" fill="#101e2d" stroke="#a7946b" stroke-opacity=".6" stroke-width="2"/>
+            <g id="wheelCenter" aria-hidden="true"><text x="300" y="250" text-anchor="middle" class="center-overline">二十八宿</text><text id="centerName" x="300" y="315" text-anchor="middle" class="center-name">角</text><text id="centerQuad" x="300" y="353" text-anchor="middle" class="center-sub">東方青龍</text></g>
+          </svg>
+          <p class="diagram-caution">圖解說明：各宿扇形均分僅供點選，<strong>不代表實際宿度相等</strong>；四象排列亦非歷史星圖的測繪座標。欲考察原始星圖，請參見下方史料連結。</p>
+          <div id="mansionList" class="mansion-grid" role="group" aria-label="二十八宿選擇清單"></div>
+          <p class="empty" id="searchEmpty" hidden>找不到符合條件的星宿，請更換關鍵字或四象篩選。</p>
+        </div>
+        <article class="detail-panel" aria-labelledby="detailTitle" id="detail">
+          <div class="detail-top"><span id="detailOrder">東方七宿 · 第 1 宿</span><span id="detailCode">01 / 28</span></div>
+          <div class="detail-name"><div><p id="detailQuad">東方青龍</p><h2 id="detailTitle" tabindex="-1">角宿</h2></div><span id="detailGlyph" aria-hidden="true">角</span></div>
+          <div class="details-meta"><span>主星官：<strong id="detailOfficer">角</strong></span><span>傳統宿名：<strong id="detailAlias">角</strong></span></div>
+          <section class="fact"><p class="mini-label">星官與相關星群</p><h3>所屬星官與旁涉星官</h3><p id="detailNearby">依可核對文獻顯示。</p><p class="research-note">「宿」兼具星官名稱與天區分段功能；文獻提及的鄰近星官，不等於它們都隸屬該宿。各時代星官系統亦可能有所變動。</p></section>
+          <section class="fact source-fact"><p class="mini-label">原始文獻 · 史記</p><h3>《史記・天官書》記載</h3><p id="detailEvidence">正在載入文獻摘要。</p><p id="detailQualification" class="research-note">以下為摘要或語義轉述，非逐字引文。</p><a class="source-link" id="detailSource" href="https://guoxue3000.com/tw/books/266/chapters/30" target="_blank" rel="noopener noreferrer">查閱《史記・天官書》原文 ↗</a></section>
+          <section class="quiz" aria-labelledby="quizHeading">
+            <p class="mini-label">互動小測 · 不計入會員排行榜</p><h3 id="quizHeading">測一測這一宿</h3>
+            <p id="quizQuestion" class="quiz-question"></p>
+            <div id="quizOptions" class="quiz-options" role="group" aria-label="星宿測驗選項"></div>
+            <p id="quizFeedback" class="quiz-feedback" role="status" aria-live="polite"></p>
+            <div class="quiz-bottom"><span id="quizScore">本次 0 / 0 題答對</span><button type="button" id="nextQuiz" class="next-button">換個問題 →</button></div>
+          </section>
+        </article>
+      </div>
+    </section>
+
+    <section class="history-section" aria-labelledby="historyTitle">
+      <div class="section-head"><div><p class="eyebrow">02 · 歷史圖解</p><h2 id="historyTitle">從天官記載到傳世星圖</h2></div><p>三個可追溯的史料節點</p></div>
+      <p class="history-intro">下圖是文獻類型與圖式演進的<strong>比較示意</strong>，不是任何古籍或出土星圖的原件重繪。點擊史料卡片可查看機構原始記錄。</p>
+      <div class="history-flow" aria-label="三個歷史史料節點">
+        <article class="history-card">
+          <div class="history-visual text-visual" aria-hidden="true"><span>天官</span><span>星名</span><span>分野</span></div>
+          <p class="era">西漢 · 文獻記錄</p><h3>《史記・天官書》</h3>
+          <p>將星官與宮廷、禮制、歲時、占候連結。今日可從宿名和相關星官記載研究早期天文知識，而非將後世二十八宿圖像直接倒推至西漢。</p>
+          <a href="https://guoxue3000.com/tw/books/266/chapters/30" target="_blank" rel="noopener noreferrer">查閱原文 ↗</a>
+        </article>
+        <article class="history-card">
+          <div class="history-visual scroll-visual" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <p class="era">唐代 · 手卷星圖</p><h3>敦煌星圖 S.3326</h3>
+          <p>敦煌所出星圖保存分區星圖與北極附近星圖。現藏英國圖書館；其精確年代仍有研究討論，不以單一年份定論。</p>
+          <a href="https://idp.bl.uk/collection/7861395E5F814419BA05483EAB254832/" target="_blank" rel="noopener noreferrer">查看館藏紀錄與影像 ↗</a>
+        </article>
+        <article class="history-card">
+          <div class="history-visual stone-visual" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <p class="era">南宋 · 1247 年刻石</p><h3>《平江府學天文圖》</h3>
+          <p>以天極為中心的全天星圖與圖說。碑刻包含二十八宿的區分；現存蘇州，並有中央研究院史語所典藏拓本記錄。</p>
+          <a href="https://museum.sinica.edu.tw/collection/5/item/387/" target="_blank" rel="noopener noreferrer">查看拓本與館藏說明 ↗</a>
+        </article>
+      </div>
+      <p class="research-note">研究提示：不同史料的年代、命名、星數與圖式不能直接等同。敦煌星圖與南宋碑刻的差異需回到原件與專門研究辨析。</p>
+    </section>
+    <section class="method-section" aria-labelledby="methodTitle"><p class="eyebrow">03 · 研究方法</p><h2 id="methodTitle">圖鑑資料與使用限制</h2>
+      <p>本圖鑑以《史記・天官書》的可核對文字作為各宿摘要的第一層依據；個別宿名在傳世文本中有「東井／井」「輿鬼／鬼」「營室／室」「東壁／壁」「七星／星」「觜觿／觜」等稱法。部分星宿於該段只有列名，則明示「未詳」，不補造古文或星數。</p>
+      <p>史料節點引用英國圖書館國際敦煌計畫與中央研究院歷史語言研究所等機構的館藏說明。此處的連線、扇形與示意圖均為網頁教學設計，並非考古星圖、星體坐標或占驗預測。</p>
+    </section>
+  </main>
+  <footer><span>數術知識大挑戰 · 二十八宿互動圖鑑</span><a href="./index.html">回到問答轉盤 ↑</a></footer>
+</body>
+</html>
