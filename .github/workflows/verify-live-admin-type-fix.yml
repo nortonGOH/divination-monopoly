@@ -1,0 +1,40 @@
+name: Verify deployed taxonomy-management fix
+on:
+  push:
+    branches:
+      - verify/live-admin-type-fix-20261029
+permissions:
+  contents: read
+jobs:
+  verify-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify live HTML and management scripts match main
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://nortongoh.github.io/divination-monopoly"
+          mkdir -p /tmp/taxonomy-live
+          for attempt in $(seq 1 14); do
+            ok=1
+            for file in index.html quiz-open-qa.js challenge-v10-fivearts.js challenge-v22-bank-taxonomy-and-highlight.js; do
+              if ! curl --fail --silent --show-error --location --retry 2 --retry-delay 2 --max-time 25 "$base/$file?check=$GITHUB_RUN_ID-$attempt" -o "/tmp/taxonomy-live/$file"; then
+                ok=0
+              elif ! cmp -s "$file" "/tmp/taxonomy-live/$file"; then
+                ok=0
+              fi
+            done
+            if test "$ok" = 1; then break; fi
+            if test "$attempt" -eq 14; then
+              echo 'FAIL: live assets do not match approved main within verification window' >&2; exit 1
+            fi
+            sleep 5
+          done
+          grep -Fq 'id="editCategory" name="source_category" type="hidden"' /tmp/taxonomy-live/index.html
+          ! grep -Fq '數術分類<select' /tmp/taxonomy-live/index.html
+          grep -Fq "q.type==='choice'&&inferKnowledgeType(q)===kind" /tmp/taxonomy-live/quiz-open-qa.js
+          grep -Fq "editSelect.disabled=!isChoice" /tmp/taxonomy-live/challenge-v10-fivearts.js
+          grep -Fq 'FALLBACK_QUESTIONS = []' /tmp/taxonomy-live/index.html
+          echo 'PASS: live GitHub Pages serves merged taxonomy fix, retains hidden category and no public answer fallback.'
