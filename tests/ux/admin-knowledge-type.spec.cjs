@@ -236,3 +236,30 @@ test('admin first load replaces masked public bank before any edit',async({page}
   await expect(page.locator('#questionSaveStatus')).toHaveAttribute('data-state','success');
   expect(state.store.find(q=>q.id==='mock-choice-a').prompt).toBe('首次登入後修改正常');
 });
+
+for(const requestedType of ['通識','兵陰陽']){
+  test(requestedType+' can be edited, persisted via RPC, filtered and counted',async({page})=>{
+    const state=await prepare(page);
+    for(const id of ['#editKnowledgeType','#bankKnowledgeType','#challengeKnowledgeType']){
+      await expect(page.locator(id).locator('option[value="'+requestedType+'"]')).toHaveCount(1);
+    }
+    await page.locator('#bankList .bank-item[data-question-id="mock-choice-a"] button')
+      .filter({hasText:'修改題目'}).click();
+    await page.locator('#editKnowledgeType').selectOption(requestedType);
+    await page.locator('#saveQuestionBtn').click();
+    await expect.poll(()=>state.writes.length).toBe(1);
+    const change=state.writes[0].change;
+    expect(change.id).toBe('mock-choice-a');
+    expect(change.after.knowledge_type).toBe(requestedType);
+    expect(change.before.knowledge_type).toBe('山');
+    await expect(page.locator('#questionSaveStatus')).toHaveAttribute('data-state','success');
+    await expect.poll(()=>page.evaluate(()=>questionBank.find(q=>q.id==='mock-choice-a')?.knowledge_type)).toBe(requestedType);
+    await page.locator('#bankKnowledgeType').selectOption(requestedType);
+    await expect.poll(()=>ids(page)).toEqual(['mock-choice-a']);
+    await expect(page.getByRole('button',{name:requestedType+'／初階：1題，點擊篩選'})).toBeVisible();
+    await page.locator('#bankKnowledgeType').selectOption('山');
+    await expect.poll(()=>ids(page)).toEqual([]);
+    expect(state.store.find(q=>q.id==='mock-choice-a').knowledge_type).toBe(requestedType);
+    expect(state.remote.every(host=>host==='mock-ux.supabase.co')).toBe(true);
+  });
+}
