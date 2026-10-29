@@ -62,7 +62,7 @@ test('signup Enter submits signup only and shows honest email verification guida
  await expect(page.getByRole('heading',{name:'驗證電子郵件'})).toBeVisible();
  await expect(page.locator('#playerAuthNotice')).toContainText('註冊請求已受理');
  await expect(page.locator('#playerAuthNotice')).toContainText('尚未代表已登入');
- await expect(page.locator('#playerAuthForm')).toContainText('重新寄送驗證信');
+ await expect(page.locator('#playerAuthForm')).toContainText('秒後重寄');
  await expect(page.getByRole('button',{name:/可於 .* 秒後重寄/})).toBeDisabled();
  const signup=requests.filter(r=>r.path==='/auth/v1/signup');
  expect(signup).toHaveLength(1);
@@ -143,4 +143,25 @@ test('mobile signup shows keyboard-friendly controls without horizontal overflow
  expect(box.width).toBeLessThanOrEqual(375);
  await expect(page.getByRole('button',{name:'送出註冊'})).toBeVisible();
  await expect(page.locator('#playerEmail')).toHaveAttribute('inputmode','email');
+});
+
+test('verification resend is delayed, uses fresh captcha and never auto-retries',async({page})=>{
+ await page.clock.install({time:new Date('2026-10-29T12:00:00Z')});
+ const {requests}=await setup(page);
+ await openSignup(page);await fillSignup(page);
+ await page.getByRole('button',{name:'送出註冊'}).click();
+ await expect(page.getByRole('heading',{name:'驗證電子郵件'})).toBeVisible();
+ expect(requests.filter(x=>x.path==='/auth/v1/resend')).toHaveLength(0);
+ await page.clock.fastForward(91000);
+ const resend=page.getByRole('button',{name:'重新寄送驗證信'});
+ await expect(resend).toBeEnabled();
+ await resend.click();
+ await expect(page.locator('#playerAuthNotice')).toContainText('重寄請求已受理');
+ const sent=requests.filter(x=>x.path==='/auth/v1/resend');
+ expect(sent).toHaveLength(1);
+ expect(sent[0].body).toMatchObject({
+   email:'tester@example.test',type:'signup',
+   gotrue_meta_security:{captcha_token:'mock-turnstile-token'}
+ });
+ await expect(page.getByRole('button',{name:/可於 .* 秒後重寄/})).toBeDisabled();
 });
