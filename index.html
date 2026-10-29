@@ -972,6 +972,12 @@ async function saveAuditedChoice(proposed,original){
   const count=original?result?.updated:result?.inserted;
   if(count!==1||result?.audit_logged!==1)throw Error('伺服器未確認更新 1 題及寫入修訂紀錄。');
 }
+// Native form validation otherwise blocks the submit handler with no visible message.
+el('questionForm').addEventListener('invalid',event=>{
+  const node=event.target;
+  const label=node.closest('label')?.textContent?.trim().slice(0,24)||'必填欄位';
+  setQuestionSaveStatus('尚未送出：請檢查「'+label+'」欄位是否完整。','error');
+},true);
 el('questionForm').addEventListener('submit',async event=>{
   event.preventDefault();
   const originalId=editingQuestionId;
@@ -988,7 +994,8 @@ el('questionForm').addEventListener('submit',async event=>{
   if(originalId&&!original){
     setQuestionSaveStatus('找不到原題目，請按「更新統計」重新載入題庫。','error');return;
   }
-  if(originalId&&!window.confirm('確定儲存這道四選一題目的修改？原題號會保留。'))return;
+  // The explicit 「儲存修改」 action is sufficient; avoid a second modal confirmation
+  // that can silently cancel the edit without showing an error.
   let serverAccepted=false;
   try{
     validBank([proposed]);
