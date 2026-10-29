@@ -1,7 +1,7 @@
 /* v22: filter bank by category, clarify manual classification, highlight Wenchang rules. */
 (() => {
   'use strict';
-  const types = new Set(['山','醫','命','卜','相','式占','天文曆法','易學','待分類']);
+  const types = new Set(['山','醫','命','卜','相','式占','兵陰陽','通識','天文曆法','易學','待分類']);
   const $ = id => document.getElementById(id);
   const css = document.createElement('style');
   css.textContent = [
