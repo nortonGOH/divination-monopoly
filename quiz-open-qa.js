@@ -7,7 +7,7 @@
   const $ = id => document.getElementById(id);
   if (!$('quizScope') || !$('bankDialog') || typeof cloudCall !== 'function') return;
   const levels = ['初階','中階','高階'];
-  const fields = 'id,source_question_no,difficulty,category,mansion,prompt,reference_answer,source_title,source_url,review_status';
+  const fields = 'id,source_question_no,difficulty,category,mansion,prompt,source_title,source_url,review_status';
   let openRows = [], source = '尚未載入', currentId = '', currentOpen = null;
   // Read-only snapshot for the administrator's type-by-level inventory panel.
   window.quizGetOpenQuestions=()=>openRows.map(q=>({...q}));
@@ -144,8 +144,8 @@
     const mastered=node('button','', '✓ 已掌握');mastered.type='button';mastered.hidden=true;
     const retry=node('button','', '↻ 待複習');retry.type='button';retry.hidden=true;
     const answer=node('div','open-answer-content');answer.hidden=true;
-    answer.textContent=`來源參考答案（${q.review_status}）\n${q.reference_answer}\n\n來源：${q.source_title||'管理員自訂題目'}${q.source_question_no?' · 第 '+q.source_question_no+' 題':''}`;
-    reveal.addEventListener('click',()=>{reveal.hidden=true;answer.hidden=false;mastered.hidden=false;retry.hidden=false;});
+    answer.textContent='';
+    reveal.addEventListener('click',async()=>{reveal.disabled=true;try{const data=await window.quizRevealOpenAnswer(q.id);answer.textContent='來源參考答案（'+q.review_status+'）\n'+data.reference_answer+'\n\n來源：'+(q.source_title||'管理員自訂題目');reveal.hidden=true;answer.hidden=false;mastered.hidden=false;retry.hidden=false;}catch(e){$('answerFeedback').textContent='請先登入會員才能查看參考答案（鎖定期間不可查看）：'+e.message;}finally{reveal.disabled=false;}});
     const mark=async(yes)=>{
       if(typeof window.challengeRecordOpen==='function'){
         const recorded=await window.challengeRecordOpen(q,yes);
@@ -187,13 +187,11 @@
   async function fetchOpen(){
     try{
       if(!CLOUD_READY)throw new Error('未啟用 Supabase');
-      const data=await cloudCall('/rest/v1/quiz_open_questions?select='+fields+'&order=source_question_no.asc.nullslast,id.asc&limit=3000');
+      const data=await cloudCall(adminAccessToken?'/rest/v1/rpc/quiz_admin_open_question_bank':'/rest/v1/quiz_open_questions?select='+fields+'&order=source_question_no.asc.nullslast,id.asc&limit=3000',adminAccessToken?{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}:{},Boolean(adminAccessToken));
       if(!Array.isArray(data))throw new Error('雲端問答題庫格式無效');
       openRows=data.map(normalize);source='Supabase 開放問答題庫';
     }catch(err){
-      try{const r=await fetch('./qa-source-60.json',{cache:'no-store'});if(!r.ok)throw new Error(String(r.status));
-        const obj=await r.json();openRows=(obj.questions||[]).map(normalize);source='GitHub 來源題（唯讀備援，請先執行 SQL）';
-      }catch(e){openRows=[];source='無法載入問答題庫：'+err.message;}
+      openRows=[];source='無法載入問答題庫：'+err.message;
     }finally{openLoadPending=false;selectQuizForMansion(activeMansion);renderBankList();}
   }
   // 在同一個「數術題庫管理」列表呈現四選一與開放問答。
