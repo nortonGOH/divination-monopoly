@@ -1,0 +1,20 @@
+name: Prevent public quiz answer leaks
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - 'security/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  answer-key-guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check scanner self-tests
+        run: python3 scripts/check_public_answer_artifacts.py --self-test
+      - name: Scan all tracked public files
+        run: python3 scripts/check_public_answer_artifacts.py
