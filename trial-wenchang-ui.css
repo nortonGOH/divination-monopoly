@@ -1,0 +1,14 @@
+.trial-banner{margin:10px 0 13px;padding:10px 13px;border:1px solid #bdd9cb;border-radius:11px;background:#ecf6ef;color:#245447;font-size:.86rem;font-weight:650;line-height:1.7}
+.trial-banner[data-state="locked"]{background:#fff1e4;border-color:#e2bd94;color:#874722}
+.trial-banner[data-state="error"]{background:#fff0ee;border-color:#d8a49f;color:#9b3d35}
+.trial-banner[data-state="member"]{background:#eaf0f7;border-color:#bfcde0;color:#365670}
+.wenchang-visual-card{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:13px;margin:14px 0 16px;padding:15px 17px;background:linear-gradient(112deg,#fdf5dd,#f8f0df 58%,#eef4e9);border:1px solid #cbb57f;border-radius:15px;box-shadow:0 8px 18px #523d2314;color:#3a403e}
+.wenchang-card-symbol{display:grid;place-items:center;width:56px;height:64px;border-radius:12px;color:#fff6da;font-size:2.3rem;text-shadow:0 2px 5px #623d31;background:linear-gradient(165deg,#89643c,#c5a16a 62%,#614b32);box-shadow:inset 0 0 0 2px #f3dfac88,0 3px 9px #51453231}
+.wenchang-card-copy{min-width:0}
+.wenchang-card-kicker{margin:0 0 1px;font-size:.71rem;letter-spacing:.12em;color:#776444;font-weight:700}
+.wenchang-card-copy h4{font-size:1.04rem;margin:0 0 6px;letter-spacing:.03em;color:#594323}
+.wenchang-card-copy p:last-child{font-size:.82rem;line-height:1.7;margin:0;color:#5d6258}
+.wenchang-card-action{font:inherit;font-size:.82rem;border:1px solid #756540;border-radius:9px;padding:10px 13px;min-height:44px;background:#fff9e9;color:#4b4128;cursor:pointer;font-weight:700}
+.wenchang-card-action:focus-visible{outline:3px solid #92662f;outline-offset:3px}
+.wenchang-card-action:disabled{opacity:.65;cursor:wait}
+@media(max-width:630px){.wenchang-visual-card{grid-template-columns:52px minmax(0,1fr);gap:11px;padding:13px}.wenchang-card-symbol{height:59px;width:50px;font-size:2rem}.wenchang-card-action{grid-column:1/-1;width:100%}}
