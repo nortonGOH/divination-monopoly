@@ -28,7 +28,7 @@ test('filter, search and direct mansion selection work together',async({page})=>
   await page.locator('#mansionList button').click();
   await expect(page.locator('#detailTitle')).toHaveText('井宿');
   await expect(page.locator('#detailOfficer')).toHaveText('東井');
-  await expect(page).toHaveURL(/m=井/);
+  await expect.poll(()=>new URL(page.url()).searchParams.get('m')).toBe('井');
   await page.locator('#mansionSearch').fill('無此星宿');
   await expect(page.locator('#searchEmpty')).toBeVisible();
   await expect(page.locator('#mansionList button')).toHaveCount(0);
