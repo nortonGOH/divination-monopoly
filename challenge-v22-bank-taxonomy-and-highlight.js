@@ -38,7 +38,7 @@
     if(!$('quizClassificationNote')){
       const note=document.createElement('small');
       note.id='quizClassificationNote';
-      note.textContent='題目 ID 保持不變，以保留既有作答紀錄；數術類型與題材分類可由管理員分別調整。儲存成功後，題目將移至新分類，統計表同步更新。';
+      note.textContent='題目 ID 保持不變，以保留既有作答紀錄；管理區統一以「數術類型」進行歸類；既有題材分類資料保留供舊版相容，不在此介面另行修改。儲存成功後，題目將移至新分類，統計表同步更新。';
       picker.insertAdjacentElement('afterend',note);
     }
   }
