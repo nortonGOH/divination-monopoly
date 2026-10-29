@@ -4,7 +4,7 @@
 const dialog=document.getElementById('bankDialog');
 const toolbar=dialog?.querySelector('.bank-toolbar');
 if(!dialog||!toolbar||typeof renderBankList!=='function')return;
-const types=['山','醫','命','卜','相','式占','天文曆法','易學','待分類'];
+const types=['山','醫','命','卜','相','式占','兵陰陽','通識','天文曆法','易學','待分類'];
 const levels=['初階','中階','高階'];
 const styles=document.createElement('style');
 styles.textContent=`
