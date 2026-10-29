@@ -67,7 +67,7 @@ if grep -E ' (qa-source-60\.json|seed\.sql|questions\.json|new-choice-70\.json|c
 fi
 while IFS="$(printf '\t')" read -r ref key original_tree; do
   test "$(git -C "$MIRROR" rev-parse "$ref^{tree}")" = "$original_tree"
-  grep -Fq 'FALLBACK_QUESTIONS=[]' "$WORK/saved/$key.index.html" || {
+  grep -Eq 'FALLBACK_QUESTIONS[[:space:]]*=[[:space:]]*\[[[:space:]]*\]' "$WORK/saved/$key.index.html" || {
     echo "STOP: unexpected fallback bank in $ref" >&2; exit 1;
   }
   grep -Fq 'RETIRED SECURITY-SENSITIVE BOOTSTRAP SCRIPT' "$WORK/saved/$key.setup.sql" || {
