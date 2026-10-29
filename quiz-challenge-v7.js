@@ -172,7 +172,7 @@ const intro=node('p','請使用自己的電子郵件註冊。同一帳號累計�
 const form=node('form');form.id='playerAuthForm';
 const elabel=node('label','電子郵件'),email=node('input');email.type='email';email.required=true;email.autocomplete='email';email.inputMode='email';email.maxLength=254;email.id='playerEmail';elabel.append(email);
 const nicknameLabel=node('label','暱稱（2–18字，可使用中英文、數字、底線、連字號）'),nickname=node('input');nickname.type='text';nickname.id='playerNickname';nickname.maxLength=18;nickname.autocomplete='nickname';nicknameLabel.append(nickname);
-const privacyLabel=node('label','公開排行設定'),privacyCheck=node('input');privacyCheck.type='checkbox';privacyCheck.checked=false;privacyLabel.append(privacyCheck,document.createTextNode(' 我同意公開暱稱與答題成績（可隨時取消）'));
+const leaderboardNote=node('p','所有註冊會員自動參與前五名挑戰者排行榜；僅公開暱稱及成績，不公開電子郵件。','auth-hint');
 const plabel=node('label','密碼'),password=node('input');password.type='password';password.required=true;password.autocomplete='current-password';password.id='playerPassword';plabel.append(password);
 const passwordTip=node('p','登入請輸入原密碼；註冊建議使用至少 12 個字元的獨立密碼。','auth-hint');
 const showPassword=node('button','顯示密碼');showPassword.type='button';
@@ -189,41 +189,55 @@ let verificationEmail='', resendAvailableAt=0, resendTimer=null;
 const buttons=node('div','','account-actions');
 const loginBtn=node('button','登入','player-main');loginBtn.type='submit';
 const registerBtn=node('button','建立新帳號');registerBtn.type='button';
-const saveProfileBtn=node('button','儲存暱稱與排行設定');saveProfileBtn.type='button';saveProfileBtn.hidden=true;
+const saveProfileBtn=node('button','儲存暱稱');saveProfileBtn.type='button';saveProfileBtn.hidden=true;
 const backBtn=node('button','返回登入');backBtn.type='button';backBtn.hidden=true;
+const forgotBtn=node('button','忘記密碼？');forgotBtn.type='button';
 const closeBtn=node('button','關閉');closeBtn.type='button';
-buttons.append(loginBtn,registerBtn,saveProfileBtn,backBtn,closeBtn);
-form.append(elabel,plabel,passwordTip,showPassword,confirmLabel,nicknameLabel,privacyLabel,buttons,verification);
+buttons.append(loginBtn,registerBtn,forgotBtn,saveProfileBtn,backBtn,closeBtn);
+form.append(elabel,plabel,passwordTip,showPassword,confirmLabel,nicknameLabel,leaderboardNote,buttons,verification);
 const notice=node('p','密碼僅傳送至 Supabase Auth；網站原始碼不儲存密碼。');notice.setAttribute('role','status');notice.id='playerAuthNotice';notice.setAttribute('aria-live','polite');
 dialog.append(heading,intro,form,notice);document.body.append(dialog);
 const showDlg=()=>{if(!dialog.open)dialog.showModal();};
 let dialogMode='login';
+let recoveryAccessToken=null;
+let recoveryEmailAvailableAt=0;
+const recoveryHash=new URLSearchParams(window.location.hash.startsWith('#')?window.location.hash.slice(1):'');
+const isRecoveryLink=recoveryHash.get('type')==='recovery';
+const recoveryError=recoveryHash.get('error')||recoveryHash.get('error_code');
+if(isRecoveryLink||recoveryError){
+  recoveryAccessToken=isRecoveryLink?recoveryHash.get('access_token'):null;
+  // Credentials and one-time recovery tokens must never linger in the address bar.
+  window.history.replaceState(null,'',window.location.pathname+window.location.search);
+}
 function setDialogMode(mode,preserveNotice=false){
   dialogMode=mode;
   const editing=mode==='profile',signup=mode==='signup',verify=mode==='verify';
-  elabel.hidden=editing||verify;plabel.hidden=editing||verify;
-  passwordTip.hidden=editing||verify;showPassword.hidden=editing||verify;
-  confirmLabel.hidden=!signup;nicknameLabel.hidden=!(editing||signup);
-  privacyLabel.hidden=!(editing||signup);
+  const recover=mode==='recover',reset=mode==='reset';
+  elabel.hidden=editing||verify||reset;plabel.hidden=editing||verify||recover;
+  passwordTip.hidden=editing||verify||recover;showPassword.hidden=editing||verify||recover;
+  confirmLabel.hidden=!(signup||reset);nicknameLabel.hidden=!(editing||signup);
+  leaderboardNote.hidden=!(editing||signup);
   buttons.hidden=verify;
-  loginBtn.hidden=editing||verify;loginBtn.textContent=signup?'送出註冊':'登入';
-  registerBtn.hidden=mode!=='login';
-  saveProfileBtn.hidden=!editing;backBtn.hidden=!signup;
+  loginBtn.hidden=editing||verify;loginBtn.textContent=signup?'送出註冊':recover?'寄送密碼重設信':reset?'儲存新密碼':'登入';
+  registerBtn.hidden=mode!=='login';forgotBtn.hidden=mode!=='login';
+  saveProfileBtn.hidden=!editing;backBtn.hidden=!(signup||recover||reset);
   verification.hidden=!verify;
-  email.required=!(editing||verify);password.required=!(editing||verify);
-  nickname.required=signup;confirmPassword.required=signup;
-  password.minLength=signup?10:0;
-  password.autocomplete=signup?'new-password':'current-password';
-  plabel.firstChild.textContent=signup?'設定密碼（至少 10 個字元）':'密碼';
-  if(!signup){confirmPassword.setCustomValidity('');confirmPassword.value='';}
-  heading.textContent=verify?'驗證電子郵件':editing?'暱稱與排行榜公開設定':signup?'建立數術挑戰帳號':'數術知識挑戰・帳號登入';
+  email.required=!(editing||verify||reset);password.required=!(editing||verify||recover);
+  nickname.required=signup;confirmPassword.required=signup||reset;
+  password.minLength=signup||reset?10:0;
+  password.autocomplete=signup||reset?'new-password':'current-password';
+  plabel.firstChild.textContent=signup||reset?'設定新密碼（至少 10 個字元）':'密碼';
+  if(!signup&&!reset){confirmPassword.setCustomValidity('');confirmPassword.value='';}
+  heading.textContent=verify?'驗證電子郵件':editing?'修改暱稱':signup?'建立數術挑戰帳號':recover?'忘記密碼・寄送重設信':reset?'設定新密碼':'數術知識挑戰・帳號登入';
   if(verify){
     verificationInfo.textContent='若此信箱符合註冊條件，系統會將驗證信寄至 '+verificationEmail+'。請查看收件匣及垃圾郵件，點擊驗證連結後回來登入。收到信件與否仍取決於寄信服務額度。';
     updateResendButton();
   }
   if(!preserveNotice)notice.textContent=verify?'驗證信尚未確認送達；請先檢查信箱。':editing?'設定一次即可保存，下次登入會自動讀取。':
-    signup?'三步完成：填寫電子郵件、設定密碼與暱稱、檢查驗證信。公開排行榜為自願選項。':
-    '登入不需要重填暱稱；系統會自動載入已儲存的設定。';
+    signup?'請填寫電子郵件、密碼與暱稱。所有會員自動參與前五名排行榜。':
+    recover?'輸入已註冊的電子郵件；若帳號存在，系統會寄送重設連結。請檢查收件匣及垃圾郵件。':
+    reset?'請輸入至少 10 字元的新密碼，並再次確認。重設完成後須重新登入。':
+    '登入不需要重填暱稱；忘記密碼可使用郵件重設。';
 }
 function updateResendButton(){
   const remaining=Math.max(0,Math.ceil((resendAvailableAt-Date.now())/1000));
@@ -268,11 +282,11 @@ async function loadNickname(){
   const p=await endpoint('/rest/v1/rpc/quiz_my_profile','POST',{});
   playerNickname=typeof p.nickname==='string'?p.nickname.trim():'';
   nickname.value=playerNickname;
-  privacyCheck.checked=!!p.leaderboard_opt_in;
+  // The legacy opt-in flag no longer governs the mandatory public leaderboard.
   drawState();
   return Boolean(playerNickname);
 }
-async function updateNickname(){const name=nickname.value.trim();if(!validNick(name))throw Error('暱稱需為2–18字，限中英文、數字、底線或連字號。');const p=await endpoint('/rest/v1/rpc/quiz_set_player_profile','POST',{p_nickname:name,p_leaderboard_opt_in:privacyCheck.checked});playerNickname=p.nickname;drawState();window.dispatchEvent(new Event('quiz-leaderboard-refresh'));}
+async function updateNickname(){const name=nickname.value.trim();if(!validNick(name))throw Error('暱稱需為2–18字，限中英文、數字、底線或連字號。');const p=await endpoint('/rest/v1/rpc/quiz_set_player_profile','POST',{p_nickname:name,p_leaderboard_opt_in:true});playerNickname=p.nickname;drawState();window.dispatchEvent(new Event('quiz-leaderboard-refresh'));}
 const tokenHeaders=()=>({'apikey':key,'Content-Type':'application/json',...(playerToken?{'Authorization':'Bearer '+playerToken}:{})});
 window.quizRevealOpenAnswer=(questionId)=>endpoint('/rest/v1/rpc/quiz_reveal_open_answer','POST',{p_question_id:questionId});
 async function endpoint(path,method='GET',obj=null){
@@ -372,7 +386,7 @@ form.addEventListener('submit',async e=>{
    if(signup){
      const result=await endpoint('/auth/v1/signup?redirect_to='+encodeURIComponent(EMAIL_CONFIRM_REDIRECT),
        'POST',{email:address,password:password.value,
-         data:{nickname:nickname.value.trim(),leaderboard_opt_in:privacyCheck.checked},
+         data:{nickname:nickname.value.trim()},
          gotrue_meta_security:{captcha_token:captcha}});
      password.value='';confirmPassword.value='';
      if(result?.access_token){
@@ -437,7 +451,7 @@ saveProfileBtn.addEventListener('click',async()=>{
   if(busy)return;busy=true;saveProfileBtn.disabled=true;
   try{
     await updateNickname();
-    showError('暱稱與排行榜公開設定已儲存。');
+    showError('暱稱已儲存，所有會員自動參與排行榜。');
     dialog.close();setDialogMode('login');
     selectQuizForMansion(activeMansion);
   }catch(e){showError('儲存失敗：'+(/Nickname already taken|unique|duplicate/i.test(e.message)?'此暱稱已有人使用，請改用其他暱稱。':e.message));}
@@ -445,7 +459,7 @@ saveProfileBtn.addEventListener('click',async()=>{
 });
 logoutBtn.addEventListener('click',async()=>{
  const old=playerToken;playerToken=null;playerEmail='';playerNickname='';playerState=null;completedIds=new Set();window.quizCompletedIds=completedIds;
- nickname.value='';privacyCheck.checked=false;setDialogMode('login');closeWenchang();drawState();void refreshTrial();
+ nickname.value='';setDialogMode('login');closeWenchang();drawState();void refreshTrial();
  if(old)try{await fetch(base+'/auth/v1/logout',{method:'POST',headers:{'apikey':key,'Authorization':'Bearer '+old}});}catch(e){}
 });
 // The old site had local-only scoring. Intercept it, validate and count on the server first.
