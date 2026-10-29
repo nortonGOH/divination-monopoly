@@ -158,6 +158,7 @@ async function loadNickname(){
 }
 async function updateNickname(){const name=nickname.value.trim();if(!validNick(name))throw Error('暱稱需為2–18字，限中英文、數字、底線或連字號。');const p=await endpoint('/rest/v1/rpc/quiz_set_player_profile','POST',{p_nickname:name,p_leaderboard_opt_in:privacyCheck.checked});playerNickname=p.nickname;drawState();window.dispatchEvent(new Event('quiz-leaderboard-refresh'));}
 const tokenHeaders=()=>({'apikey':key,'Content-Type':'application/json',...(playerToken?{'Authorization':'Bearer '+playerToken}:{})});
+window.quizRevealOpenAnswer=(questionId)=>endpoint('/rest/v1/rpc/quiz_reveal_open_answer','POST',{p_question_id:questionId});
 async function endpoint(path,method='GET',obj=null){
  if(!loginReady)throw Error('請先在 config.js 設定 Supabase URL 與 Publishable Key。');
  const r=await fetch(base+path,{method,headers:tokenHeaders(),body:obj==null?undefined:JSON.stringify(obj),cache:'no-store'});
