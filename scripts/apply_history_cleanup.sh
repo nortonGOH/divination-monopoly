@@ -4,7 +4,7 @@ set -euo pipefail
 REPO_URL="https://github.com/nortonGOH/divination-monopoly.git"
 EXPECTED_MAIN="f4f686f7709e31877dc072e38ded471bfb114902"
 WORK="$GITHUB_WORKSPACE/.history-preflight-output"
-bash scripts/preflight_history_cleanup.sh
+# Preflight ran in the previous workflow step; reuse its verified mirror.
 MIRROR="$WORK/mirror.git"
 test -s "$WORK/backup/full-history.bundle.cms"
 test -s "$WORK/report/preserved-branches.txt"
