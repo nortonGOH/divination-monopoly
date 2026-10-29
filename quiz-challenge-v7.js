@@ -38,6 +38,13 @@ style.textContent=`
   .player-dialog [hidden]{display:none!important}
   .player-dialog label:has(input[type=checkbox]){display:flex;align-items:center;gap:10px;font-weight:500}
   .player-dialog label:has(input[type=checkbox]) input{width:auto;flex:0 0 auto}
+  .player-dialog .account-actions>button{min-height:44px;flex:1 1 120px}
+  .player-dialog .auth-hint{font-size:.82rem;color:#566d68;margin:4px 0 6px}
+  .player-dialog .auth-pending{color:#275f54;font-weight:600}
+  .player-dialog .auth-verification{border:1px solid #d4c398;background:#fff8e9;border-radius:10px;padding:12px;margin:8px 0}
+  .player-dialog .auth-verification p{margin:4px 0 10px}
+  .player-dialog input:focus-visible,.player-dialog button:focus-visible{outline:3px solid #b88d43;outline-offset:2px}
+  .player-dialog #playerAuthNotice{min-height:1.5em;overflow-wrap:anywhere}
 `;
 document.head.append(style);
 const strip=node('div','','player-strip');
@@ -120,36 +127,97 @@ const dialog=node('dialog','','player-dialog');
 const heading=node('h2','數術知識挑戰・帳號登入');
 const intro=node('p','請使用自己的電子郵件註冊。同一帳號累計答錯五次，將暫停挑戰三十分鐘；期滿歸零。\n\n✦ 文昌星救援：答錯時，可自行選擇是否使用 1 次救援，查看正確答案與解析。每位會員起始有 3 次救援機會，每兩小時補充 3 次，最多累積 10 次。救援不會抵銷答錯次數，也不會提前解除挑戰鎖定。');
 const form=node('form');form.id='playerAuthForm';
-const elabel=node('label','電子郵件'),email=node('input');email.type='email';email.required=true;email.autocomplete='username';elabel.append(email);
+const elabel=node('label','電子郵件'),email=node('input');email.type='email';email.required=true;email.autocomplete='email';email.inputMode='email';email.maxLength=254;email.id='playerEmail';elabel.append(email);
 const nicknameLabel=node('label','暱稱（2–18字，可使用中英文、數字、底線、連字號）'),nickname=node('input');nickname.type='text';nickname.id='playerNickname';nickname.maxLength=18;nickname.autocomplete='nickname';nicknameLabel.append(nickname);
 const privacyLabel=node('label','公開排行設定'),privacyCheck=node('input');privacyCheck.type='checkbox';privacyCheck.checked=false;privacyLabel.append(privacyCheck,document.createTextNode(' 我同意公開暱稱與答題成績（可隨時取消）'));
-const plabel=node('label','密碼（至少 8 個字元）'),password=node('input');password.type='password';password.minLength=8;password.required=true;password.autocomplete='current-password';plabel.append(password);
+const plabel=node('label','密碼'),password=node('input');password.type='password';password.required=true;password.autocomplete='current-password';password.id='playerPassword';plabel.append(password);
+const passwordTip=node('p','登入請輸入原密碼；註冊建議使用至少 12 個字元的獨立密碼。','auth-hint');
+const showPassword=node('button','顯示密碼');showPassword.type='button';
+showPassword.setAttribute('aria-controls','playerPassword');
+showPassword.setAttribute('aria-pressed','false');
+const confirmLabel=node('label','再輸入一次密碼'),confirmPassword=node('input');confirmPassword.id='playerConfirmPassword';confirmPassword.type='password';confirmPassword.autocomplete='new-password';confirmPassword.minLength=10;confirmLabel.append(confirmPassword);
+const verification=node('div','','auth-verification');verification.hidden=true;
+const verificationInfo=node('p','');
+const verificationActions=node('div','','account-actions');
+const resendBtn=node('button','重新寄送驗證信');resendBtn.type='button';
+const verifiedLoginBtn=node('button','已完成驗證，前往登入','player-main');verifiedLoginBtn.type='button';
+verificationActions.append(resendBtn,verifiedLoginBtn);verification.append(verificationInfo,verificationActions);
+let verificationEmail='', resendAvailableAt=0, resendTimer=null;
 const buttons=node('div','','account-actions');
 const loginBtn=node('button','登入','player-main');loginBtn.type='submit';
 const registerBtn=node('button','建立新帳號');registerBtn.type='button';
 const saveProfileBtn=node('button','儲存暱稱與排行設定');saveProfileBtn.type='button';saveProfileBtn.hidden=true;
 const backBtn=node('button','返回登入');backBtn.type='button';backBtn.hidden=true;
 const closeBtn=node('button','關閉');closeBtn.type='button';
-buttons.append(loginBtn,registerBtn,saveProfileBtn,backBtn,closeBtn);form.append(elabel,plabel,nicknameLabel,privacyLabel,buttons);
-const notice=node('p','密碼僅傳送至 Supabase Auth；網站原始碼不儲存密碼。');notice.setAttribute('role','status');
+buttons.append(loginBtn,registerBtn,saveProfileBtn,backBtn,closeBtn);
+form.append(elabel,plabel,passwordTip,showPassword,confirmLabel,nicknameLabel,privacyLabel,buttons,verification);
+const notice=node('p','密碼僅傳送至 Supabase Auth；網站原始碼不儲存密碼。');notice.setAttribute('role','status');notice.id='playerAuthNotice';notice.setAttribute('aria-live','polite');
 dialog.append(heading,intro,form,notice);document.body.append(dialog);
 const showDlg=()=>{if(!dialog.open)dialog.showModal();};
 let dialogMode='login';
 function setDialogMode(mode,preserveNotice=false){
   dialogMode=mode;
-  const editing=mode==='profile',signup=mode==='signup';
-  elabel.hidden=editing;plabel.hidden=editing;
-  nicknameLabel.hidden=!(editing||signup);
+  const editing=mode==='profile',signup=mode==='signup',verify=mode==='verify';
+  elabel.hidden=editing||verify;plabel.hidden=editing||verify;
+  passwordTip.hidden=editing||verify;showPassword.hidden=editing||verify;
+  confirmLabel.hidden=!signup;nicknameLabel.hidden=!(editing||signup);
   privacyLabel.hidden=!(editing||signup);
-  loginBtn.hidden=mode!=='login';registerBtn.hidden=editing;
-  registerBtn.textContent=signup?'確認建立新帳號':'建立新帳號';
+  buttons.hidden=verify;
+  loginBtn.hidden=editing||verify;loginBtn.textContent=signup?'送出註冊':'登入';
+  registerBtn.hidden=mode!=='login';
   saveProfileBtn.hidden=!editing;backBtn.hidden=!signup;
-  email.required=!editing;password.required=!editing;
-  heading.textContent=editing?'暱稱與排行榜公開設定':signup?'建立數術挑戰帳號':'數術知識挑戰・帳號登入';
-  if(!preserveNotice)notice.textContent=editing?'設定一次即可保存，下次登入會自動讀取。':
-    signup?'請填寫電子郵件、密碼與暱稱；公開排行榜為自願選項。':
+  verification.hidden=!verify;
+  email.required=!(editing||verify);password.required=!(editing||verify);
+  nickname.required=signup;confirmPassword.required=signup;
+  password.minLength=signup?10:0;
+  password.autocomplete=signup?'new-password':'current-password';
+  plabel.firstChild.textContent=signup?'設定密碼（至少 10 個字元）':'密碼';
+  if(!signup){confirmPassword.setCustomValidity('');confirmPassword.value='';}
+  heading.textContent=verify?'驗證電子郵件':editing?'暱稱與排行榜公開設定':signup?'建立數術挑戰帳號':'數術知識挑戰・帳號登入';
+  if(verify){
+    verificationInfo.textContent='若此信箱符合註冊條件，系統會將驗證信寄至 '+verificationEmail+'。請查看收件匣及垃圾郵件，點擊驗證連結後回來登入。收到信件與否仍取決於寄信服務額度。';
+    updateResendButton();
+  }
+  if(!preserveNotice)notice.textContent=verify?'驗證信尚未確認送達；請先檢查信箱。':editing?'設定一次即可保存，下次登入會自動讀取。':
+    signup?'三步完成：填寫電子郵件、設定密碼與暱稱、檢查驗證信。公開排行榜為自願選項。':
     '登入不需要重填暱稱；系統會自動載入已儲存的設定。';
 }
+function updateResendButton(){
+  const remaining=Math.max(0,Math.ceil((resendAvailableAt-Date.now())/1000));
+  resendBtn.disabled=busy||remaining>0;
+  resendBtn.textContent=remaining>0?'可於 '+remaining+' 秒後重寄':'重新寄送驗證信';
+  if(!remaining&&resendTimer){clearInterval(resendTimer);resendTimer=null;}
+}
+function pauseResend(){
+  resendAvailableAt=Date.now()+90*1000;
+  if(resendTimer)clearInterval(resendTimer);
+  resendTimer=setInterval(updateResendButton,1000);
+  updateResendButton();
+}
+function normalAuthError(err,operation){
+  const message=String(err?.message||err);
+  if(err?.status===429||/rate limit|too many requests|over_email_send_rate_limit/i.test(message))
+    return '認證郵件或請求已達 Supabase 限額，請稍後再試；若管理員尚未完成 SMTP 設定，須先設定寄信服務。請勿連續重送。';
+  if(/email not confirmed|email_not_confirmed/i.test(message))
+    return '這個信箱尚未完成驗證，請先點擊驗證信中的連結，再回來登入。';
+  if(/invalid login credentials|invalid_credentials/i.test(message))
+    return '帳號或密碼不正確；若尚未驗證電子郵件，請先完成驗證。';
+  if(/already registered|user_already_exists/i.test(message))
+    return '若已註冊此信箱，請返回登入；請勿重複建立帳號。';
+  return operation+'失敗：'+message;
+}
+showPassword.addEventListener('click',()=>{
+  const visible=password.type==='password';
+  password.type=visible?'text':'password';
+  showPassword.textContent=visible?'隱藏密碼':'顯示密碼';
+  showPassword.setAttribute('aria-pressed',String(visible));
+});
+confirmPassword.addEventListener('input',()=>confirmPassword.setCustomValidity(''));
+form.addEventListener('invalid',e=>{
+  if(e.target===confirmPassword&&confirmPassword.validity.customError)
+    showError('兩次輸入的密碼不同，請重新確認。');
+  else showError('請檢查必填欄位及輸入格式：'+(e.target.closest('label')?.firstChild?.textContent||'表單')+'。');
+},true);
 const validNick=value=>/^[\p{L}\p{N}_-]{2,18}$/u.test(String(value||'').trim());
 async function loadNickname(){
   if(!playerToken)return false;
