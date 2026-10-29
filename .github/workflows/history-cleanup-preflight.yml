@@ -1,0 +1,45 @@
+name: Encrypted Git history backup and rewrite preflight
+on:
+  push:
+    branches:
+      - security/history-rewrite-preflight-20261029
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  non-destructive-history-preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install git-filter-repo pinned version
+        run: |
+          python3 -m venv "$RUNNER_TEMP/filter-venv"
+          "$RUNNER_TEMP/filter-venv/bin/pip" install --disable-pip-version-check 'git-filter-repo==2.47.0'
+          echo "$RUNNER_TEMP/filter-venv/bin" >> "$GITHUB_PATH"
+      - name: Backup and local-only history rewrite verification
+        run: bash scripts/preflight_history_cleanup.sh
+      - name: Store encrypted full Git history backup
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: encrypted-git-history-backup
+          path: |
+            .history-preflight-output/backup/*.cms
+            .history-preflight-output/backup/*.sha256
+          if-no-files-found: error
+          retention-days: 30
+      - name: Store non-sensitive rewrite report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: history-preflight-report
+          path: |
+            .history-preflight-output/report/original-refs.txt
+            .history-preflight-output/report/branches.txt
+            .history-preflight-output/report/bundle-verify.txt
+            .history-preflight-output/report/filter-repo-log.txt
+            .history-preflight-output/report/preserved-branches.txt
+            .history-preflight-output/report/still-leaking-paths.txt
+          if-no-files-found: ignore
+          retention-days: 30
