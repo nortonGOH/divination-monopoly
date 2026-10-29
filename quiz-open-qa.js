@@ -282,5 +282,6 @@
     const u=URL.createObjectURL(blob),a=node('a');a.href=u;a.download='open-questions-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1500);
   });
   $('exportBankBtn').after(exportOpen);
+  window.quizRefreshOpenBank=fetchOpen;
   clearEditor();fetchOpen();
 })();
