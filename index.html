@@ -874,11 +874,25 @@ function buildMansionChoices(){
   }
 }
 buildMansionChoices();
-function openBank(){
+async function openBank(){
   if(!adminAccessToken){openLogin();return;}
-  if(typeof dialog.showModal==='function')dialog.showModal();else dialog.setAttribute('open','');
-  refreshBankInterface();
-  window.quizRefreshOpenBank?.();
+  if(typeof dialog.showModal==='function'){if(!dialog.open)dialog.showModal();}else dialog.setAttribute('open','');
+  const list=el('bankList');
+  list.replaceChildren();
+  const loading=document.createElement('p');
+  loading.textContent='正在載入管理員完整題庫，請稍候再修改題目。';
+  list.append(loading);
+  el('saveQuestionBtn').disabled=true;
+  try{
+    await persistBank();
+    await window.quizRefreshOpenBank?.();
+    el('saveQuestionBtn').disabled=false;
+    renderBankList();
+  }catch(error){
+    el('bankSourceInfo').textContent='完整題庫載入失敗：'+error.message;
+    list.replaceChildren();
+    const notice=document.createElement('p');notice.textContent='管理員題庫尚未載入，請關閉後重試。';list.append(notice);
+  }
 }
 function closeBank(){if(typeof dialog.close==='function')dialog.close();else dialog.removeAttribute('open');}
 el('manageBankBtn').addEventListener('click',openBank);

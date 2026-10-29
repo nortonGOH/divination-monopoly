@@ -57,12 +57,18 @@ async function prepare(page,{open=[],rpcMode='normal'}={}){
   });
   await page.goto('/');
   await expect.poll(()=>page.evaluate(()=>questionSource)).toContain('Supabase');
-  await page.evaluate(data=>{
-    adminAccessToken='mock-only-admin-token';
-    questionBank=data;
+  const initialSnapshot=await page.evaluate(async data=>{
+    // Reproduce the real public RPC: answers are masked to 0 and explanations blank.
+    questionBank=data.map(q=>({...q,answer:0,explanation:''}));
+    const wasMasked=questionBank[0].answer===0 && questionBank[0].explanation==='';
     refreshBankInterface();
-    openBank();
+    adminAccessToken='mock-only-admin-token';
+    await openBank();
+    return wasMasked;
   },store);
+  expect(initialSnapshot).toBe(true);
+  await expect.poll(()=>page.evaluate(()=>questionBank[0]?.answer)).toBe(1);
+  await expect.poll(()=>page.evaluate(()=>questionBank[0]?.explanation)).toBe('隔離測試解析');
   await page.evaluate(()=>window.quizRefreshOpenBank());
   await expect(page.locator('#bankDialog')).toBeVisible();
   await expect(page.locator('#bankList .bank-item')).toHaveCount(store.length+open.length);
@@ -215,4 +221,18 @@ test('browser validation reports required fields instead of a silent no-op',asyn
   await expect(page.locator('#questionSaveStatus')).toHaveAttribute('data-state','error');
   await expect(page.locator('#questionSaveStatus')).toContainText('尚未送出');
   expect(state.writes).toHaveLength(0);
+});
+
+test('admin first load replaces masked public bank before any edit',async({page})=>{
+  const state=await prepare(page);
+  const adminReads=state.calls.filter(c=>c.path.endsWith('/rpc/quiz_admin_question_bank'));
+  expect(adminReads.length).toBeGreaterThan(0);
+  await page.locator('#bankList .bank-item[data-question-id="mock-choice-a"] button').filter({hasText:'修改題目'}).click();
+  await expect(page.locator('#editAnswer')).toHaveValue('1');
+  await expect(page.locator('#editExplanation')).toHaveValue('隔離測試解析');
+  await page.locator('#editPrompt').fill('首次登入後修改正常');
+  await page.locator('#saveQuestionBtn').click();
+  await expect.poll(()=>state.writes.length).toBe(1);
+  await expect(page.locator('#questionSaveStatus')).toHaveAttribute('data-state','success');
+  expect(state.store.find(q=>q.id==='mock-choice-a').prompt).toBe('首次登入後修改正常');
 });
