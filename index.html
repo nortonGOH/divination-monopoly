@@ -684,7 +684,7 @@ async function loadHostedBank(){
     try{
       const data=await fetchCloudBank();
       if(data.length)return {data,source:'Supabase 共享題庫（RLS）'};
-      return {data:[],source:'Supabase 題庫尚無資料；請先執行 seed.sql'};
+      return {data:[],source:'Supabase 題庫尚無資料；請由管理員匯入題目'};
     }catch(error){
       console.warn('公開題庫載入失敗',error);
       return {data:[],source:'雲端題庫無法連線：'+error.message};
@@ -1013,16 +1013,8 @@ el('bankFileInput').addEventListener('change',async event=>{
   }catch(error){displayBankToast(`匯入失敗：${error.message}`);}
   finally{event.target.value='';}
 });
-el('resetBankBtn').addEventListener('click',async()=>{
-  throw new Error('公開題庫備份已停用，請使用校正版安全匯入');
-  try{
-    const response=await fetch('./questions.json',{cache:'no-store'});
-    if(!response.ok)throw new Error('無法下載預設 questions.json');
-    const defaults=validBank(await response.json());
-    await replaceCloud(defaults);await persistBank();clearEditor();
-    displayBankToast(`已將 ${defaults.length} 題發佈成共享題庫。`);
-  }catch(error){displayBankToast('恢復失敗：'+error.message);}
-});
+el('resetBankBtn').addEventListener('click',()=>displayBankToast('公開預設題庫已移除，請使用校正版安全匯入。'));
+
 clearEditor();
 initializeBank();
 
