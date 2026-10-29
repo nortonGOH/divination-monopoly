@@ -1,0 +1,38 @@
+name: Verify live history-reader retirement
+on:
+  push:
+    branches:
+      - verify/live-history-removal-20261029
+permissions:
+  contents: read
+jobs:
+  verify-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate deployed homepage and quiz shortcut
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://nortongoh.github.io/divination-monopoly'
+          mkdir -p /tmp/site
+          curl --fail --silent --show-error --location --retry 8 --retry-delay 3 --retry-all-errors --max-time 25 "$base/?check=$GITHUB_RUN_ID" -o /tmp/site/index.html
+          curl --fail --silent --show-error --location --retry 8 --retry-delay 3 --retry-all-errors --max-time 25 "$base/challenge-v9-library-bank.js?check=$GITHUB_RUN_ID" -o /tmp/site/challenge-v9-library-bank.js
+          curl --fail --silent --show-error --location --retry 8 --retry-delay 3 --retry-all-errors --max-time 25 "$base/site-ux.css?check=$GITHUB_RUN_ID" -o /tmp/site/site-ux.css
+          cmp -s index.html /tmp/site/index.html
+          cmp -s challenge-v9-library-bank.js /tmp/site/challenge-v9-library-bank.js
+          cmp -s site-ux.css /tmp/site/site-ux.css
+          grep -Fq 'id="quizTitle"' /tmp/site/index.html
+          grep -Fq 'id="manageBankBtn"' /tmp/site/index.html
+          grep -Fq "trigger.textContent='管理題庫'" /tmp/site/challenge-v9-library-bank.js
+          grep -Fq 'FALLBACK_QUESTIONS = []' /tmp/site/index.html
+          if grep -Eq 'id="libraryDialog"|class="history-panel"|id="historyNextBtn"|history-supabase-reader.js|>史料閱覽</a>' /tmp/site/index.html; then
+            echo 'FAIL: historical-reader UI still referenced in deployed HTML' >&2; exit 1
+          fi
+          status="$(curl -s -L -o /dev/null -w '%{http_code}' "$base/history-supabase-reader.js?check=$GITHUB_RUN_ID")"
+          echo "Retired standalone script HTTP status: $status"
+          if test "$status" = 200; then
+            echo 'FAIL: retired historical reader script remains publicly served' >&2; exit 1
+          fi
+          echo 'PASS: live homepage no history UI, quiz management retained, retired reader absent.'
