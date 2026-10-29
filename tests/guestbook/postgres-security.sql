@@ -19,11 +19,11 @@ END $$;
 
 SET ROLE authenticated;
 SET request.jwt.claim.sub='00000000-0000-0000-0000-000000000001';
-SELECT public.quiz_guestbook_save('會員甲心得',NULL) AS created_a;
+SELECT set_config('test.guestbook.a_id',(public.quiz_guestbook_save('會員甲心得',NULL)->>'id'),false) AS created_a;
 DO $$
 DECLARE blocked boolean:=false;
 BEGIN
- BEGIN PERFORM public.quiz_guestbook_grant_wenchang((SELECT id FROM public.quiz_guestbook_messages WHERE author_id='00000000-0000-0000-0000-000000000001' ORDER BY created_at LIMIT 1),1);
+ BEGIN PERFORM public.quiz_guestbook_grant_wenchang(current_setting('test.guestbook.a_id')::uuid,1);
  EXCEPTION WHEN insufficient_privilege THEN blocked:=true; END;
  IF NOT blocked THEN RAISE EXCEPTION 'FAIL: member granted points'; END IF;
 END $$;
@@ -38,28 +38,28 @@ SET request.jwt.claim.sub='00000000-0000-0000-0000-000000000002';
 DO $$
 DECLARE blocked boolean:=false;
 BEGIN
- BEGIN PERFORM public.quiz_guestbook_save('不應能修改',(SELECT id FROM public.quiz_guestbook_messages WHERE author_id='00000000-0000-0000-0000-000000000001' ORDER BY created_at LIMIT 1));
+ BEGIN PERFORM public.quiz_guestbook_save('不應能修改',current_setting('test.guestbook.a_id')::uuid);
  EXCEPTION WHEN insufficient_privilege THEN blocked:=true; END;
  IF NOT blocked THEN RAISE EXCEPTION 'FAIL: other member edited post'; END IF;
  blocked:=false;
- BEGIN PERFORM public.quiz_guestbook_delete((SELECT id FROM public.quiz_guestbook_messages WHERE author_id='00000000-0000-0000-0000-000000000001' ORDER BY created_at LIMIT 1));
+ BEGIN PERFORM public.quiz_guestbook_delete(current_setting('test.guestbook.a_id')::uuid);
  EXCEPTION WHEN insufficient_privilege THEN blocked:=true; END;
  IF NOT blocked THEN RAISE EXCEPTION 'FAIL: other member deleted post'; END IF;
 END $$;
-SELECT public.quiz_guestbook_save('會員乙心得',NULL) AS created_b;
+SELECT set_config('test.guestbook.b_id',(public.quiz_guestbook_save('會員乙心得',NULL)->>'id'),false) AS created_b;
 RESET ROLE;
 
 SET ROLE authenticated;
 SET request.jwt.claim.sub='00000000-0000-0000-0000-000000000003';
-SELECT public.quiz_guestbook_grant_wenchang((SELECT id FROM public.quiz_guestbook_messages WHERE author_id='00000000-0000-0000-0000-000000000002' ORDER BY created_at LIMIT 1),2) AS award_result;
+SELECT public.quiz_guestbook_grant_wenchang(current_setting('test.guestbook.b_id')::uuid,2) AS award_result;
 DO $$
 DECLARE blocked boolean:=false;
 BEGIN
- BEGIN PERFORM public.quiz_guestbook_grant_wenchang((SELECT id FROM public.quiz_guestbook_messages WHERE author_id='00000000-0000-0000-0000-000000000002' ORDER BY created_at LIMIT 1),2);
+ BEGIN PERFORM public.quiz_guestbook_grant_wenchang(current_setting('test.guestbook.b_id')::uuid,2);
  EXCEPTION WHEN unique_violation THEN blocked:=true; END;
  IF NOT blocked THEN RAISE EXCEPTION 'FAIL: same post rewarded twice'; END IF;
 END $$;
-SELECT public.quiz_guestbook_delete((SELECT id FROM public.quiz_guestbook_messages WHERE author_id='00000000-0000-0000-0000-000000000001' ORDER BY created_at LIMIT 1)) AS admin_delete;
+SELECT public.quiz_guestbook_delete(current_setting('test.guestbook.a_id')::uuid) AS admin_delete;
 RESET ROLE;
 
 DO $$
@@ -72,16 +72,16 @@ BEGIN
   RAISE EXCEPTION 'FAIL: award log missing or duplicate';
  END IF;
  IF NOT EXISTS (SELECT 1 FROM public.quiz_guestbook_messages
-      WHERE id=(SELECT id FROM public.quiz_guestbook_messages WHERE author_id='00000000-0000-0000-0000-000000000001' ORDER BY created_at LIMIT 1) AND deleted_at IS NOT NULL) THEN
+      WHERE id=current_setting('test.guestbook.a_id')::uuid AND deleted_at IS NOT NULL) THEN
   RAISE EXCEPTION 'FAIL: admin deletion not audited (soft-deleted)';
  END IF;
 END $$;
 -- Test full-wallet cap against a distinct post.
 UPDATE public.quiz_guestbook_messages SET created_at=now()-interval '2 minutes'
-WHERE id=(SELECT id FROM public.quiz_guestbook_messages WHERE author_id='00000000-0000-0000-0000-000000000002' ORDER BY created_at LIMIT 1);
+WHERE id=current_setting('test.guestbook.b_id')::uuid;
 SET ROLE authenticated;
 SET request.jwt.claim.sub='00000000-0000-0000-0000-000000000002';
-SELECT public.quiz_guestbook_save('會員乙第二則留言',NULL) AS created_b2;
+SELECT set_config('test.guestbook.b2_id',(public.quiz_guestbook_save('會員乙第二則留言',NULL)->>'id'),false) AS created_b2;
 RESET ROLE;
 UPDATE public.quiz_wenchang_wallet SET credits=10 WHERE user_id='00000000-0000-0000-0000-000000000002';
 SET ROLE authenticated;
@@ -89,7 +89,7 @@ SET request.jwt.claim.sub='00000000-0000-0000-0000-000000000003';
 DO $$
 DECLARE blocked boolean:=false;
 BEGIN
- BEGIN PERFORM public.quiz_guestbook_grant_wenchang((SELECT id FROM public.quiz_guestbook_messages WHERE author_id='00000000-0000-0000-0000-000000000002' ORDER BY created_at DESC LIMIT 1),1);
+ BEGIN PERFORM public.quiz_guestbook_grant_wenchang(current_setting('test.guestbook.b2_id')::uuid,1);
  EXCEPTION WHEN invalid_parameter_value THEN blocked:=true; END;
  IF NOT blocked THEN RAISE EXCEPTION 'FAIL: wallet cap not enforced'; END IF;
 END $$;
