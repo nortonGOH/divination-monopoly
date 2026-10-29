@@ -236,7 +236,11 @@ async function endpoint(path,method='GET',obj=null){
  if(!loginReady)throw Error('請先在 config.js 設定 Supabase URL 與 Publishable Key。');
  const r=await fetch(base+path,{method,headers:tokenHeaders(),body:obj==null?undefined:JSON.stringify(obj),cache:'no-store'});
  const text=await r.text();let data={};try{data=text?JSON.parse(text):{};}catch(e){}
- if(!r.ok)throw Error(data.msg||data.error_description||data.message||data.error||'HTTP '+r.status);
+ if(!r.ok){
+   const err=Error(data.msg||data.error_description||data.message||data.error||'HTTP '+r.status);
+   err.status=r.status;err.code=data.code||data.error_code||'';
+   throw err;
+ }
  return data;
 }
 function dateText(value){return value?new Date(value).toLocaleString('zh-TW',{hour12:false}):'';}
@@ -279,41 +283,109 @@ async function refresh(){
  drawState();
 }
 function showError(msg){notice.textContent=msg;}
-form.addEventListener('submit',async e=>{
- e.preventDefault();if(busy)return;busy=true;
+async function completeMemberLogin(data,address){
+ if(!data?.access_token)throw Error('未取得有效登入憑證；請確認電子郵件或帳號狀態。');
+ playerToken=data.access_token;playerEmail=address;
+ password.value='';confirmPassword.value='';
  try{
-  const data=await endpoint('/auth/v1/token?grant_type=password','POST',{email:email.value.trim(),password:password.value,gotrue_meta_security:{captcha_token:window.quizCaptcha.token(form)}});
-  if(!data.access_token)throw Error('未取得有效登入憑證。若啟用了郵件確認，請先驗證電子郵件。');
-  playerToken=data.access_token;playerEmail=email.value.trim();password.value='';
-  // Log this verified Auth session once. Failure must not block a valid login.
-  try{await endpoint('/rest/v1/rpc/quiz_record_member_login','POST',{});}catch(error){console.warn('登入計次未寫入',error.message);}
-  await refresh();
-  const hasNickname=await loadNickname();
-  if(!hasNickname){
-    setDialogMode('profile');
-    showError('登入成功。此帳號尚未儲存暱稱，請設定一次；電子郵件不會在排行榜公開。');
-    nickname.focus();
-  } else {
-    dialog.close();
-    setDialogMode('login');
-    selectQuizForMansion(activeMansion);
-  }
- }catch(err){playerToken=null;playerState=null;showError('登入失敗：'+err.message);drawState();}
- finally{window.quizCaptcha.reset(form);busy=false;}
+   // Existing server-side player state, activity and rescue credits are retained.
+   try{await endpoint('/rest/v1/rpc/quiz_record_member_login','POST',{});}
+   catch(error){console.warn('登入計次未寫入',error.message);}
+   await refresh();
+   const hasNickname=await loadNickname();
+   if(!hasNickname){
+     setDialogMode('profile');
+     showError('登入成功。請儲存暱稱設定；電子郵件不會顯示於公開排行。');
+     nickname.focus();
+   }else{
+     dialog.close();setDialogMode('login');
+     selectQuizForMansion(activeMansion);
+   }
+ }catch(error){
+   playerToken=null;playerState=null;playerNickname='';drawState();
+   throw error;
+ }
+}
+form.addEventListener('submit',async e=>{
+ e.preventDefault();
+ if(busy||dialogMode==='verify'||dialogMode==='profile')return;
+ if(dialogMode==='signup'){
+   if(!validNick(nickname.value)){
+     showError('暱稱需為 2～18 字，僅可使用中英文、數字、底線或連字號。');
+     nickname.focus();return;
+   }
+   if(password.value!==confirmPassword.value){
+     confirmPassword.setCustomValidity('兩次密碼不相同');
+     showError('兩次輸入的密碼不同，請重新確認。');
+     confirmPassword.reportValidity();return;
+   }
+ }
+ busy=true;loginBtn.disabled=true;registerBtn.disabled=true;backBtn.disabled=true;
+ const signup=dialogMode==='signup',address=email.value.trim().toLowerCase();
+ showError(signup?'正在送出註冊請求，請勿重複點擊…':'正在驗證帳號，請稍候…');
+ try{
+   const captcha=window.quizCaptcha.token(form);
+   if(signup){
+     const result=await endpoint('/auth/v1/signup?redirect_to='+encodeURIComponent(EMAIL_CONFIRM_REDIRECT),
+       'POST',{email:address,password:password.value,
+         data:{nickname:nickname.value.trim(),leaderboard_opt_in:privacyCheck.checked},
+         gotrue_meta_security:{captcha_token:captcha}});
+     password.value='';confirmPassword.value='';
+     if(result?.access_token){
+       await completeMemberLogin(result,address);
+     }else{
+       verificationEmail=address;
+       setDialogMode('verify');
+       pauseResend();
+       showError('註冊請求已受理。若此信箱符合註冊條件，請查看驗證信並完成驗證；尚未代表已登入或郵件已送達。');
+     }
+   }else{
+     const result=await endpoint('/auth/v1/token?grant_type=password','POST',{
+       email:address,password:password.value,gotrue_meta_security:{captcha_token:captcha}});
+     await completeMemberLogin(result,address);
+   }
+ }catch(err){
+   showError(normalAuthError(err,signup?'註冊':'登入'));
+ }finally{
+   window.quizCaptcha.reset(form);
+   busy=false;loginBtn.disabled=false;registerBtn.disabled=false;backBtn.disabled=false;
+   updateResendButton();
+ }
 });
-registerBtn.addEventListener('click',async()=>{
+registerBtn.addEventListener('click',()=>{
  if(busy)return;
- if(dialogMode!=='signup'){setDialogMode('signup');nickname.focus();return;}
- if(!email.reportValidity()||!password.reportValidity())return;
- busy=true;
- try{if(!validNick(nickname.value))throw Error('請輸入2–18字的暱稱（中英文、數字、底線或連字號）。');
-  await endpoint('/auth/v1/signup?redirect_to='+encodeURIComponent(EMAIL_CONFIRM_REDIRECT),'POST',{email:email.value.trim(),password:password.value,data:{nickname:nickname.value.trim(),leaderboard_opt_in:privacyCheck.checked},gotrue_meta_security:{captcha_token:window.quizCaptcha.token(form)}});
-  password.value='';setDialogMode('login');
-  showError('註冊請求已送出。若需郵件驗證，請先到信箱完成確認，再登入；暱稱會在登入後自動載入。');
- }catch(err){showError('註冊失敗：'+err.message);}finally{window.quizCaptcha.reset(form);busy=false;}
+ setDialogMode('signup');nickname.focus();
 });
-closeBtn.addEventListener('click',()=>{password.value='';dialog.close();setDialogMode('login');});
-backBtn.addEventListener('click',()=>setDialogMode('login'));
+resendBtn.addEventListener('click',async()=>{
+ if(busy||dialogMode!=='verify'||Date.now()<resendAvailableAt||!verificationEmail)return;
+ busy=true;resendBtn.disabled=true;
+ showError('正在向 Supabase 申請重寄驗證信…');
+ try{
+   const captcha=window.quizCaptcha.token(form);
+   await endpoint('/auth/v1/resend?redirect_to='+encodeURIComponent(EMAIL_CONFIRM_REDIRECT),
+     'POST',{email:verificationEmail,type:'signup',
+       gotrue_meta_security:{captcha_token:captcha}});
+   pauseResend();
+   showError('重寄請求已受理。請檢查收件匣及垃圾郵件；是否送達仍依寄信服務狀態而定。');
+ }catch(err){showError(normalAuthError(err,'重新寄送驗證信'));}
+ finally{window.quizCaptcha.reset(form);busy=false;updateResendButton();}
+});
+verifiedLoginBtn.addEventListener('click',()=>{
+ if(busy)return;
+ const address=verificationEmail;setDialogMode('login');email.value=address;
+ password.value='';password.focus();
+});
+function dismissPlayerDialog(){
+ if(busy)return;
+ password.value='';confirmPassword.value='';password.type='password';
+ showPassword.textContent='顯示密碼';showPassword.setAttribute('aria-pressed','false');
+ dialog.close();setDialogMode('login');
+}
+closeBtn.addEventListener('click',dismissPlayerDialog);
+backBtn.addEventListener('click',()=>{
+ if(busy)return;
+ password.value='';confirmPassword.value='';setDialogMode('login');email.focus();
+});
 signInBtn.addEventListener('click',()=>{setDialogMode('login');showDlg();});
 const profileBtn=node('button','修改暱稱');profileBtn.type='button';profileBtn.hidden=true;actions.append(profileBtn);
 profileBtn.addEventListener('click',()=>{setDialogMode('profile');showDlg();nickname.focus();});
