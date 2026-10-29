@@ -16,6 +16,7 @@ const challengeLabel=document.createElement('label');challengeLabel.className='l
 const challengeSelect=chooser('challengeKnowledgeType',true);challengeLabel.append(challengeSelect);challengeHeader?.append(challengeLabel);
 const style=document.createElement('style');style.textContent='#editKnowledgeType,#bankKnowledgeType,#challengeKnowledgeType{max-width:100%;border:1px solid #cbb99d;background:#fffaf0;padding:8px;border-radius:9px;font:inherit;color:#343b3d}.quiz-heading{flex-wrap:wrap}';document.head.append(style);
 // The base bank's editors call global functions dynamically, so wrap both entry points.
+// Sync the administrator's manual classification with the editor when a question is opened.
 const previousEdit=editQuestion;
 editQuestion=function(id){
   previousEdit(id);
