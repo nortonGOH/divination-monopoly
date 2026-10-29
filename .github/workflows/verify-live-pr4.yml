@@ -1,0 +1,31 @@
+name: Verify deployed GitHub Pages UX
+on:
+  push:
+    branches:
+      - verify/live-pr4-deployment-20261029
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-live-pages:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check live homepage and static assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://nortongoh.github.io/divination-monopoly"
+          mkdir -p /tmp/live-pages
+          curl --fail --show-error --silent --location --retry 8 --retry-delay 3 --retry-all-errors --max-time 25 "${base}/?verify=${GITHUB_RUN_ID}" -o /tmp/live-pages/index.html
+          curl --fail --show-error --silent --location --retry 8 --retry-delay 3 --retry-all-errors --max-time 25 "${base}/site-ux.css?verify=${GITHUB_RUN_ID}" -o /tmp/live-pages/site-ux.css
+          curl --fail --show-error --silent --location --retry 8 --retry-delay 3 --retry-all-errors --max-time 25 "${base}/site-ux.js?verify=${GITHUB_RUN_ID}" -o /tmp/live-pages/site-ux.js
+          grep -Fq 'aria-label="網站快速導覽"' /tmp/live-pages/index.html
+          grep -Fq 'id="uxBackTop"' /tmp/live-pages/index.html
+          grep -Fq 'class="ux-howto"' /tmp/live-pages/index.html
+          grep -Fq 'href="#mainContent"' /tmp/live-pages/index.html
+          grep -Fq 'FALLBACK_QUESTIONS = []' /tmp/live-pages/index.html
+          cmp -s site-ux.css /tmp/live-pages/site-ux.css
+          cmp -s site-ux.js /tmp/live-pages/site-ux.js
+          echo "PASS: live Pages serves new UI markup, matching CSS and JS, and empty answer fallback."
