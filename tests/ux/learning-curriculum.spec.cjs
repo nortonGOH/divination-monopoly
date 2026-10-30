@@ -10,6 +10,8 @@ test.beforeEach(async({page})=>{
   return route.fulfill({status:200,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:'[]'});
  });
  await page.goto('/');
+ await page.getByRole('link',{name:'互動學習地圖'}).click();
+ await expect(page.locator('#learningMapDialog')).toBeVisible();
 });
 test('guest reads only three introductory modules; member lessons have titles but no body',async({page})=>{
  const map=page.locator('#learningMap');
@@ -32,6 +34,7 @@ test('intro reading marker survives reload without altering quiz score',async({p
  await map.getByRole('button',{name:'閱讀後標記本單元'}).click();
  await expect(map).toContainText('已標記閱讀 1／3 單元');
  await page.reload();
+ await page.getByRole('link',{name:'互動學習地圖'}).click();
  await expect(map).toContainText('已標記閱讀 1／3 單元');
  expect(await page.locator('#quizScore').textContent()).toBe(score);
  await map.getByRole('button',{name:/已閱讀.*取消標記/}).click();
@@ -98,7 +101,6 @@ test('member atlas lesson opens inside the same learning dialog and returns with
   window.dispatchEvent(new Event('quiz-member-session-changed'));
  });
  const before=page.url();
- await page.getByRole('link',{name:'互動學習地圖'}).click();
  const dlg=page.locator('#learningMapDialog');
  await expect(dlg).toBeVisible();
  await expect(dlg).toContainText('會員教材：已標記閱讀 0／39 單元');
