@@ -77,3 +77,26 @@ test('historical reader is removed and quiz management is still available',async
   await shortcut.click();
   await expect(page.locator('#loginDialog')).toBeVisible();
 });
+
+
+test('learning map navigation opens readable content and persists as an anchor even without JavaScript',async({page})=>{
+  const nav=page.getByRole('navigation',{name:'網站快速導覽'});
+  const map=page.locator('#learningMap');
+  await nav.getByRole('link',{name:'互動學習地圖'}).click();
+  await expect(page).toHaveURL(/#learningMap$/);
+  await expect(map).toBeVisible();
+  await expect(map.locator('.learn-map-node')).toHaveCount(11);
+  await expect(map.locator('.learn-map-detail')).toContainText('數術文獻與歷史分類');
+  await expect(map).toBeInViewport({ratio:0.2});
+
+  // Simulate a missing map script. The HTML fallback must still present 3 readable intros.
+  await page.route('**/learning-map.js', route=>route.abort());
+  await page.reload();
+  await expect(page).toHaveURL(/#learningMap$/);
+  await expect(map).toBeVisible();
+  await expect(map.locator('details')).toHaveCount(3);
+  await expect(map.locator('details').first()).toContainText('數術文獻與歷史分類');
+  await expect(map.locator('details').nth(1)).toContainText('陰陽、五行');
+  await expect(map.locator('details').nth(2)).toContainText('干支、曆譜');
+  await expect(map.locator('.learn-map-node')).toHaveCount(0);
+});
