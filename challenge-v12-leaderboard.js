@@ -37,13 +37,11 @@ async function load(){
    const payload=await r.json().catch(()=>({}));
    if(!r.ok)throw Error(payload.message||payload.error||('HTTP '+r.status));
    if(!Array.isArray(payload))throw Error('排行榜格式錯誤');
-   const countResponse=await fetch(url+'/rest/v1/rpc/quiz_public_registration_count',{method:'POST',headers:{'apikey':key,'Content-Type':'application/json'},body:'{}',cache:'no-store'});
-   const countData=await countResponse.json().catch(()=>({}));
-   if(!countResponse.ok||!Number.isInteger(Number(countData.registered_count)))throw Error('註冊人數讀取失敗');
-   const memberCount=Number(countData.registered_count);
+   // Temporarily hide the public registration total. Do not request or render it.
+   // The registration-count RPC and database records remain intact.
    box.querySelector('table')?.remove();
-   if(!payload.length){status.textContent='註冊人數 '+memberCount+' 人，目前尚無排行。';return;}
-   status.textContent='註冊人數 '+memberCount+' 人｜顯示排行榜前 '+Math.min(5,payload.length)+' 名';
+   if(!payload.length){status.textContent='目前尚無排行。';return;}
+   status.textContent='顯示排行榜前 '+Math.min(5,payload.length)+' 名';
    const table=document.createElement('table');
    const thead=document.createElement('thead'),tr=document.createElement('tr');
    ['名次','暱稱','參戰','答對','成功率'].forEach(x=>{const th=document.createElement('th');th.textContent=x;tr.append(th);});

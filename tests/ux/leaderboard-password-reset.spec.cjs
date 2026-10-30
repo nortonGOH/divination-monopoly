@@ -36,16 +36,17 @@ async function setup(page,{members=7,recoveryError=false}={}){
  });
  return calls;
 }
-test('leaderboard shows exactly top five and full registered member count without emails',async({page})=>{
+test('leaderboard shows exactly top five without publishing registration count or emails',async({page})=>{
  const requests=await setup(page);
  await page.goto('/');
  const board=page.locator('.challenge-leaderboard');
- await expect(board).toContainText('註冊人數 7 人｜顯示排行榜前 5 名');
+ await expect(board).toContainText('顯示排行榜前 5 名');
+ await expect(board).not.toContainText('註冊人數');
  await expect(board.locator('tbody tr')).toHaveCount(5);
  await expect(board).not.toContainText('redacted@example.test');
  await expect(board).toContainText('戊');
  expect(requests.filter(x=>x.path.endsWith('quiz_public_leaderboard'))).toHaveLength(1);
- expect(requests.filter(x=>x.path.endsWith('quiz_public_registration_count'))).toHaveLength(1);
+ expect(requests.filter(x=>x.path.endsWith('quiz_public_registration_count'))).toHaveLength(0);
 });
 test('all members participate without a public/private checkbox in signup or profile',async({page})=>{
  await setup(page);await page.goto('/');
