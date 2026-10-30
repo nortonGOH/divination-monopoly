@@ -9,13 +9,17 @@
  const title=document.createElement('h2');title.textContent='近期題庫更新公告';
  const intro=document.createElement('p');intro.textContent='以下是近 14 日有新增或修訂紀錄的題庫類型與題目數（包含已匯入題目；不等於全是新題）。';
  const list=document.createElement('ul');
- const footer=document.createElement('p');footer.textContent='本訊息在同一來源 IP 對同一版本僅顯示一次。';
+ const message=document.createElement('p');message.style.whiteSpace='pre-wrap';message.style.lineHeight='1.75';
  const close=document.createElement('button');close.type='button';close.textContent='知道了，開始挑戰';close.style.cssText='padding:11px 16px;min-height:44px;cursor:pointer';close.addEventListener('click',()=>dialog.close());
- dialog.append(title,intro,list,footer,close);document.body.append(dialog);
+ dialog.append(title,message,intro,list,close);document.body.append(dialog);
  fetch(base+'/functions/v1/quiz-update-notice',{method:'POST',headers:{'Content-Type':'application/json',apikey:String(cfg.publishableKey||'')},body:'{}',cache:'no-store'})
  .then(r=>{if(!r.ok)throw Error('notice');return r.json();})
  .then(data=>{
-   if(data.show!==true||!Array.isArray(data.banks)||!data.banks.length)return;
+   if(data.show!==true)return;
+   title.textContent=String(data.title||'近期題庫更新公告');
+   message.textContent=String(data.body||'');message.hidden=!message.textContent;
+   intro.hidden=data.show_banks===false;
+   list.hidden=data.show_banks===false;
    list.replaceChildren();
    for(const item of data.banks.slice(0,12)){
     const row=document.createElement('li');row.textContent=String(item.name)+'：'+Number(item.changed_count||0)+' 題有新增或修訂紀錄';list.append(row);
