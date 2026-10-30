@@ -49,6 +49,7 @@
     '.learn-map-tabs button[aria-selected=true]{background:#244e4a;color:#fff;border-color:#244e4a}',
     '.learn-map-body{display:grid;grid-template-columns:minmax(0,1.75fr) minmax(250px,.85fr);align-items:start;gap:18px}',
     '.learn-map-path{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;counter-reset:steps}',
+    '.learn-map-path-heading{grid-column:1/-1;margin:8px 0 0;color:#365c5c;font-size:1rem;border-bottom:1px solid #d9ccb4;padding:7px 0}',
     '.learn-map-node{position:relative;min-width:0;min-height:148px;display:flex;flex-direction:column;align-items:stretch;gap:9px;padding:14px;text-align:left;border:1px solid #d0c5ae;border-radius:13px;background:#fffdf8;color:#263c45;font:inherit;cursor:pointer}',
     '.learn-map-node:hover,.learn-map-node:focus-visible{border-color:#877346;box-shadow:0 5px 12px #6555371a}',
     '.learn-map-node[aria-pressed=true]{border:2px solid #2f7668;background:#ebf5f0}',
@@ -140,8 +141,7 @@
   }
   function matching(id, entries, list) {
     if (route === 'topics') return list.filter(q => typeOf(q) === id);
-    const names = new Set(entries.filter(m => m.quad === id).map(m => m.name));
-    return list.filter(q => names.has(q.mansion));
+    return list.filter(q => q.mansion === id);
   }
   function stats(id, entries, list, done) {
     const questions = matching(id, entries, list);
@@ -187,17 +187,14 @@
       make('p', '對應題庫：' + s.total + ' 題；' + statusOf(s) + '。')
     );
     if (route === 'mansions') {
-      const chips = make('div', '', 'learn-map-aux');
-      entries.filter(m => m.quad === item.id).forEach(m => {
-        const link = make('a', m.name);
-        link.href = './mansions-atlas.html';
-        link.title = '前往二十八宿圖鑑查閱' + m.name + '相關資料';
-        chips.append(link);
-      });
-      detail.append(make('p', '本象七宿（點選前往互動圖鑑）：'), chips);
+      detail.append(make('p', '所屬四象：' + item.group + '。先閱讀史料與圖鑑，再透過原有轉盤隨機抽宿練習。'));
       const atlas = make('a', '前往二十八宿互動圖鑑 →');
       atlas.href = './mansions-atlas.html';
       detail.append(atlas);
+      const action = make('button', '前往抽宿挑戰', 'learn-map-detail-action');
+      action.type = 'button';
+      action.addEventListener('click', () => { wheel.scrollIntoView({ behavior: 'smooth', block: 'center' }); wheel.focus({ preventScroll: true }); });
+      detail.append(action);
     } else {
       const action = make('button', s.total ? '設定「' + item.id + '」題型並前往抽宿' : '此類型尚無可練習題目', 'learn-map-detail-action');
       action.type = 'button';
@@ -227,7 +224,8 @@
     const entries = mansionList();
     const list = bank();
     const done = completed();
-    const choices = route === 'topics' ? stages : quadrants;
+    const choices = route === 'topics' ? stages : entries.map(m => ({ id: m.name, title: m.name, group: m.quad,
+      desc: '參閱圖鑑認識' + m.name + '的星官與相關史料，並依正式題庫檢視掌握進度。' }));
     if (!choices.some(s => s.id === selected)) {
       const next = choices.find(s => { const t = stats(s.id, entries, list, done); return t.total && (t.correct === null || t.correct < t.total); });
       selected = (next || choices[0]).id;
@@ -243,7 +241,14 @@
     meterTrack.setAttribute('aria-valuenow', String(pct));
     meterTrack.setAttribute('aria-valuetext', complete === null ? '未登入，尚無個人進度' : '已掌握 ' + complete + '／' + list.length + ' 題');
     path.replaceChildren();
-    choices.forEach((item, i) => renderNode(item, i + 1, entries, list, done));
+    choices.forEach((item, i) => {
+      if (route === 'mansions' && i % 7 === 0) {
+        const group = quadrants.find(x => x.id === item.group);
+        const heading = make('h3', group?.title || item.group, 'learn-map-path-heading');
+        path.append(heading);
+      }
+      renderNode(item, i + 1, entries, list, done);
+    });
     renderDetail(choices.find(x => x.id === selected), entries, list, done);
   }
   for (const event of ['quiz-member-session-changed', 'quiz-answer-graded', 'challenge-bank-loaded']) {
