@@ -15,7 +15,8 @@ test('renders all 28 houses in four groups with sourced context',async({page})=>
   await expect(page.locator('#mansionList button')).toHaveCount(28);
   await expect(page.locator('#wheelSectors .sector')).toHaveCount(28);
   await expect(page.locator('#detailTitle')).toHaveText('角宿');
-  await expect(page.locator('#detailSource')).toHaveAttribute('href',/guoxue3000.com/);
+  await expect(page.locator('#detailSource')).toHaveAttribute('href','https://zh.wikisource.org/zh-hant/%E5%8F%B2%E8%A8%98/%E5%8D%B7027');
+  await expect(page.locator('.history-card').first().locator('a')).toHaveAttribute('href','https://zh.wikisource.org/zh-hant/%E5%8F%B2%E8%A8%98/%E5%8D%B7027');
   await expect(page.locator('.history-card')).toHaveCount(3);
   await expect(page.getByText(/不代表實際宿度相等/)).toBeVisible();
 });
