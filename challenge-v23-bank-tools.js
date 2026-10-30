@@ -15,7 +15,6 @@ if(statsTitlebar){statsTitlebar.append(refresh);message.className='bank-inventor
 else{wrap.prepend(refresh,message);}
 const oldImport=document.getElementById('importBankBtn'),mode=document.getElementById('importMode'),reset=document.getElementById('resetBankBtn');
 for(const btn of [oldImport,mode,reset]){if(btn){btn.disabled=true;btn.title='為保護校正資料，請改用安全校正版匯入';}}
-for(const btn of toolbar.querySelectorAll('button')){if(/匯入新增題目並均分28宿|重新均分現有題庫/.test(btn.textContent)){btn.disabled=true;btn.title='此功能可能改寫既有答案／星宿，已停用；請改用校正版比對匯入';}}
 const fieldNames=['mansion','category','knowledge_type','difficulty','prompt','options','answer','explanation'];
 const norm=q=>{const o={id:String(q.id)};for(const k of fieldNames)o[k]=k==='options'?q.options.map(String):k==='answer'?Number(q.answer):String(q[k]??'');return o;};
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
