@@ -14,7 +14,7 @@ REVOKE ALL ON public.quiz_wenchang_points_spent FROM PUBLIC, anon, authenticated
 -- Balance = all server-confirmed correct answers - all NEW paid reveals.
 -- Never alters, imports, or refills the obsolete wallet.
 CREATE OR REPLACE FUNCTION public.quiz_wenchang_status()
-RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=''
+RETURNS jsonb LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=''
 AS $fn$
 DECLARE v_uid uuid := auth.uid(); v_earned bigint := 0; v_spent bigint := 0;
 BEGIN
