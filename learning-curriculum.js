@@ -15,7 +15,7 @@ window.NUMEROLOGY_CURRICULUM = {
     },
     "shi": {
       "label": "《史記》卷二十七〈天官書〉",
-      "url": "https://zh.wikisource.org/zh/%E5%8F%B2%E8%A8%98/%E5%8D%B7027",
+      "url": "https://zh.wikisource.org/zh-hant/%E5%8F%B2%E8%A8%98/%E5%8D%B7027",
       "type": "原始文獻"
     },
     "suwen": {
