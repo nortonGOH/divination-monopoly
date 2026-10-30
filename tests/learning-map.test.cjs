@@ -58,6 +58,7 @@ const settle=()=>new Promise(resolve=>setImmediate(resolve));
 test('catalog publishes only 3 intro bodies, 36 titles and no member content',()=>{
  const f=context();
  assert.equal(f.data.topics.length,11);assert.equal(f.data.mansions.length,28);
+ assert.equal(f.data.sources.shi.url,'https://zh.wikisource.org/zh-hant/%E5%8F%B2%E8%A8%98/%E5%8D%B7027');
  assert.equal([...f.data.topics,...f.data.mansions].filter(x=>x.access_tier==='intro').length,3);
  for(const x of [...f.data.topics,...f.data.mansions].filter(x=>x.access_tier==='member')){
   assert.equal(x.lead,undefined);
