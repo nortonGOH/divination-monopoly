@@ -561,6 +561,7 @@ wenchangYes.addEventListener('click',async()=>{
     wenchangCredits.textContent='目前剩餘：'+Number(result.status?.credits??0)+' / 10 次';
     wenchangYes.hidden=true;wenchangNo.textContent='關閉';
     if(activeQuestion?.id===id)$('answerFeedback').textContent='✕ 回答錯誤。已使用「文昌星救援」查看解析。'+(playerState?.locked?'\n本次已達五次答錯，請等待解鎖；點北極星可查看倒數。':'');
+    window.dispatchEvent(new CustomEvent('quiz-learning-answer-revealed',{detail:{questionId:id,correctAnswer:index,explanation:result.explanation||''}}));
   }catch(err){wenchangInfo.textContent='救援失敗：'+err.message;wenchangYes.disabled=false;}
   finally{wenchangBusy=false;wenchangNo.disabled=false;}
 });
@@ -635,6 +636,7 @@ answerQuestion=async function(index){
   }
   $('quizScore').textContent=`已答 ${answeredCount} 題 · 答對 ${correctCount} 題`;
   drawState();
+  window.dispatchEvent(new CustomEvent('quiz-learning-answer-resolved',{detail:{accepted:true,questionId:activeQuestion.id,correct:result.correct,correctAnswer:result.correct_answer,explanation:result.explanation||'',administratorExempt:result.administrator_exempt}}));
  }catch(err){$('answerFeedback').textContent='提交失敗，未記入答題：'+err.message;}
  finally{busy=false;}
 };
