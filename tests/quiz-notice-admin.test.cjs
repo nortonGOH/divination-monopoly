@@ -1,0 +1,7 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const read=p=>fs.readFileSync(require('node:path').join(__dirname,'..',p),'utf8');
+test('notice browser code parses and removes IP statement',()=>{new vm.Script(read('quiz-update-notice.js'));new vm.Script(read('quiz-notice-admin.js'));assert.doesNotMatch(read('quiz-update-notice.js'),/本訊息在同一來源 IP/);});
+test('admin manager is integrated and requires authenticated RPC',()=>{assert.match(read('index.html'),/src="\.\/quiz-notice-admin\.js"/);const s=read('quiz-notice-admin.js');assert.match(s,/adminAccessToken/);assert.match(s,/quiz_admin_notice_save/);assert.match(s,/p_expected_revision/);assert.match(s,/草稿/);assert.match(s,/下架/);});
+test('draft and published content are separated and updates use revision checks',()=>{const s=read('database/quiz-admin-notice.sql');assert.match(s,/draft_body/);assert.match(s,/published_body/);assert.match(s,/if p_expected_revision is distinct from r.edit_revision/);assert.match(s,/auth.uid\(\)/);assert.match(s,/quiz_admins/);assert.match(s,/revoke all on function public.quiz_admin_notice_save/);});
+test('only published server content may be presented and IP dedup continues',()=>{const s=read('supabase/functions/quiz-update-notice/index.ts');assert.match(s,/config.is_published===true/);assert.match(s,/quiz_claim_update_notice/);assert.match(s,/published_body/);assert.match(s,/publication_revision/);});
