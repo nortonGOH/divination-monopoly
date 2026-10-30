@@ -1,0 +1,55 @@
+/* Native modal: the original quiz DOM stays under .quiz-section and on the same URL. */
+.quiz-question-dialog{
+  width:min(680px,calc(100vw - 24px));
+  max-width:calc(100vw - 24px);
+  max-height:calc(100dvh - 24px);
+  margin:auto;
+  padding:0;
+  border:1px solid #c7ad7b;
+  border-radius:18px;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  background:#fffaf0;
+  color:#24313b;
+  box-shadow:0 24px 80px #0d1b2b66;
+}
+.quiz-question-dialog::backdrop{background:#142335c2;backdrop-filter:blur(4px)}
+.quiz-question-dialog-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+  padding:18px 20px 14px;
+  border-bottom:1px solid #e1d6c0;
+  background:#fff9eb;
+}
+.quiz-question-dialog-kicker{font-size:.73rem;color:#8b6533;letter-spacing:.08em;margin:0 0 5px}
+.quiz-question-dialog-head h2{font-size:1.25rem;color:#4e4638;margin:0 0 5px;line-height:1.4}
+.quiz-question-dialog-subtitle{font-size:.83rem;color:#526661;line-height:1.6;margin:0}
+.quiz-question-dialog-close{
+  flex:none;
+  min-height:44px;
+  padding:9px 13px;
+  border:1px solid #bba77e;
+  border-radius:9px;
+  color:#443c33;
+  background:#fffdfa;
+  font:inherit;
+  font-size:.86rem;
+  cursor:pointer;
+}
+.quiz-question-dialog-content{padding:16px 20px 20px}
+.quiz-question-dialog .quiz-panel{background:transparent;border:0;padding:0}
+.quiz-question-dialog .answer-btn{min-height:48px}
+.quiz-question-dialog-close:focus-visible,
+.quiz-question-dialog .answer-btn:focus-visible,
+.quiz-question-resume:focus-visible{outline:3px solid #aa7838;outline-offset:3px}
+.quiz-question-resume{display:block;margin:10px 0 14px;white-space:normal;min-height:44px}
+.quiz-question-resume[hidden]{display:none!important}
+@media(max-width:540px){
+ .quiz-question-dialog{width:calc(100vw - 16px);max-width:calc(100vw - 16px);max-height:calc(100dvh - 16px);border-radius:13px}
+ .quiz-question-dialog-head{padding:14px 13px 11px;gap:8px}
+ .quiz-question-dialog-content{padding:13px}
+ .quiz-question-dialog-head h2{font-size:1.13rem}
+ .quiz-question-dialog-close{padding:8px 10px}
+}

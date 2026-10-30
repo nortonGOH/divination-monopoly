@@ -150,6 +150,9 @@ test('earned point balance appears in the member rescue card, without timed-refi
  await expect(dialog).toContainText('答對 4 題');
  await expect(dialog).not.toContainText('每兩小時');
  await page.locator('.wenchang-actions button:not(.wenchang-primary)').click();
+ await expect(page.locator('#quizQuestionDialog')).toBeVisible();
+ await page.locator('#quizQuestionDialogClose').click();
+ await expect(page.locator('#quizQuestionDialog')).toBeHidden();
  await page.locator('#wenchangCardAction').click();
  await expect(page.locator('#wenchangCardStatus')).toContainText('答對累積 4 點');
  await expect(page.locator('#wenchangCardStatus')).toContainText('無定時補點');
