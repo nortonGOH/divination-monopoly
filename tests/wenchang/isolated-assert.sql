@@ -50,8 +50,7 @@ BEGIN
    PERFORM public.quiz_wenchang_reveal('q5');
    RAISE EXCEPTION 'Reveal incorrectly succeeded with no points';
  EXCEPTION WHEN SQLSTATE '22023' THEN
-   IF (SELECT count(*) FROM public.quiz_wenchang_points_spent
-       WHERE user_id='11111111-1111-4111-8111-111111111111')<>2 THEN
+   IF (public.quiz_wenchang_status()->>'spent')::int<>2 THEN
        RAISE EXCEPTION 'Failed reveal changed balance';
    END IF;
  END;
