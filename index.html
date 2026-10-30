@@ -197,6 +197,17 @@
     @media(max-width:740px){.library-toolbar{grid-template-columns:1fr 1fr;padding:12px 15px}.library-meta{padding:12px 15px}.library-text{padding:17px 18px;font-size:.94rem}.library-foot{padding:10px 15px}}
     @media(max-width:430px){.library-toolbar{grid-template-columns:1fr}.library-text{max-height:60dvh}}
   </style>
+  <style>
+    #learningMap{scroll-margin-top:18px}
+    .learn-map-fallback{margin:28px 0;padding:24px;border:1px solid #cfc3a8;border-radius:17px;background:#fffbf3;color:#293c43}
+    .learn-map-fallback h2{margin:0 0 12px}
+    .learn-map-fallback p{line-height:1.8}
+    .learn-map-fallback-lessons{display:grid;gap:10px}
+    .learn-map-fallback-lessons details{border:1px solid #d8ccb3;border-radius:9px;padding:10px 14px;background:#fffef9}
+    .learn-map-fallback-lessons summary{cursor:pointer;font-weight:700}
+    .learn-map-fallback-note{font-size:.8rem;color:#64706c}
+    @media(max-width:550px){.learn-map-fallback{padding:14px}}
+  </style>
   <link rel="stylesheet" href="./site-ux.css">
   <link rel="stylesheet" href="./guestbook.css">
   <link rel="stylesheet" href="./trial-wenchang-ui.css">
@@ -333,6 +344,26 @@
       <p class="notes">此為數術知識練習遊戲。題目與星宿配對是互動設計，並非天文觀測或占驗規則。</p>
     </aside>
   </main>
+  <section id="learningMap" class="learn-map-fallback" aria-labelledby="learningMapTitle">
+    <h2 id="learningMapTitle">數術知識學習地圖</h2>
+    <p>遊客可直接閱讀三篇入門教材；登入會員後可閱讀全部 39 個數術知識與二十八宿單元。</p>
+    <p>如果完整互動地圖尚未載入，以下入門導讀仍可直接閱讀：</p>
+    <div class="learn-map-fallback-lessons">
+      <details open>
+        <summary>入門一｜數術文獻與歷史分類</summary>
+        <p>《漢書》〈藝文志〉分列術數與方技，並於〈術數略〉著錄天文、曆譜、五行、蓍龜、雜占、形法。這是古代書目分類，不能直接等同今日的「山、醫、命、卜、相」。</p>
+      </details>
+      <details>
+        <summary>入門二｜陰陽、五行與關聯思維</summary>
+        <p>陰陽、五行在不同文獻中用於整理變化、自然現象與人事關係。閱讀時應區分古人的文本用語、後世體系化解釋與現代研究者的分析語言。</p>
+      </details>
+      <details>
+        <summary>入門三｜干支、曆譜與歲時</summary>
+        <p>干支是常見的時間標記工具，曆法推算與擇日、占候不是同一件事。比較歷史材料時，應核對時代、地域及制度背景。</p>
+      </details>
+    </div>
+    <p class="learn-map-fallback-note">完整地圖若未出現，請重新整理網頁；會員課文不會在此公開區塊提供。</p>
+  </section>
   <section class="guestbook" id="guestbook" aria-labelledby="guestbookTitle">
     <div class="guestbook-heading">
       <div>
