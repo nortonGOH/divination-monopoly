@@ -53,6 +53,7 @@ async function setup(page,{initialCredits=3,revealFails=false}={}) {
  });
  await page.goto('/');
  await expect.poll(()=>page.evaluate(()=>questionBank.length)).toBe(1);
+ await page.evaluate(()=>{window.quizCaptcha.token=()=> 'isolated-mock-captcha';window.quizCaptcha.reset=()=>{};});
  await page.locator('#playerSignInBtn').click();
  await page.locator('#playerEmail').fill('player@example.test');
  await page.locator('#playerPassword').fill('mock-password-123');
