@@ -6,21 +6,24 @@
  'use strict';
  const data=window.NUMEROLOGY_CURRICULUM;
  const anchor=document.getElementById('guestbook');
- if(!anchor||document.getElementById('learningMap'))return;
+ if(!anchor)return;
+ const existing=document.getElementById('learningMap');
+ if(existing?.dataset?.mapEnhanced==='true')return;
  const el=(tag,content='',cls='')=>{
   const node=document.createElement(tag);node.textContent=content;if(cls)node.className=cls;return node;
  };
- const root=el('section','','learn-map');root.id='learningMap';root.setAttribute('aria-labelledby','learningMapTitle');
+ const root=existing||el('section','','learn-map');
+ root.id='learningMap';root.setAttribute('aria-labelledby','learningMapTitle');
  if(!data||!Array.isArray(data.topics)||!Array.isArray(data.mansions)||!data.sources){
-  root.append(el('h2','數術知識學習地圖'),el('p','公開課程索引尚未載入。'));
-  anchor.before(root);return;
+  if(!existing){root.append(el('h2','數術知識學習地圖'),el('p','公開課程索引尚未載入。'));anchor.before(root);}
+  return;
  }
  const topics=data.topics,mansions=data.mansions;
  const all=[...topics,...mansions];
  const ids=new Set(all.map(l=>l.id));
  if(ids.size!==39||all.filter(l=>l.access_tier==='intro').length!==3){
-  root.append(el('h2','數術知識學習地圖'),el('p','教材權限與索引有誤，暫停顯示教材。'));
-  anchor.before(root);return;
+  if(!existing){root.append(el('h2','數術知識學習地圖'),el('p','教材權限與索引有誤，暫停顯示教材。'));anchor.before(root);}
+  return;
  }
  const memberMeta=new Map(all.filter(x=>x.access_tier==='member').map(x=>[x.id,x]));
  const cfg=window.QUIZ_AUTH_CONFIG||{};
@@ -114,7 +117,10 @@
  detail.setAttribute('aria-live','polite');body.append(path,detail);
  const status=el('p','','learn-map-status');status.setAttribute('role','status');
  const disclaimer=el('p','入門教材可供遊客閱讀，其餘教材正文僅在會員登入並通過資料庫權限核對後提供。閱讀標記保留在這台裝置，不是會員跨裝置紀錄；教材仍屬研究提要，引用原始史料前須另行查證。','learn-map-disclaimer');
- root.append(head,tabs,body,status,disclaimer);anchor.before(root);
+ root.className='learn-map';
+ root.replaceChildren(head,tabs,body,status,disclaimer);
+ root.dataset.mapEnhanced='true';
+ if(!existing)anchor.before(root);
  tabTopics.addEventListener('click',()=>{route='topics';selected=topics[0].id;render();});
  tabMansions.addEventListener('click',()=>{route='mansions';selected=mansions[0].id;render();});
  function loginPrompt(){
