@@ -694,7 +694,7 @@ function validBank(input){
     if(!id||id.length>120||seen.has(id))throw new Error(`第 ${i+1} 題的 id 缺漏、太長或重複。`);
     seen.add(id);
     const mansion=String(q.mansion||'');
-    if(!MANSION_NAMES.includes(mansion)) throw new Error(`第 ${i+1} 題的對應星宿不存在。`);
+    if(mansion!=='通用'&&!MANSION_NAMES.includes(mansion)) throw new Error(`第 ${i+1} 題的對應星宿不存在。`);
     const prompt=String(q.prompt||'').trim();
     if(!prompt||prompt.length>300) throw new Error(`第 ${i+1} 題的題目不得為空且最多 300 字。`);
     if(!Array.isArray(q.options)||q.options.length!==4||q.options.some(v=>!String(v||'').trim()||String(v).length>120))throw new Error(`第 ${i+1} 題須有四個非空選項。`);
@@ -791,7 +791,7 @@ function refreshBankInterface(){
 function selectQuizForMansion(index){
   activeMansion=index;
   const mansion=MANSIONS[index].name;
-  const pool=questionBank.filter(q=>q.mansion===mansion);
+  const pool=questionBank.filter(q=>q.mansion===mansion||q.mansion==='通用');
   el('quizScope').textContent=`目前星宿：${mansion}`;
   el('quizScore').textContent=`已答 ${answeredCount} 題 · 答對 ${correctCount} 題`;
   el('quizAvailable').textContent=`本宿共 ${pool.length} 題`;
@@ -962,7 +962,7 @@ el('logoutBtn').addEventListener('click',logout);
 
 const dialog=el('bankDialog');
 function buildMansionChoices(){
-  for(const m of MANSION_NAMES){
+  for(const m of [...MANSION_NAMES,'通用']){
     for(const select of [el('editMansion'),el('bankFilter')]){
       const opt=document.createElement('option');opt.value=m;opt.textContent=m;select.appendChild(opt);
     }
