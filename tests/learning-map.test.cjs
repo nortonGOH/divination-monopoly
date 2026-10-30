@@ -1,125 +1,118 @@
 'use strict';
-/* Standalone curriculum verification without browser network, Supabase or live scores. */
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const vm=require('node:vm');
 const path=require('node:path');
-const base=path.join(__dirname,'..');
-const source=fs.readFileSync(path.join(base,'learning-map.js'),'utf8');
-const curriculum=fs.readFileSync(path.join(base,'learning-curriculum.js'),'utf8');
-const html=fs.readFileSync(path.join(base,'index.html'),'utf8');
-
-class FakeNode {
-  constructor(tag) {
-    this.tagName=tag.toLowerCase();this.children=[];this.attributes={};
-    this.listeners={};this.style={};this.className='';this.dataset={};
-    this.textContent='';this.parentNode=null;this.hidden=false;
-  }
-  append(...nodes){
-    for(const child of nodes){
-      if(child.parentNode)child.parentNode.children=child.parentNode.children.filter(x=>x!==child);
-      child.parentNode=this;this.children.push(child);
-    }
-  }
-  before(node){assert.ok(this.parentNode);node.parentNode=this.parentNode;this.parentNode.children.splice(this.parentNode.children.indexOf(this),0,node);}
-  replaceChildren(...nodes){this.children.forEach(x=>x.parentNode=null);this.children=[];this.append(...nodes);}
-  get lastChild(){return this.children.at(-1)||null;}
-  setAttribute(name,value){this.attributes[name]=String(value);}
-  getAttribute(name){return this.attributes[name]??null;}
-  addEventListener(type,handler){(this.listeners[type]||=[]).push(handler);}
-  click(){(this.listeners.click||[]).forEach(fn=>fn({type:'click'}));}
-  focus(){this.focused=true;}
-  querySelectorAll(selector){
-    if(selector!=='button')throw Error('unimplemented selector '+selector);
-    return walk(this).filter(x=>x.tagName==='button');
-  }
+const source=fs.readFileSync(path.join(__dirname,'..','learning-map.js'),'utf8');
+const catalog=fs.readFileSync(path.join(__dirname,'..','learning-curriculum.js'),'utf8');
+const html=fs.readFileSync(path.join(__dirname,'..','index.html'),'utf8');
+class FakeNode{
+ constructor(tag){this.tagName=tag.toLowerCase();this.children=[];this.attributes={};this.listeners={};this.style={};this.dataset={};this.textContent='';this.className='';this.parentNode=null;this.hidden=false;}
+ append(...nodes){for(const node of nodes){if(node.parentNode)node.parentNode.children=node.parentNode.children.filter(x=>x!==node);node.parentNode=this;this.children.push(node);}}
+ before(node){assert.ok(this.parentNode);node.parentNode=this.parentNode;this.parentNode.children.splice(this.parentNode.children.indexOf(this),0,node);}
+ replaceChildren(...nodes){this.children.forEach(n=>n.parentNode=null);this.children=[];this.append(...nodes);}
+ get lastChild(){return this.children.at(-1)||null;}
+ addEventListener(type,fn){(this.listeners[type]||=[]).push(fn);}
+ setAttribute(a,b){this.attributes[a]=String(b);}
+ getAttribute(a){return this.attributes[a]??null;}
+ click(){for(const fn of this.listeners.click||[])fn({type:'click'});}
+ focus(){this.focused=true;}
+ querySelectorAll(selector){if(selector!=='button')throw Error('unsupported selector');return walk(this).filter(n=>n.tagName==='button');}
 }
-function walk(node){return [node,...node.children.flatMap(walk)];}
-function content(node){return [node.textContent,...node.children.map(content)].join(' ');}
-const named=(root,name)=>walk(root).filter(x=>x.className.split(' ').includes(name));
-const store=()=>({
-  values:new Map(),
-  getItem(key){return this.values.get(key)||null;},
-  setItem(key,value){this.values.set(key,value);}
-});
-function fixture(memory=store()){
-  const body=new FakeNode('body'),head=new FakeNode('head'),guest=new FakeNode('section');
-  guest.id='guestbook';body.append(guest);
-  const window={localStorage:memory};
-  const document={body,head,createElement:tag=>new FakeNode(tag),
-    getElementById:id=>walk(body).find(node=>node.id===id)||null};
-  // Poison objects that previously provided map topics and score progress:
-  const poisoned=new Proxy({}, {get(){throw Error('question bank is forbidden');}});
-  const context={window,document,questionBank:poisoned,MANSIONS:poisoned,
-    quizCompletedIds:poisoned,console};
-  vm.runInNewContext(curriculum,context,{filename:'learning-curriculum.js',timeout:1000});
-  vm.runInNewContext(source,context,{filename:'learning-map.js',timeout:1000});
-  const root=document.getElementById('learningMap');
-  assert.ok(root,'map mounted');
-  return{window,root,memory,byClass:name=>named(root,name),
-    byId:id=>document.getElementById(id)};
+const walk=n=>[n,...n.children.flatMap(walk)];
+const text=n=>[n.textContent,...n.children.map(text)].join(' ');
+const byClass=(node,cls)=>walk(node).filter(n=>n.className.split(' ').includes(cls));
+const memory=()=>({data:new Map(),getItem(k){return this.data.get(k)||null;},setItem(k,v){this.data.set(k,v);}});
+function context(saved=memory()){
+ const body=new FakeNode('body'),head=new FakeNode('head'),guest=new FakeNode('section');guest.id='guestbook';body.append(guest);
+ const login=new FakeNode('button');login.id='playerSignInBtn';
+ const events={};let memberToken='';
+ const requests=[];let responses=[];
+ const window={localStorage:saved,QUIZ_AUTH_CONFIG:{supabaseUrl:'https://mock.supabase.co',publishableKey:'test-publishable'},quizMemberToken:()=>memberToken,
+  addEventListener(name,fn){(events[name]||=[]).push(fn);},
+  dispatchEvent(event){for(const fn of events[event.type]||[])fn(event);}
+ };
+ const document={body,head,createElement:tag=>new FakeNode(tag),getElementById:id=>id==='playerSignInBtn'?login:walk(body).find(n=>n.id===id)||null};
+ vm.runInNewContext(catalog,{window},{timeout:1000});
+ const data=window.NUMEROLOGY_CURRICULUM;
+ const fetch=(url,options)=>{requests.push({url,options});const resolve=responses.shift();return resolve?resolve(url,options):Promise.resolve({ok:false,status:403,json:async()=>[]});};
+ vm.runInNewContext(source,{window,document,fetch,console},{timeout:1000});
+ const root=document.getElementById('learningMap');
+ return {root,window,data,login,requests,responses,byClass:cls=>byClass(root,cls),byId:id=>document.getElementById(id),
+  setMember(value){memberToken=value;window.dispatchEvent({type:'quiz-member-session-changed'});},
+  makeMemberRows(){return [...data.topics,...data.mansions].filter(x=>x.access_tier==='member').map(x=>({
+   id:x.id,access_tier:'member',lead:'已核實的會員教材：'+x.title,
+   points:['會員專屬重點一','會員專屬重點二','會員專屬重點三'],method:'研究方法',question:'思考問題',caution:'證據界線',
+   sources:['han'],atlas_name:x.id.startsWith('mansion-')?x.title.slice(0,1):null
+  }));}
+ };
 }
-test('independent curriculum has 11 editorial topics, 28 unique mansion lessons and linked sources',()=>{
-  const w={};vm.runInNewContext(curriculum,{window:w},{timeout:1000});
-  const d=w.NUMEROLOGY_CURRICULUM;
-  assert.equal(d.topics.length,11);assert.equal(d.mansions.length,28);
-  assert.equal(new Set([...d.topics,...d.mansions].map(x=>x.id)).size,39);
-  for(const x of [...d.topics,...d.mansions]){
-    assert.ok(x.lead.length>15&&x.method.length>12&&x.question.length>10);
-    assert.ok(x.points.length>=3&&x.caution.length>12);
-    assert.ok(x.sources.length>=1);
-    for(const ref of x.sources)assert.match(d.sources[ref].url,/^https:\/\//);
-  }
-  assert.equal(d.mansions.filter(x=>x.group==='東方青龍').length,7);
-  assert.equal(d.mansions.filter(x=>x.group==='北方玄武').length,7);
-  assert.equal(d.mansions.filter(x=>x.group==='西方白虎').length,7);
-  assert.equal(d.mansions.filter(x=>x.group==='南方朱雀').length,7);
+const settle=()=>new Promise(resolve=>setImmediate(resolve));
+test('catalog publishes only 3 intro bodies, 36 titles and no member content',()=>{
+ const f=context();
+ assert.equal(f.data.topics.length,11);assert.equal(f.data.mansions.length,28);
+ assert.equal([...f.data.topics,...f.data.mansions].filter(x=>x.access_tier==='intro').length,3);
+ for(const x of [...f.data.topics,...f.data.mansions].filter(x=>x.access_tier==='member')){
+  assert.equal(x.lead,undefined);
+  for(const k of ['points','method','question','caution','sources','atlasName'])assert.equal(x[k],undefined);
+ }
+ assert.doesNotMatch(source,/questionBank|quizCompletedIds|inferKnowledgeType|quiz-answer-graded|challenge-bank-loaded/);
+ assert.match(html,/<script src="\.\/learning-curriculum\.js"><\/script>\s*<script src="\.\/learning-map\.js"><\/script>/);
 });
-test('index uses standalone material and no quiz bank event dependency',()=>{
-  new vm.Script(curriculum);new vm.Script(source);
-  assert.match(html, /<script src="\.\/learning-curriculum\.js"><\/script>\s*<script src="\.\/learning-map\.js"><\/script>/);
-  assert.doesNotMatch(source,/questionBank|quizMemberToken|quizCompletedIds|inferKnowledgeType|Supabase|quiz-answer-graded|challenge-bank-loaded|fetch\(/);
-  assert.doesNotMatch(curriculum,/questionBank|quizMemberToken|quizCompletedIds|quiz_submit_choice|fetch\(/);
+test('guests can read only 3 intro modules and never call protected API',()=>{
+ const f=context();assert.equal(f.requests.length,0);
+ assert.equal(f.byClass('learn-map-node').length,11);
+ assert.match(text(f.root),/遊客入門：已標記閱讀 0／3 單元/);
+ assert.match(text(f.byClass('learn-map-detail')[0]),/《漢書》/);
+ f.byClass('learn-map-node')[4].click();
+ assert.match(text(f.byClass('learn-map-detail')[0]),/註冊／登入會員解鎖全部教材/);
+ assert.doesNotMatch(text(f.byClass('learn-map-detail')[0]),/學習重點/);
+ assert.equal(f.requests.length,0);
+ f.byClass('learn-map-action')[0].click();assert.equal(f.login.listeners.click?.length||0,0);
 });
-test('map displays 11 written lessons with citations independent of any quiz state',()=>{
-  const f=fixture();
-  assert.equal(f.byClass('learn-map-node').length,11);
-  const article=f.byClass('learn-map-detail')[0];
-  assert.match(content(article),/數術文獻與歷史分類/);
-  assert.match(content(article),/學習重點/);
-  assert.match(content(article),/史料與研究方法/);
-  assert.match(content(article),/證據界線/);
-  assert.match(content(article),/《漢書》卷三十/);
-  assert.match(content(f.root),/獨立教材：已標記閱讀 0／39 單元/);
-  assert.doesNotMatch(content(f.root),/對應題庫|答對.*題/);
+test('member requests 36 rows with Bearer token and displays protected content after verification',async()=>{
+ const f=context();
+ f.responses.push(async()=>({ok:true,json:async()=>f.makeMemberRows()}));
+ f.setMember('verified-test-token');await settle();
+ assert.equal(f.requests.length,1);
+ assert.match(f.requests[0].url,/access_tier=eq.member/);
+ assert.equal(f.requests[0].options.headers.Authorization,'Bearer verified-test-token');
+ assert.match(text(f.root),/會員教材：已標記閱讀 0／39 單元/);
+ f.byClass('learn-map-node')[4].click();
+ assert.match(text(f.byClass('learn-map-detail')[0]),/已核實的會員教材/);
+ assert.match(text(f.byClass('learn-map-detail')[0]),/會員專屬重點一/);
 });
-test('read markers are local, reversible and never modify scored challenge state',()=>{
-  const memory=store();const f=fixture(memory);
-  const action=f.byClass('learn-map-action')[0];
-  action.click();
-  assert.match(content(f.root),/獨立教材：已標記閱讀 1／39 單元/);
-  assert.match(content(f.root),/✓ 已標記閱讀/);
-  assert.equal(JSON.parse(memory.getItem('numerology-standalone-learning-reading-v1')).length,1);
-  const second=fixture(memory);
-  assert.match(content(second.root),/已標記閱讀 1／39 單元/);
-  second.byClass('learn-map-action')[0].click();
-  assert.match(content(second.root),/已標記閱讀 0／39 單元/);
+test('logout immediately purges protected content; previous reading is not exposed to guests',async()=>{
+ const f=context();f.responses.push(async()=>({ok:true,json:async()=>f.makeMemberRows()}));
+ f.setMember('test-token');await settle();
+ f.byClass('learn-map-node')[4].click();
+ f.byClass('learn-map-action')[0].click();
+ assert.match(text(f.root),/已標記閱讀 1／39 單元/);
+ f.setMember('');
+ assert.match(text(f.root),/遊客入門：已標記閱讀 0／3 單元/);
+ assert.doesNotMatch(text(f.byClass('learn-map-detail')[0]),/會員專屬重點一/);
+ assert.equal(f.requests.length,1);
 });
-test('28 mansion lessons show group headings and exact atlas deep-link',()=>{
-  const f=fixture();
-  f.byId('learn-map-tab-mansions').click();
-  assert.equal(f.byClass('learn-map-node').length,28);
-  assert.equal(f.byClass('learn-map-path-heading').length,4);
-  assert.match(content(f.root),/角宿/);
-  const link=walk(f.byClass('learn-map-detail')[0]).find(x=>x.className==='learn-map-atlas');
-  assert.equal(link.href,'./mansions-atlas.html?m='+encodeURIComponent('角'));
-  assert.match(content(f.root),/史料與研究方法/);
+test('HTTP 403 and incomplete data fail closed, while intro remains readable',async()=>{
+ const f=context();f.responses.push(async()=>({ok:false,status:403,json:async()=>[]}));
+ f.setMember('expired');await settle();
+ assert.match(text(f.byClass('learn-map-detail')[0]),/數術文獻與歷史分類/);
+ f.byClass('learn-map-node')[5].click();
+ assert.match(text(f.byClass('learn-map-detail')[0]),/未能通過會員教材驗證/);
+ assert.doesNotMatch(text(f.root),/會員專屬重點一/);
+ f.responses.push(async()=>({ok:true,json:async()=>f.makeMemberRows().slice(0,1)}));
+ f.setMember('incomplete');await settle();
+ assert.match(text(f.byClass('learn-map-detail')[0]),/會員教材回傳不完整/);
 });
-test('storage failures do not block lesson reading',()=>{
-  const f=fixture({getItem(){throw Error('blocked');},setItem(){throw Error('blocked');}});
-  assert.equal(f.byClass('learn-map-node').length,11);
-  f.byClass('learn-map-action')[0].click();
-  assert.match(content(f.root),/無法儲存/);
-  assert.match(content(f.root),/已標記閱讀 1／39 單元/);
+test('stale response after logout never restores member lessons',async()=>{
+ const f=context();let deliver;
+ f.responses.push(()=>new Promise(resolve=>{deliver=resolve;}));
+ f.setMember('temporary-token');await settle();
+ f.setMember('');
+ deliver({ok:true,json:async()=>f.makeMemberRows()});
+ await settle();await settle();
+ assert.match(text(f.root),/遊客入門：已標記閱讀 0／3 單元/);
+ f.byClass('learn-map-node')[6].click();
+ assert.doesNotMatch(text(f.byClass('learn-map-detail')[0]),/會員專屬重點一/);
 });
