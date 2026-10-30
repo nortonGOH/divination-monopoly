@@ -168,7 +168,7 @@ function onLockedWheelClick(){
 }
 const dialog=node('dialog','','player-dialog');
 const heading=node('h2','數術知識挑戰・帳號登入');
-const intro=node('p','請使用自己的電子郵件註冊。同一帳號累計答錯五次，將暫停挑戰三十分鐘；期滿歸零。\n\n✦ 文昌星救援：答錯時，可自行選擇是否使用 1 次救援，查看正確答案與解析。每答對 1 題累積 1 點文昌點數；首次解鎖答錯題目的正解使用 1 點，已解鎖不重複扣點；不定時補點。救援不會抵銷答錯次數，也不會提前解除挑戰鎖定。');
+const intro=node('p','請使用自己的電子郵件註冊。同一帳號累計答錯五次，將暫停挑戰三十分鐘；期滿歸零。\n\n✦ 文昌星救援：答錯時，可自行選擇是否使用 1 次救援，查看正確答案與解析。每答對 1 題累積 1 點文昌點數；首次解鎖答錯題目的正解使用 1 點，已解鎖不重複扣點；沒有定時補點與上限。救援不會抵銷答錯次數，也不會提前解除挑戰鎖定。');
 const form=node('form');form.id='playerAuthForm';
 const elabel=node('label','電子郵件'),email=node('input');email.type='email';email.required=true;email.autocomplete='email';email.inputMode='email';email.maxLength=254;email.id='playerEmail';elabel.append(email);
 const nicknameLabel=node('label','暱稱（2–18字，可使用中英文、數字、底線、連字號）'),nickname=node('input');nickname.type='text';nickname.id='playerNickname';nickname.maxLength=18;nickname.autocomplete='nickname';nicknameLabel.append(nickname);
