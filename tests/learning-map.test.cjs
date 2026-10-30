@@ -146,6 +146,8 @@ test('the astronomy route has all twenty-eight distinct mansion milestones',()=>
   first.click();
   assert.match(content(f.nodes('learn-map-detail')[0]),/已完成本關/);
   assert.match(content(f.nodes('learn-map-detail')[0]),/前往二十八宿互動圖鑑/);
+  const atlasLink = walk(f.nodes('learn-map-detail')[0]).find(n => n.tagName === 'a');
+  assert.equal(atlasLink.href, './mansions-atlas.html?m=' + encodeURIComponent('角'));
   assert.match(content(f.nodes('learn-map-detail')[0]),/原有轉盤隨機抽宿/);
 });
 
