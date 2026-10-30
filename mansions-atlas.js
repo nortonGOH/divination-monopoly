@@ -1,7 +1,7 @@
 /* 二十八宿圖鑑：靜態教學資料；不存取會員、題庫或 Supabase。史料摘要依《史記・天官書》整理。 */
 (()=>{
 'use strict';
-const SOURCE='https://guoxue3000.com/tw/books/266/chapters/30';
+const SOURCE='https://zh.wikisource.org/zh-hant/%E5%8F%B2%E8%A8%98/%E5%8D%B7027';
 const groups=[
   {name:'東方青龍',color:'#286f67',label:'青龍',items:[
     ['角','角','左角稱李，右角稱將；同段另論大角與攝提。','大角、攝提（同段另述，非角宿的附屬星官）','左角為李、右角為將'],
