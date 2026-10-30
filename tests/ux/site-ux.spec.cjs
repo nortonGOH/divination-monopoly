@@ -83,7 +83,7 @@ test('learning map navigation opens readable content and persists as an anchor e
   const nav=page.getByRole('navigation',{name:'網站快速導覽'});
   const map=page.locator('#learningMap');
   await nav.getByRole('link',{name:'互動學習地圖'}).click();
-  await expect(page).toHaveURL(/#learningMap$/);
+  await expect(page.locator('#learningMapDialog')).toBeVisible();
   await expect(map).toBeVisible();
   await expect(map.locator('.learn-map-node')).toHaveCount(11);
   await expect(map.locator('.learn-map-detail')).toContainText('數術文獻與歷史分類');
@@ -92,11 +92,27 @@ test('learning map navigation opens readable content and persists as an anchor e
   // Simulate a missing map script. The HTML fallback must still present 3 readable intros.
   await page.route('**/learning-map.js', route=>route.abort());
   await page.reload();
-  await expect(page).toHaveURL(/#learningMap$/);
+  await nav.getByRole('link',{name:'互動學習地圖'}).click();
+  await expect(page.locator('#learningMapDialog')).toBeVisible();
   await expect(map).toBeVisible();
   await expect(map.locator('details')).toHaveCount(3);
   await expect(map.locator('details').first()).toContainText('數術文獻與歷史分類');
   await expect(map.locator('details').nth(1)).toContainText('陰陽、五行');
   await expect(map.locator('details').nth(2)).toContainText('干支、曆譜');
   await expect(map.locator('.learn-map-node')).toHaveCount(0);
+});
+
+test('learning map modal preserves homepage, closes with Escape, restores focus',async({page})=>{
+ const opener=page.getByRole('link',{name:'互動學習地圖'});
+ await opener.click();
+ const dialog=page.locator('#learningMapDialog');
+ await expect(dialog).toBeVisible();
+ await expect(dialog.locator('.learn-map-node')).toHaveCount(11);
+ await page.keyboard.press('Escape');
+ await expect(dialog).not.toBeVisible();
+ await expect(opener).toBeFocused();
+ await expect(page).not.toHaveURL(/#learningMap$/);
+ await opener.click();
+ await dialog.getByRole('button',{name:'關閉學習地圖'}).click();
+ await expect(dialog).not.toBeVisible();
 });
