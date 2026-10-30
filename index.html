@@ -207,6 +207,18 @@
     .learn-map-fallback-lessons summary{cursor:pointer;font-weight:700}
     .learn-map-fallback-note{font-size:.8rem;color:#64706c}
     @media(max-width:550px){.learn-map-fallback{padding:14px}}
+    .learning-map-dialog{box-sizing:border-box;position:fixed;width:min(1100px,calc(100vw - 32px));max-width:none;max-height:calc(100dvh - 32px);margin:auto;padding:0;background:#f5f0e4;border:2px solid #bfae8f;border-radius:17px;box-shadow:0 26px 100px #101c2380;overflow:auto;overscroll-behavior:contain;color:#25313b}
+    .learning-map-dialog::backdrop{background:rgba(12,25,33,.72);backdrop-filter:blur(3px)}
+    .learning-map-dialog-bar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#284f4a;color:#fff;padding:12px 20px;border-bottom:2px solid #bfab83}
+    .learning-map-dialog-bar strong{font-size:1rem;letter-spacing:.04em}
+    .learning-map-dialog-close,.learning-map-atlas-back{cursor:pointer;min-height:44px;border:1px solid #e4d1aa;background:#fff7e6;color:#28423b;font:700 .88rem system-ui,sans-serif;border-radius:10px;padding:8px 17px}
+    .learning-map-dialog-close:focus-visible,.learning-map-dialog button:focus-visible,.learning-map-dialog a:focus-visible{outline:3px solid #d5a33b;outline-offset:3px}
+    .learning-map-dialog #learningMap{margin:0;border:0;border-radius:0;box-shadow:none}
+    .learning-map-atlas-panel{padding:16px}
+    .learning-map-atlas-panel[hidden]{display:none}
+    .learning-map-atlas-panel iframe{display:block;width:100%;height:min(70dvh,730px);border:1px solid #ccbb9d;border-radius:9px;background:#fff;margin-top:12px}
+    .learning-map-noscript{padding:14px;background:#fff8e9}
+    @media(max-width:550px){.learning-map-dialog{width:calc(100vw - 12px);max-height:calc(100dvh - 12px);border-radius:12px}.learning-map-dialog-bar{padding:9px 12px}.learning-map-dialog-bar strong{font-size:.9rem}.learning-map-dialog-close{padding:8px 10px}.learning-map-atlas-panel{padding:8px}}
   </style>
   <link rel="stylesheet" href="./site-ux.css">
   <link rel="stylesheet" href="./guestbook.css">
@@ -344,7 +356,12 @@
       <p class="notes">此為數術知識練習遊戲。題目與星宿配對是互動設計，並非天文觀測或占驗規則。</p>
     </aside>
   </main>
-  <section id="learningMap" class="learn-map-fallback" aria-labelledby="learningMapTitle">
+  <dialog id="learningMapDialog" class="learning-map-dialog" aria-labelledby="learningMapDialogTitle">
+    <div class="learning-map-dialog-bar">
+      <strong id="learningMapDialogTitle">數術知識學習地圖</strong>
+      <button type="button" id="learningMapCloseBtn" class="learning-map-dialog-close" aria-label="關閉學習地圖">✕　關閉</button>
+    </div>
+    <section id="learningMap" class="learn-map-fallback" aria-labelledby="learningMapTitle">
     <h2 id="learningMapTitle">數術知識學習地圖</h2>
     <p>遊客可直接閱讀三篇入門教材；登入會員後可閱讀全部 39 個數術知識與二十八宿單元。</p>
     <p>如果完整互動地圖尚未載入，以下入門導讀仍可直接閱讀：</p>
@@ -364,6 +381,12 @@
     </div>
     <p class="learn-map-fallback-note">完整地圖若未出現，請重新整理網頁；會員課文不會在此公開區塊提供。</p>
   </section>
+    <div id="learningMapAtlasPanel" class="learning-map-atlas-panel" hidden>
+      <button type="button" id="learningMapAtlasBack" class="learning-map-atlas-back">← 返回學習地圖</button>
+      <iframe id="learningMapAtlasFrame" title="二十八宿互動圖鑑（學習地圖內嵌檢視）" loading="lazy"></iframe>
+    </div>
+  </dialog>
+  <noscript><p class="learning-map-noscript">數術知識學習地圖使用彈出視窗，需啟用 JavaScript 才能操作。遊客仍可從公開文獻認識數術基本概念。</p></noscript>
   <section class="guestbook" id="guestbook" aria-labelledby="guestbookTitle">
     <div class="guestbook-heading">
       <div>
@@ -1154,5 +1177,6 @@ initializeBank();
 <script src="./quiz-question-modal.js"></script>
 <script src="./learning-curriculum.js"></script>
 <script src="./learning-map.js"></script>
+<script src="./learning-map-modal.js"></script>
 </body>
 </html>
