@@ -59,7 +59,12 @@ async function setup(page,{initialCredits=3,revealFails=false}={}) {
  await page.locator('#playerPassword').fill('mock-password-123');
  await page.getByRole('button',{name:'登入',exact:true}).click();
  await expect(page.locator('#playerStateText')).toContainText('測試玩家');
- await page.evaluate(()=>showQuestion(questionBank[0],6));
+ await page.evaluate(()=>{
+  const slot=BOARD_SLOTS.findIndex(s=>s.type==='mansion'&&s.mansionIndex===0);
+  finishSpin(slot);
+  showQuestion(questionBank[0],6);
+ });
+ await expect(page.locator('.quiz-panel')).toBeVisible();
  await expect(page.locator('#answerOptions button')).toHaveCount(4);
  await page.locator('#answerOptions button').first().click();
  await expect(page.locator('dialog.wenchang-dialog')).toBeVisible();
