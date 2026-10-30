@@ -1,0 +1,75 @@
+name: Wenchang verified-answer points isolation tests
+on:
+  pull_request:
+    paths:
+      - 'supabase/30_wenchang_correct_answers_points.sql'
+      - 'tests/wenchang/**'
+      - 'quiz-challenge-v7.js'
+      - 'trial-wenchang-card.js'
+      - 'wenchang-rescue-cards.js'
+      - 'guestbook.js'
+      - 'index.html'
+      - 'tests/ux/wenchang-rescue-cards.spec.cjs'
+      - '.github/workflows/wenchang-earned-points-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  isolated-postgres:
+    name: Security and accounting (disposable Postgres)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: isolated-wenchang-ci
+          POSTGRES_DB: wenchang_ci
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d wenchang_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: isolated-wenchang-ci
+      PGDATABASE: wenchang_ci
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+      - name: Create disposable fixtures without production access
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/wenchang/isolated-setup.sql
+      - name: Apply new RPCs and ledger to disposable database
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/30_wenchang_correct_answers_points.sql
+      - name: Assert balance, unlocks, permission boundaries and old history
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/wenchang/isolated-assert.sql
+  mocked-browser:
+    name: Wenchang browser UI (mock Supabase only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: tests/ux
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JavaScript syntax check
+        run: |
+          node --check ../../quiz-challenge-v7.js
+          node --check ../../trial-wenchang-card.js
+          node --check ../../wenchang-rescue-cards.js
+          node --check ../../guestbook.js
+          node --check wenchang-rescue-cards.spec.cjs
+      - name: Install pinned Playwright
+        run: npm ci --no-audit --no-fund
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Test seven Wenchang card flows
+        run: npx playwright test wenchang-rescue-cards.spec.cjs
