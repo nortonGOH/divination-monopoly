@@ -5,6 +5,9 @@ on:
       - 'index.html'
       - 'learning-map.js'
       - 'learning-curriculum.js'
+      - 'learning-curriculum-admin.js'
+      - 'database/learning-curriculum-admin-editor.sql'
+      - 'tests/learning-curriculum-admin.test.cjs'
       - 'tests/learning-map.test.cjs'
       - '.github/workflows/learning-map.yml'
   pull_request:
@@ -12,6 +15,9 @@ on:
       - 'index.html'
       - 'learning-map.js'
       - 'learning-curriculum.js'
+      - 'learning-curriculum-admin.js'
+      - 'database/learning-curriculum-admin-editor.sql'
+      - 'tests/learning-curriculum-admin.test.cjs'
       - 'tests/learning-map.test.cjs'
       - '.github/workflows/learning-map.yml'
 permissions:
@@ -26,6 +32,6 @@ jobs:
         with:
           node-version: '22'
       - name: Check curriculum and learning map JavaScript syntax
-        run: node --check learning-curriculum.js && node --check learning-map.js
+        run: node --check learning-curriculum.js && node --check learning-map.js && node --check learning-curriculum-admin.js
       - name: Run isolated UI and progress checks
-        run: node --test tests/learning-map.test.cjs
+        run: node --test tests/learning-map.test.cjs tests/learning-curriculum-admin.test.cjs
