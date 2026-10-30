@@ -71,7 +71,7 @@ test('all four rescue card types are accessible and free guidance does not debit
  const {calls,state}=await setup(page);
  await page.locator('[data-card="read"]').click();
  await expect(page.locator('#wenchangCardDetail')).toContainText('北方七宿');
- await expect(page.locator('#wenchangCardDetail')).toContainText('推理');
+ await expect(page.locator('#wenchangCardDetail')).toContainText('思考方向');
  await page.locator('[data-card="compare"]').click();
  const option=page.locator('.wenchang-compare-option').first();
  await expect(option).toHaveAttribute('aria-pressed','false');
@@ -114,7 +114,7 @@ test('failed server rescue never invents a result and allows a controlled retry'
  await page.locator('[data-card="reveal"]').click();
  const button=page.locator('#wenchangCardRevealAction');
  await button.click();
- await expect(page.locator('.wenchang-credit')).toContainText('mock rescue unavailable');
+ await expect(page.locator('dialog.wenchang-dialog')).toContainText('mock rescue unavailable');
  await expect(button).toBeEnabled();
  await expect(page.locator('.wenchang-answer')).toBeHidden();
  expect(revealCalls(calls)).toHaveLength(1);
