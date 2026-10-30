@@ -25,7 +25,10 @@ const text=n=>[n.textContent,...n.children.map(text)].join(' ');
 const byClass=(node,cls)=>walk(node).filter(n=>n.className.split(' ').includes(cls));
 const memory=()=>({data:new Map(),getItem(k){return this.data.get(k)||null;},setItem(k,v){this.data.set(k,v);}});
 function context(saved=memory()){
- const body=new FakeNode('body'),head=new FakeNode('head'),guest=new FakeNode('section');guest.id='guestbook';body.append(guest);
+ const body=new FakeNode('body'),head=new FakeNode('head'),guest=new FakeNode('section');
+ const placeholder=new FakeNode('section');placeholder.id='learningMap';placeholder.className='learn-map-fallback';
+ const fallbackTitle=new FakeNode('h2');fallbackTitle.textContent='數術知識學習地圖';placeholder.append(fallbackTitle);
+ guest.id='guestbook';body.append(placeholder,guest);
  const login=new FakeNode('button');login.id='playerSignInBtn';
  const events={};let memberToken='';
  const requests=[];let responses=[];
@@ -39,6 +42,9 @@ function context(saved=memory()){
  const fetch=(url,options)=>{requests.push({url,options});const resolve=responses.shift();return resolve?resolve(url,options):Promise.resolve({ok:false,status:403,json:async()=>[]});};
  vm.runInNewContext(source,{window,document,fetch,console},{timeout:1000});
  const root=document.getElementById('learningMap');
+ assert.equal(root,placeholder,'must hydrate the existing permanent section');
+ assert.equal(root.dataset.mapEnhanced,'true');
+ assert.equal(root.className,'learn-map');
  return {root,window,data,login,requests,responses,byClass:cls=>byClass(root,cls),byId:id=>document.getElementById(id),
   setMember(value){memberToken=value;window.dispatchEvent({type:'quiz-member-session-changed'});},
   makeMemberRows(){return [...data.topics,...data.mansions].filter(x=>x.access_tier==='member').map(x=>({
@@ -59,6 +65,10 @@ test('catalog publishes only 3 intro bodies, 36 titles and no member content',()
  }
  assert.doesNotMatch(source,/questionBank|quizCompletedIds|inferKnowledgeType|quiz-answer-graded|challenge-bank-loaded/);
  assert.match(html,/<script src="\.\/learning-curriculum\.js"><\/script>\s*<script src="\.\/learning-map\.js"><\/script>/);
+ assert.match(html,/<section id="learningMap" class="learn-map-fallback"/);
+ assert.match(html,/入門一｜數術文獻與歷史分類/);
+ assert.match(html,/入門二｜陰陽、五行與關聯思維/);
+ assert.match(html,/入門三｜干支、曆譜與歲時/);
 });
 test('guests can read only 3 intro modules and never call protected API',()=>{
  const f=context();assert.equal(f.requests.length,0);
@@ -115,4 +125,20 @@ test('stale response after logout never restores member lessons',async()=>{
  assert.match(text(f.root),/遊客入門：已標記閱讀 0／3 單元/);
  f.byClass('learn-map-node')[6].click();
  assert.doesNotMatch(text(f.byClass('learn-map-detail')[0]),/會員專屬重點一/);
+});
+
+test('missing curriculum scripts preserve the public introductory fallback instead of an empty region',()=>{
+ const body=new FakeNode('body'),head=new FakeNode('head'),guest=new FakeNode('section');
+ guest.id='guestbook';
+ const fallback=new FakeNode('section');fallback.id='learningMap';fallback.className='learn-map-fallback';
+ const heading=new FakeNode('h2');heading.textContent='數術知識學習地圖';
+ const intro=new FakeNode('p');intro.textContent='遊客可閱讀入門教材';
+ fallback.append(heading,intro);body.append(fallback,guest);
+ const window={localStorage:memory()};
+ const document={body,head,createElement:tag=>new FakeNode(tag),getElementById:id=>walk(body).find(x=>x.id===id)||null};
+ vm.runInNewContext(source,{window,document},{timeout:1000});
+ assert.equal(document.getElementById('learningMap'),fallback);
+ assert.equal(fallback.className,'learn-map-fallback');
+ assert.match(text(fallback),/數術知識學習地圖/);
+ assert.match(text(fallback),/遊客可閱讀入門教材/);
 });
