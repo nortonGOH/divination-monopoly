@@ -57,7 +57,7 @@
   const types = [
     ['read','◇','審題羅盤','整理題幹、分類與推理方向','免費'],
     ['compare','▦','選項推敲','自己標記需要排除的選項','免費'],
-    ['reveal','✦','文昌解惑','驗證身分後解鎖正確答案與解析','1 次救援'],
+    ['reveal','✦','文昌解惑','驗證身分後解鎖正確答案與解析','1 點（答對可賺取）'],
     ['notes','✎','溫故札記','寫下疑問並複製個人筆記','免費']
   ];
   const choices = new Map();
@@ -117,8 +117,8 @@
       add(detail,'p','排除只是使用者標記；不代表選項正誤，不會影響正式成績。','wenchang-footnote');
     } else if(id==='reveal') {
       add(detail,'h3','文昌解惑・查看正解與解析');
-      add(detail,'p','使用前請確認剩餘救援次數。僅由後端判定扣點；同題已解鎖時由後端決定是否免扣。');
-      const button=add(detail,'button','使用 1 次救援解鎖','wenchang-paid-action');
+      add(detail,'p','每答對 1 題可得 1 點，首次解鎖扣 1 點；已解鎖的答案可免費重看。點數由伺服器核實。');
+      const button=add(detail,'button','使用 1 點解鎖','wenchang-paid-action');
       button.type='button';
       button.id='wenchangCardRevealAction';
       button.addEventListener('click',()=>{
@@ -168,7 +168,7 @@
     } else {
       if(!yes.disabled)pending=false;
       button.disabled=yes.disabled||pending;
-      button.textContent=pending?'正在聯繫伺服器…':'使用 1 次救援解鎖';
+      button.textContent=pending?'正在聯繫伺服器…':'使用 1 點解鎖';
     }
   }
   new MutationObserver(syncReveal).observe(yes,{attributes:true,attributeFilter:['hidden','disabled']});

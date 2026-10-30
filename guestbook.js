@@ -67,7 +67,7 @@ function render(rows){
   const actions=node('div',undefined,'guestbook-item-actions');
   const awarded=Number(message.awarded_points);
   if(Number.isInteger(awarded)&&awarded>=1){
-   actions.append(node('span','✦ 已獲管理員贈送文昌星救援 '+awarded+' 點','guestbook-award'));
+   actions.append(node('span','✦ 舊制歷史贈點 '+awarded+' 點（新制不計入）','guestbook-award'));
   }
   if(message.is_owner&&member()){
    addButton(actions,'修改我的留言',()=>{
@@ -79,19 +79,7 @@ function render(rows){
   }
   if(administrator()){
    addButton(actions,'管理員刪除',()=>remove(message.id,true));
-   if(!(Number.isInteger(awarded)&&awarded>=1)){
-    const chooser=node('select');chooser.setAttribute('aria-label','贈送文昌星救援點數');
-    for(const amount of [1,2,3]){
-     const option=node('option','贈 '+amount+' 點');option.value=String(amount);chooser.append(option);
-    }
-    actions.append(chooser);
-    addButton(actions,'管理員贈點',async()=>{
-      const amount=Number(chooser.value);
-      if(!confirm('確定贈送 '+amount+' 點文昌星救援給「'+(message.nickname||'註冊會員')+'」？每則留言只能贈送一次，餘額最多 10 點。'))return;
-      await operate('quiz_guestbook_grant_wenchang',{p_id:message.id,p_amount:amount},administrator(),
-       '贈點已完成，管理員已核准 '+amount+' 點。');
-    });
-   }
+
   }
   card.append(heading,body,actions);list.append(card);
  }

@@ -63,7 +63,7 @@ async function asMember(page,token){
 async function asAdmin(page){
  await page.evaluate(()=>{adminAccessToken='admin-token';
   window.dispatchEvent(new Event('quiz-admin-session-changed'));});
- await expect(page.getByRole('button',{name:'管理員贈點'})).toHaveCount(2);
+ await expect(page.getByRole('button',{name:'管理員刪除'})).toHaveCount(2);
 }
 test('anonymous reads sanitized public messages, cannot post or modify',async({page})=>{
  const state=await boot(page);
@@ -104,22 +104,21 @@ test('unprivileged users cannot edit or delete another member even with crafted 
  expect(result.body.message).toContain('不能刪除');
  expect(state.messages.find(x=>x.id==='message-b').deleted).not.toBe(true);
 });
-test('only administrator has delete and discretionary grant controls, cannot grant twice',async({page})=>{
+test('administrator can delete, but obsolete grant UI and RPC are retired',async({page})=>{
  const state=await boot(page);await asAdmin(page);
  const b=page.locator('.guestbook-item[data-message-id="message-b"]');
- await b.getByRole('combobox',{name:'贈送文昌星救援點數'}).selectOption('2');
- page.once('dialog',dlg=>dlg.accept());
- await b.getByRole('button',{name:'管理員贈點'}).click();
- await expect(b).toContainText('已獲管理員贈送文昌星救援 2 點');
- await expect(b.getByRole('button',{name:'管理員贈點'})).toHaveCount(0);
- expect(state.wallet.b).toBe(5);
- const grants=state.calls.filter(x=>x.path.endsWith('/rpc/quiz_guestbook_grant_wenchang'));
- expect(grants).toHaveLength(1);
- expect(grants[0]).toMatchObject({token:'admin-token',p:{p_id:'message-b',p_amount:2}});
+ await expect(b.getByRole('button',{name:'管理員刪除'})).toBeVisible();
+ await expect(page.getByRole('button',{name:'管理員贈點'})).toHaveCount(0);
+ await expect(page.getByRole('combobox',{name:'贈送文昌星救援點數'})).toHaveCount(0);
+ state.messages.find(x=>x.id==='message-b').awarded_points=2;
+ await page.locator('#guestbookRefresh').click();
+ await expect(b).toContainText('舊制歷史贈點 2 點（新制不計入）');
+ await expect(page.getByRole('button',{name:'管理員贈點'})).toHaveCount(0);
+ expect(state.calls.filter(x=>x.path.endsWith('/rpc/quiz_guestbook_grant_wenchang'))).toHaveLength(0);
  page.once('dialog',dlg=>dlg.accept());
  await b.getByRole('button',{name:'管理員刪除'}).click();
  await expect(b).toHaveCount(0);
- expect(state.wallet.b).toBe(5);
+ expect(state.wallet.b).toBe(3);
 });
 test('mobile guestbook width and touch targets fit',async({page})=>{
  await page.setViewportSize({width:375,height:812});

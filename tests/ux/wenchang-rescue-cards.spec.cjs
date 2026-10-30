@@ -7,8 +7,8 @@ const QUESTION={
  options:['青龍','白虎','玄武','朱雀']
 };
 
-async function setup(page,{initialCredits=3,revealFails=false}={}) {
- const calls=[],state={credits:initialCredits,revealed:false};
+async function setup(page,{initialCredits=3,revealFails=false,alreadyUnlocked=false,legacyStatus=false}={}) {
+ const calls=[],state={credits:initialCredits,earned:initialCredits,spent:0,revealed:false,alreadyUnlocked};
  await page.route('**/*',async route=>{
   const req=route.request(),url=new URL(req.url());
   if(url.hostname==='127.0.0.1'){
@@ -30,19 +30,23 @@ async function setup(page,{initialCredits=3,revealFails=false}={}) {
   else if(path==='/auth/v1/token')result={access_token:'mock-wenchang-member-token'};
   else if(path.endsWith('/rpc/quiz_my_profile'))result={nickname:'測試玩家'};
   else if(path.endsWith('/rpc/quiz_player_status'))
-   result={wrong_count:0,locked:false,total_attempts:0,correct_attempts:0,success_rate:0};
+   result={wrong_count:0,locked:false,total_attempts:state.earned,correct_attempts:state.earned,success_rate:0};
   else if(path.endsWith('/rpc/quiz_answered_question_ids'))result=[];
   else if(path.endsWith('/rpc/quiz_submit_choice')){
    result={accepted:true,correct:false,wrong_count:1,locked:false,total_attempts:1,
-    correct_attempts:0,success_rate:0,correct_answer:null,explanation:''};
+    correct_attempts:state.earned,success_rate:0,correct_answer:null,explanation:''};
   }else if(path.endsWith('/rpc/quiz_wenchang_status')){
-   result={credits:state.credits,at_cap:false,next_grant_at:'2026-10-30T10:00:00Z'};
+   result={credits:state.credits,earned:state.earned,spent:state.spent,credit_source:legacyStatus?'legacy_wallet':'correct_answers'};
+  }else if(path.endsWith('/rpc/quiz_wenchang_question_access')){
+   result={can_reveal_without_points:state.alreadyUnlocked,already_unlocked:state.alreadyUnlocked,administrator_exempt:false};
   }else if(path.endsWith('/rpc/quiz_wenchang_reveal')){
    if(revealFails){status=503;result={message:'mock rescue unavailable'};}
    else{
-    if(!state.revealed){state.credits--;state.revealed=true;}
+    const used=!state.revealed&&!state.alreadyUnlocked;
+    if(used){state.credits--;state.spent++;}
+    state.revealed=true;state.alreadyUnlocked=true;
     result={correct_answer:2,explanation:'此為測試解析：北方七宿屬玄武。',
-      used_credit:state.credits===initialCredits-1,status:{credits:state.credits}};
+      used_credit:used,status:{credits:state.credits,earned:state.earned,spent:state.spent}};
    }
   }else if(path.endsWith('/rpc/quiz_learning_dashboard')){
    result={date:'2026-10-30',assigned:0,done:0,mastered:0,recovered:0,days:0,streak:0,
@@ -137,4 +141,37 @@ test('lack of credits disables paid card but keeps free cards available',async({
  await expect(page.locator('#wenchangCardDetail')).toContainText('北方七宿');
  expect(revealCalls(calls)).toHaveLength(0);
  expect(state.credits).toBe(0);
+});
+
+
+test('earned point balance appears in the member rescue card, without timed-refill claims',async({page})=>{
+ const {calls}=await setup(page,{initialCredits:4});
+ const dialog=page.locator('dialog.wenchang-dialog');
+ await expect(dialog).toContainText('答對 4 題');
+ await expect(dialog).not.toContainText('每兩小時');
+ await page.locator('.wenchang-actions button:not(.wenchang-primary)').click();
+ await page.locator('#wenchangCardAction').click();
+ await expect(page.locator('#wenchangCardStatus')).toContainText('答對累積 4 點');
+ await expect(page.locator('#wenchangCardStatus')).toContainText('無定時補點');
+ expect(calls.some(x=>x.path.endsWith('/rpc/quiz_wenchang_status'))).toBe(true);
+});
+
+test('a prior unlock is still free to re-view when zero points remain',async({page})=>{
+ const {calls,state}=await setup(page,{initialCredits:0,alreadyUnlocked:true});
+ await page.locator('[data-card="reveal"]').click();
+ const button=page.locator('#wenchangCardRevealAction');
+ await expect(button).toBeEnabled();
+ await button.click();
+ await expect(page.locator('.wenchang-answer')).toContainText('正確答案：C');
+ expect(revealCalls(calls)).toHaveLength(1);
+ expect(state.credits).toBe(0);
+ expect(state.spent).toBe(0);
+});
+
+test('old backend status fails closed rather than advertising obsolete credits',async({page})=>{
+ const {calls}=await setup(page,{legacyStatus:true});
+ await page.locator('[data-card="reveal"]').click();
+ await expect(page.locator('#wenchangCardRevealAction')).toBeDisabled();
+ await expect(page.locator('dialog.wenchang-dialog')).toContainText('新文昌點數制度尚未啟用');
+ expect(revealCalls(calls)).toHaveLength(0);
 });
