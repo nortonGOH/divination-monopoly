@@ -1,0 +1,22 @@
+name: Public section visibility tests
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'feature-visibility.js'
+      - 'feature-visibility-admin.js'
+      - 'database/quiz-feature-visibility.sql'
+      - 'tests/feature-visibility.test.cjs'
+      - '.github/workflows/feature-visibility.yml'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check feature-visibility.js && node --check feature-visibility-admin.js
+      - run: node --test tests/feature-visibility.test.cjs
