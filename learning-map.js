@@ -1,6 +1,6 @@
 /* Interactive learning map. Server-validated correct answers are the only progress source.
  * Topics are modern teaching navigation, not a claim of historical linear development.
- * No localStorage, answer keys, score mutations, or database writes.
+ * No client-side persistence, answer keys, score mutations, or database writes.
  */
 (() => {
   'use strict';
@@ -123,7 +123,7 @@
 
   let route = 'topics', selected = '';
   const member = () => Boolean(window.quizMemberToken?.());
-  const completed = () => member() && window.quizCompletedIds instanceof Set ? window.quizCompletedIds : new Set();
+  const completed = () => { const ids = window.quizCompletedIds; return member() && ids && typeof ids.has === 'function' && typeof ids.size === 'number' ? ids : new Set(); };
   function bank() {
     try {
       return typeof questionBank !== 'undefined' && Array.isArray(questionBank)
