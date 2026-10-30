@@ -10,6 +10,8 @@ test.beforeEach(async({page})=>{
   return route.fulfill({status:200,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:'[]'});
  });
  await page.goto('/');
+ await page.getByRole('link',{name:'互動學習地圖'}).click();
+ await expect(page.locator('#learningMapDialog')).toBeVisible();
 });
 test('guest reads only three introductory modules; member lessons have titles but no body',async({page})=>{
  const map=page.locator('#learningMap');
@@ -32,6 +34,7 @@ test('intro reading marker survives reload without altering quiz score',async({p
  await map.getByRole('button',{name:'閱讀後標記本單元'}).click();
  await expect(map).toContainText('已標記閱讀 1／3 單元');
  await page.reload();
+ await page.getByRole('link',{name:'互動學習地圖'}).click();
  await expect(map).toContainText('已標記閱讀 1／3 單元');
  expect(await page.locator('#quizScore').textContent()).toBe(score);
  await map.getByRole('button',{name:/已閱讀.*取消標記/}).click();
@@ -82,4 +85,31 @@ test('server authorization denial does not expose protected content',async({page
  await map.locator('.learn-map-node').nth(3).click();
  await expect(map.locator('.learn-map-detail')).toContainText('未能通過會員教材驗證');
  await expect(map.locator('.learn-map-detail')).not.toContainText('學習重點');
+});
+
+test('member atlas lesson opens inside the same learning dialog and returns without navigation',async({page})=>{
+ const rows=await page.evaluate(()=>[...window.NUMEROLOGY_CURRICULUM.topics,...window.NUMEROLOGY_CURRICULUM.mansions]
+  .filter(x=>x.access_tier==='member').map(x=>({id:x.id,access_tier:'member',
+   lead:'已授權的研究導讀',points:['項目一','項目二','項目三'],
+   method:'史料方法',question:'研究問題',caution:'文獻限制',sources:['han'],
+   atlas_name:x.id.startsWith('mansion-')?x.title.slice(0,1):null})));
+ await page.route('**/rest/v1/learning_curriculum_lessons?**',route=>route.fulfill({
+  status:200,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify(rows)
+ }));
+ await page.evaluate(()=>{
+  window.quizMemberToken=()=> 'mock-member';
+  window.dispatchEvent(new Event('quiz-member-session-changed'));
+ });
+ const before=page.url();
+ const dlg=page.locator('#learningMapDialog');
+ await expect(dlg).toBeVisible();
+ await expect(dlg).toContainText('會員教材：已標記閱讀 0／39 單元');
+ await dlg.getByRole('button',{name:'四象二十八宿 28 單元'}).click();
+ await dlg.locator('.learn-map-atlas').click();
+ await expect(page.locator('#learningMapAtlasPanel')).toBeVisible();
+ await expect(page.locator('#learningMapAtlasFrame')).toHaveAttribute('src',/mansions-atlas\.html\?m=%E8%A7%92/);
+ expect(page.url()).toBe(before);
+ await page.getByRole('button',{name:'返回學習地圖'}).click();
+ await expect(page.locator('#learningMap')).toBeVisible();
+ await expect(page.locator('#learningMapAtlasPanel')).toBeHidden();
 });
