@@ -79,7 +79,7 @@ BEGIN
 
  SELECT count(*)::integer,count(c.question_id)::integer,
    coalesce(jsonb_agg(jsonb_build_object('id',a.question_id,'slot',a.slot,
-               'correct',(c.question_id IS NOT NULL)) ORDER BY a.slot),'[]'::jsonb)
+               'correct',(c.question_id IS NOT NULL)) ORDER BY a.slot) FILTER (WHERE a.question_id IS NOT NULL),'[]'::jsonb)
  INTO v_assigned,v_done,v_daily
  FROM public.quiz_daily_assignments a
  LEFT JOIN public.quiz_daily_completions c
