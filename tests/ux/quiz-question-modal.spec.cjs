@@ -2,9 +2,9 @@ const {test,expect}=require('@playwright/test');
 const MOCK='https://mock-quiz-modal.supabase.co';
 const questions=[
   {id:'modal-q1',mansion:'角木蛟',category:'天文曆法',knowledge_type:'天文曆法',
-    difficulty:'中階',prompt:'角宿的示意測試題目為何？',options:['一','二','三','四']},
+    difficulty:'初階',prompt:'角宿的示意測試題目為何？',options:['一','二','三','四']},
   {id:'modal-q2',mansion:'角木蛟',category:'天文曆法',knowledge_type:'天文曆法',
-    difficulty:'中階',prompt:'第二道角宿示意測試題目？',options:['東','南','西','北']}
+    difficulty:'初階',prompt:'第二道角宿示意測試題目？',options:['東','南','西','北']}
 ];
 
 async function boot(page){
