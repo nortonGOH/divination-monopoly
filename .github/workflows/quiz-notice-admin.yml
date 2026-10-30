@@ -1,0 +1,24 @@
+name: Announcement editor validation
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'quiz-update-notice.js'
+      - 'quiz-notice-admin.js'
+      - 'database/quiz-admin-notice.sql'
+      - 'supabase/functions/quiz-update-notice/index.ts'
+      - 'tests/quiz-notice-admin.test.cjs'
+      - '.github/workflows/quiz-notice-admin.yml'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check quiz-update-notice.js
+      - run: node --check quiz-notice-admin.js
+      - run: node --test tests/quiz-notice-admin.test.cjs
