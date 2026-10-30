@@ -35,7 +35,7 @@ async function boot(page,{fail=false}={}){
     return reply(200,{accepted:true,correct:data.answer_index===q.answer,used:state.used,remaining:5-state.used,limit:5,locked:state.used>=5});
    }
   }
-  if(path.endsWith('/rpc/quiz_wenchang_status'))return reply(200,{credits:3,next_grant_at:null});
+  if(path.endsWith('/rpc/quiz_wenchang_status'))return reply(200,{credits:3,earned:3,spent:0,credit_source:'correct_answers'});
   return reply(200,[]);
  });
  await page.goto('/');
@@ -46,7 +46,7 @@ test('five anonymous graded answers permanently exhaust IP quota after reload; n
  const state=await boot(page);
  await expect(page.locator('#spinBtn')).toBeEnabled();
  await expect(page.locator('#wenchangCard')).toBeVisible();
- await expect(page.locator('#wenchangCardStatus')).toContainText('訪客試玩不消耗');
+ await expect(page.locator('#wenchangCardStatus')).toContainText('訪客試玩不累積');
  for(let i=1;i<=5;i++){
   // Exercise v8's real wheel-completed gate rather than forcing a hidden panel.
   await page.evaluate(()=>{
@@ -88,7 +88,7 @@ test('Wenchang rescue card shows member balance and guest signup entry',async({p
  });
  await expect(page.locator('#wenchangCardAction')).toContainText('查看救援餘額');
  await page.locator('#wenchangCardAction').click();
- await expect(page.locator('#wenchangCardStatus')).toContainText('可用救援 3／10 點');
+ await expect(page.locator('#wenchangCardStatus')).toContainText('可用 3 點｜答對累積 3 點');
  const calls=state.calls.filter(x=>x.path.endsWith('/rpc/quiz_wenchang_status'));
  expect(calls).toHaveLength(1);
  expect(calls[0].token).toBe('Bearer mock-member');
