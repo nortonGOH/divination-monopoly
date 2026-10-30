@@ -168,7 +168,7 @@ function onLockedWheelClick(){
 }
 const dialog=node('dialog','','player-dialog');
 const heading=node('h2','數術知識挑戰・帳號登入');
-const intro=node('p','請使用自己的電子郵件註冊。同一帳號累計答錯五次，將暫停挑戰三十分鐘；期滿歸零。\n\n✦ 文昌星救援：答錯時，可自行選擇是否使用 1 次救援，查看正確答案與解析。每答對 1 題累積 1 點文昌點數；首次解鎖答錯題目的正解使用 1 點，已解鎖不重複扣點；沒有定時補點與上限。救援不會抵銷答錯次數，也不會提前解除挑戰鎖定。');
+const intro=node('p','請使用自己的電子郵件註冊。同一帳號累計答錯五次，將暫停挑戰三十分鐘；期滿歸零。\n\n✦ 文昌星救援：答錯時，可自行選擇是否使用 1 次救援，查看正確答案與解析。新註冊會員一次獲贈 5 點，每答對 1 題再累積 1 點；首次解鎖答錯題目的正解使用 1 點，已解鎖不重複扣點；沒有定時補點與上限。救援不會抵銷答錯次數，也不會提前解除挑戰鎖定。');
 const form=node('form');form.id='playerAuthForm';
 const elabel=node('label','電子郵件'),email=node('input');email.type='email';email.required=true;email.autocomplete='email';email.inputMode='email';email.maxLength=254;email.id='playerEmail';elabel.append(email);
 const nicknameLabel=node('label','暱稱（2–18字，可使用中英文、數字、底線、連字號）'),nickname=node('input');nickname.type='text';nickname.id='playerNickname';nickname.maxLength=18;nickname.autocomplete='nickname';nicknameLabel.append(nickname);
@@ -510,7 +510,7 @@ wenchangCSS.textContent=`
 document.head.append(wenchangCSS);
 const wenchangDialog=node('dialog','','wenchang-dialog');
 const wenchangHeading=node('h2','✦ 文昌星救援');
-const wenchangInfo=node('p','本題回答錯誤。可使用 1 點答對累積的文昌點數，解鎖正解與解析。');
+const wenchangInfo=node('p','本題回答錯誤。可使用 1 點文昌點數（新會員贈送 5 點，答對亦可累積），解鎖正解與解析。');
 const wenchangCredits=node('p','正在查詢文昌點數…','wenchang-credit');
 const wenchangAnswer=node('div','','wenchang-answer');wenchangAnswer.hidden=true;
 const wenchangActions=node('div','','wenchang-actions');
@@ -541,7 +541,7 @@ async function offerWenchang(question){
     if(status.credit_source!=='correct_answers')throw Error('新文昌點數制度尚未啟用，請稍後再試');
     const credits=Number(status.credits);
     if(!Number.isSafeInteger(credits)||credits<0)throw Error('點數資料格式錯誤');
-    wenchangCredits.textContent='可用：'+credits+' 點｜答對 '+Number(status.earned||0)+' 題｜已用 '+Number(status.spent||0)+' 點。';
+    wenchangCredits.textContent='可用：'+credits+' 點｜註冊贈送 '+Number(status.signup_bonus||0)+' 點｜答對 '+Number(status.earned||0)+' 題｜已用 '+Number(status.spent||0)+' 點。';
     const access=await endpoint('/rest/v1/rpc/quiz_wenchang_question_access','POST',{p_question_id:question.id});
     if(wenchangPendingId!==question.id)return;
     const freeAccess=access.can_reveal_without_points===true;

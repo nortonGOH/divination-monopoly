@@ -1,0 +1,25 @@
+name: Wenchang signup five-point bonus checks
+on:
+  pull_request:
+    paths:
+      - 'quiz-challenge-v7.js'
+      - 'trial-wenchang-card.js'
+      - 'wenchang-rescue-cards.js'
+      - 'database/wenchang-signup-five-credits.sql'
+      - 'tests/wenchang-signup-bonus.test.cjs'
+      - '.github/workflows/wenchang-signup-bonus.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'database/wenchang-signup-five-credits.sql'
+      - 'tests/wenchang-signup-bonus.test.cjs'
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check quiz-challenge-v7.js && node --check trial-wenchang-card.js && node --check wenchang-rescue-cards.js
+      - run: node --test tests/wenchang-signup-bonus.test.cjs
