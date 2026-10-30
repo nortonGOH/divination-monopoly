@@ -217,6 +217,7 @@
     <a href="#spinBtn">開始挑戰</a>
     <a href="#quizTitle">題目與難度</a>
     <a href="./mansions-atlas.html">二十八宿互動圖鑑</a>
+    <a href="#learningMap">互動學習地圖</a>
     <a href="#guestbookTitle">會員留言板</a>
   </nav>
   <details class="ux-howto">
@@ -703,6 +704,7 @@ async function initializeBank(){
   questionSource=hosted.source;
   refreshBankInterface();
   selectQuizForMansion(activeMansion);
+  window.dispatchEvent(new Event("challenge-bank-loaded"));
 }
 async function persistBank(){
   // 題庫不可僅在瀏覽器本地假裝受密碼保護；變更一律提交到有 RLS 的伺服器。
@@ -1120,5 +1122,6 @@ initializeBank();
 <script src="./trial-wenchang-card.js"></script>
 <script src="./challenge-learning.js"></script>
 <script src="./quiz-question-modal.js"></script>
+<script src="./learning-map.js"></script>
 </body>
 </html>
