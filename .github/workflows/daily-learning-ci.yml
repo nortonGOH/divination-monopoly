@@ -66,4 +66,4 @@ jobs:
       - name: Install Chromium for isolated mock tests
         run: npx playwright install --with-deps chromium
       - name: Verify all learning hub cases
-        run: npx playwright test learning.spec.js --reporter=line
+        run: npx playwright test --config=learning.playwright.config.js
