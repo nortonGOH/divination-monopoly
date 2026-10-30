@@ -1,0 +1,23 @@
+name: Admin traffic analytics isolated validation
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'mansions-atlas.html'
+      - 'traffic-tracker.js'
+      - 'traffic-admin-dashboard.js'
+      - 'database/admin-traffic-analytics.sql'
+      - 'tests/admin-traffic-analytics.test.cjs'
+      - '.github/workflows/admin-traffic.yml'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check traffic-tracker.js && node --check traffic-admin-dashboard.js
+      - run: node --test tests/admin-traffic-analytics.test.cjs
