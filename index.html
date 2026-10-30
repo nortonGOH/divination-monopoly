@@ -704,7 +704,6 @@ async function initializeBank(){
   questionSource=hosted.source;
   refreshBankInterface();
   selectQuizForMansion(activeMansion);
-  window.dispatchEvent(new Event("challenge-bank-loaded"));
 }
 async function persistBank(){
   // 題庫不可僅在瀏覽器本地假裝受密碼保護；變更一律提交到有 RLS 的伺服器。
@@ -1122,6 +1121,7 @@ initializeBank();
 <script src="./trial-wenchang-card.js"></script>
 <script src="./challenge-learning.js"></script>
 <script src="./quiz-question-modal.js"></script>
+<script src="./learning-curriculum.js"></script>
 <script src="./learning-map.js"></script>
 </body>
 </html>

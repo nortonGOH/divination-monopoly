@@ -4,12 +4,14 @@ on:
     paths:
       - 'index.html'
       - 'learning-map.js'
+      - 'learning-curriculum.js'
       - 'tests/learning-map.test.cjs'
       - '.github/workflows/learning-map.yml'
   pull_request:
     paths:
       - 'index.html'
       - 'learning-map.js'
+      - 'learning-curriculum.js'
       - 'tests/learning-map.test.cjs'
       - '.github/workflows/learning-map.yml'
 permissions:
@@ -23,7 +25,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Check learning map JavaScript syntax
-        run: node --check learning-map.js
+      - name: Check curriculum and learning map JavaScript syntax
+        run: node --check learning-curriculum.js && node --check learning-map.js
       - name: Run isolated UI and progress checks
         run: node --test tests/learning-map.test.cjs

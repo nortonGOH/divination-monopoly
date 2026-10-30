@@ -1,165 +1,125 @@
 'use strict';
-/* Isolated DOM/quiz fixture. No browser network, credentials, live Supabase or answer keys. */
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const vm = require('node:vm');
-const path = require('node:path');
-
-const source = fs.readFileSync(path.join(__dirname,'..','learning-map.js'),'utf8');
-const html = fs.readFileSync(path.join(__dirname,'..','index.html'),'utf8');
+/* Standalone curriculum verification without browser network, Supabase or live scores. */
+const test=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const vm=require('node:vm');
+const path=require('node:path');
+const base=path.join(__dirname,'..');
+const source=fs.readFileSync(path.join(base,'learning-map.js'),'utf8');
+const curriculum=fs.readFileSync(path.join(base,'learning-curriculum.js'),'utf8');
+const html=fs.readFileSync(path.join(base,'index.html'),'utf8');
 
 class FakeNode {
   constructor(tag) {
-    this.tagName = tag.toLowerCase();
-    this.children = [];
-    this.attributes = {};
-    this.listeners = {};
-    this.style = {};
-    this.className = '';
-    this.dataset = {};
-    this.textContent = '';
-    this.hidden = false;
-    this.parentNode = null;
+    this.tagName=tag.toLowerCase();this.children=[];this.attributes={};
+    this.listeners={};this.style={};this.className='';this.dataset={};
+    this.textContent='';this.parentNode=null;this.hidden=false;
   }
-  append(...nodes) {
-    for (const child of nodes) {
-      if (child.parentNode) child.parentNode.children = child.parentNode.children.filter(n => n !== child);
-      child.parentNode = this; this.children.push(child);
+  append(...nodes){
+    for(const child of nodes){
+      if(child.parentNode)child.parentNode.children=child.parentNode.children.filter(x=>x!==child);
+      child.parentNode=this;this.children.push(child);
     }
   }
-  before(node) {
-    assert.ok(this.parentNode, 'must have a parent');
-    node.parentNode = this.parentNode;
-    this.parentNode.children.splice(this.parentNode.children.indexOf(this), 0, node);
-  }
-  replaceChildren(...nodes) {
-    this.children.forEach(n => { n.parentNode = null; });
-    this.children = [];
-    this.append(...nodes);
-  }
-  get lastChild() { return this.children[this.children.length - 1] || null; }
-  addEventListener(type, handler) { (this.listeners[type] ||= []).push(handler); }
-  setAttribute(name, value) { this.attributes[name] = String(value); }
-  getAttribute(name) { return this.attributes[name] || null; }
-  dispatchEvent(event) { (this.listeners[event.type] || []).forEach(fn => fn(event)); }
-  click() { this.dispatchEvent({type:'click'}); }
-  focus() { this.focused = true; }
-  scrollIntoView() { this.scrolled = true; }
-  querySelectorAll(selector) {
-    if (selector !== 'button') throw Error('unsupported fixture selector');
-    return walk(this).filter(n => n.tagName === 'button');
+  before(node){assert.ok(this.parentNode);node.parentNode=this.parentNode;this.parentNode.children.splice(this.parentNode.children.indexOf(this),0,node);}
+  replaceChildren(...nodes){this.children.forEach(x=>x.parentNode=null);this.children=[];this.append(...nodes);}
+  get lastChild(){return this.children.at(-1)||null;}
+  setAttribute(name,value){this.attributes[name]=String(value);}
+  getAttribute(name){return this.attributes[name]??null;}
+  addEventListener(type,handler){(this.listeners[type]||=[]).push(handler);}
+  click(){(this.listeners.click||[]).forEach(fn=>fn({type:'click'}));}
+  focus(){this.focused=true;}
+  querySelectorAll(selector){
+    if(selector!=='button')throw Error('unimplemented selector '+selector);
+    return walk(this).filter(x=>x.tagName==='button');
   }
 }
-function walk(node) { return [node,...node.children.flatMap(walk)]; }
-function content(node) { return [node.textContent,...node.children.map(content)].join(' '); }
-function nodesByClass(root, cl) {
-  return walk(root).filter(n => n.className.split(/\s+/).includes(cl));
-}
-function fixture() {
-  const body = new FakeNode('body'), head = new FakeNode('head');
-  const wheel = new FakeNode('button'), guestbook = new FakeNode('section');
-  wheel.id = 'spinBtn'; guestbook.id = 'guestbook'; body.append(wheel, guestbook);
-  const select = new FakeNode('select');
-  select.id = 'challengeKnowledgeType';
-  select.options = [{value:'all'},...['通識','易學','天文曆法','山','醫','命','卜','相','式占','兵陰陽','待分類'].map(value=>({value}))];
-  select.value='all';
-  const login = new FakeNode('button');
-  login.id='playerSignInBtn';
-  const ids = {spinBtn:wheel,guestbook,challengeKnowledgeType:select,playerSignInBtn:login};
-  const events = {};
-  let token='';
-  const window = {
-    quizMemberToken: () => token,
-    quizCompletedIds: new Set(),
-    addEventListener(event, callback) { (events[event] ||= []).push(callback); },
-    dispatchEvent(evt) { (events[evt.type] || []).forEach(fn => fn(evt)); }
-  };
-  const fixtureMansions = Array.from({length:28},(_,i)=>({
-    name: i===0 ? '角木蛟' : '測試宿'+i,
-    quad:['東方青龍','北方玄武','西方白虎','南方朱雀'][Math.floor(i/7)]
-  }));
-  const questions=[
-    {id:'q1',knowledge_type:'易學',mansion:'角木蛟'},
-    {id:'q2',knowledge_type:'易學',mansion:'測試宿1'},
-    {id:'q3',knowledge_type:'通識',mansion:'測試宿7'},
-    {id:'q4',knowledge_type:'命',mansion:'測試宿14'}
-  ];
-  const document={body,head,createElement:tag=>new FakeNode(tag),getElementById:id=>ids[id] || (id==='learningMap' ? walk(body).find(n=>n.id==='learningMap') : null)};
-  const context={window,document,questionBank:questions,MANSIONS:fixtureMansions,Event:class{constructor(type,detail){this.type=type;this.detail=detail;}},console};
+function walk(node){return [node,...node.children.flatMap(walk)];}
+function content(node){return [node.textContent,...node.children.map(content)].join(' ');}
+const named=(root,name)=>walk(root).filter(x=>x.className.split(' ').includes(name));
+const store=()=>({
+  values:new Map(),
+  getItem(key){return this.values.get(key)||null;},
+  setItem(key,value){this.values.set(key,value);}
+});
+function fixture(memory=store()){
+  const body=new FakeNode('body'),head=new FakeNode('head'),guest=new FakeNode('section');
+  guest.id='guestbook';body.append(guest);
+  const window={localStorage:memory};
+  const document={body,head,createElement:tag=>new FakeNode(tag),
+    getElementById:id=>walk(body).find(node=>node.id===id)||null};
+  // Poison objects that previously provided map topics and score progress:
+  const poisoned=new Proxy({}, {get(){throw Error('question bank is forbidden');}});
+  const context={window,document,questionBank:poisoned,MANSIONS:poisoned,
+    quizCompletedIds:poisoned,console};
+  vm.runInNewContext(curriculum,context,{filename:'learning-curriculum.js',timeout:1000});
   vm.runInNewContext(source,context,{filename:'learning-map.js',timeout:1000});
-  const map = walk(body).find(n => n.id === 'learningMap');
-  assert.ok(map,'the learning map was inserted');
-  return {
-    map,wheel,select,login,body,window,questions,
-    setToken(value) {token = value;window.dispatchEvent({type:'quiz-member-session-changed'});},
-    emit(type) { window.dispatchEvent({type}); },
-    nodes: cl=>nodesByClass(map,cl)
-  };
+  const root=document.getElementById('learningMap');
+  assert.ok(root,'map mounted');
+  return{window,root,memory,byClass:name=>named(root,name),
+    byId:id=>document.getElementById(id)};
 }
-
-test('syntax and install points preserve the existing quiz controllers',()=>{
-  new vm.Script(source,{filename:'learning-map.js'});
-  assert.match(html, /<a href="#learningMap">互動學習地圖<\/a>/);
-  assert.match(html, /<script src="\.\/quiz-question-modal\.js"><\/script>\s*<script src="\.\/learning-map\.js"><\/script>/);
-  assert.match(html,/dispatchEvent\(new Event\("challenge-bank-loaded"\)\)/);
-  assert.doesNotMatch(source,/localStorage|sessionStorage|quiz_submit_choice|correct_answer|quiz_rescue_purchase|service_role|fetch\(/);
+test('independent curriculum has 11 editorial topics, 28 unique mansion lessons and linked sources',()=>{
+  const w={};vm.runInNewContext(curriculum,{window:w},{timeout:1000});
+  const d=w.NUMEROLOGY_CURRICULUM;
+  assert.equal(d.topics.length,11);assert.equal(d.mansions.length,28);
+  assert.equal(new Set([...d.topics,...d.mansions].map(x=>x.id)).size,39);
+  for(const x of [...d.topics,...d.mansions]){
+    assert.ok(x.lead.length>15&&x.method.length>12&&x.question.length>10);
+    assert.ok(x.points.length>=3&&x.caution.length>12);
+    assert.ok(x.sources.length>=1);
+    for(const ref of x.sources)assert.match(d.sources[ref].url,/^https:\/\//);
+  }
+  assert.equal(d.mansions.filter(x=>x.group==='東方青龍').length,7);
+  assert.equal(d.mansions.filter(x=>x.group==='北方玄武').length,7);
+  assert.equal(d.mansions.filter(x=>x.group==='西方白虎').length,7);
+  assert.equal(d.mansions.filter(x=>x.group==='南方朱雀').length,7);
 });
-
-test('guest map has eleven topic nodes and displays no artificial progress',()=>{
-  const f=fixture();
-  assert.equal(f.nodes('learn-map-node').length,11);
-  assert.match(content(f.map),/尚未登入/);
-  assert.match(content(f.map),/易學基礎/);
-  assert.match(content(f.map),/登入會員可查看進度/);
-  assert.ok(!f.nodes('learn-map-node').some(x=>x.textContent.includes('正確答案')));
+test('index uses standalone material and no quiz bank event dependency',()=>{
+  new vm.Script(curriculum);new vm.Script(source);
+  assert.match(html, /<script src="\.\/learning-curriculum\.js"><\/script>\s*<script src="\.\/learning-map\.js"><\/script>/);
+  assert.doesNotMatch(source,/questionBank|quizMemberToken|quizCompletedIds|inferKnowledgeType|Supabase|quiz-answer-graded|challenge-bank-loaded|fetch\(/);
+  assert.doesNotMatch(curriculum,/questionBank|quizMemberToken|quizCompletedIds|quiz_submit_choice|fetch\(/);
 });
-
-test('server-confirmed correct IDs drive progress and topic filtering',()=>{
+test('map displays 11 written lessons with citations independent of any quiz state',()=>{
   const f=fixture();
-  f.window.quizCompletedIds = new Set(['q1']);
-  f.setToken('fake-test-token');
-  assert.match(content(f.map),/正式掌握 1／4 題/);
-  const yi = f.nodes('learn-map-node').find(n=>content(n).includes('易學基礎'));
-  yi.click();
-  assert.match(content(f.nodes('learn-map-detail')[0]),/已掌握 1／2 題/);
-  const action = f.nodes('learn-map-detail-action')[0];
+  assert.equal(f.byClass('learn-map-node').length,11);
+  const article=f.byClass('learn-map-detail')[0];
+  assert.match(content(article),/數術文獻與歷史分類/);
+  assert.match(content(article),/學習重點/);
+  assert.match(content(article),/史料與研究方法/);
+  assert.match(content(article),/證據界線/);
+  assert.match(content(article),/《漢書》卷三十/);
+  assert.match(content(f.root),/獨立教材：已標記閱讀 0／39 單元/);
+  assert.doesNotMatch(content(f.root),/對應題庫|答對.*題/);
+});
+test('read markers are local, reversible and never modify scored challenge state',()=>{
+  const memory=store();const f=fixture(memory);
+  const action=f.byClass('learn-map-action')[0];
   action.click();
-  assert.equal(f.select.value,'易學');
-  assert.equal(f.wheel.scrolled,true);
-  assert.equal(f.wheel.focused,true);
-  f.window.quizCompletedIds.add('q2');
-  f.emit('quiz-answer-graded');
-  assert.match(content(f.map),/正式掌握 2／4 題/);
-  assert.match(content(f.map),/✓ 已完成本關/);
+  assert.match(content(f.root),/獨立教材：已標記閱讀 1／39 單元/);
+  assert.match(content(f.root),/✓ 已標記閱讀/);
+  assert.equal(JSON.parse(memory.getItem('numerology-standalone-learning-reading-v1')).length,1);
+  const second=fixture(memory);
+  assert.match(content(second.root),/已標記閱讀 1／39 單元/);
+  second.byClass('learn-map-action')[0].click();
+  assert.match(content(second.root),/已標記閱讀 0／39 單元/);
 });
-
-test('the astronomy route has all twenty-eight distinct mansion milestones',()=>{
+test('28 mansion lessons show group headings and exact atlas deep-link',()=>{
   const f=fixture();
-  f.window.quizCompletedIds = new Set(['q1']);
-  f.setToken('fake-test-token');
-  const tab=walk(f.map).find(n=>n.id==='learn-map-tab-mansions');
-  tab.click();
-  assert.equal(f.nodes('learn-map-node').length,28);
-  assert.equal(f.nodes('learn-map-path-heading').length,4);
-  const first=f.nodes('learn-map-node')[0];
-  first.click();
-  assert.match(content(f.nodes('learn-map-detail')[0]),/已完成本關/);
-  assert.match(content(f.nodes('learn-map-detail')[0]),/前往二十八宿互動圖鑑/);
-  const atlasLink = walk(f.nodes('learn-map-detail')[0]).find(n => n.tagName === 'a');
-  assert.equal(atlasLink.href, './mansions-atlas.html?m=' + encodeURIComponent('角'));
-  assert.match(content(f.nodes('learn-map-detail')[0]),/原有轉盤隨機抽宿/);
+  f.byId('learn-map-tab-mansions').click();
+  assert.equal(f.byClass('learn-map-node').length,28);
+  assert.equal(f.byClass('learn-map-path-heading').length,4);
+  assert.match(content(f.root),/角宿/);
+  const link=walk(f.byClass('learn-map-detail')[0]).find(x=>x.className==='learn-map-atlas');
+  assert.equal(link.href,'./mansions-atlas.html?m='+encodeURIComponent('角'));
+  assert.match(content(f.root),/史料與研究方法/);
 });
-
-test('logout clears personal progress and bank refresh updates denominator',()=>{
-  const f=fixture();
-  f.window.quizCompletedIds = new Set(['q1','q2']);
-  f.setToken('fake-test-token');
-  assert.match(content(f.map),/正式掌握 2／4 題/);
-  f.questions.push({id:'q5',knowledge_type:'式占',mansion:'測試宿3'});
-  f.emit('challenge-bank-loaded');
-  assert.match(content(f.map),/正式掌握 2／5 題/);
-  f.setToken('');
-  assert.match(content(f.map),/尚未登入/);
-  assert.doesNotMatch(content(f.map),/正式掌握 2／5 題/);
+test('storage failures do not block lesson reading',()=>{
+  const f=fixture({getItem(){throw Error('blocked');},setItem(){throw Error('blocked');}});
+  assert.equal(f.byClass('learn-map-node').length,11);
+  f.byClass('learn-map-action')[0].click();
+  assert.match(content(f.root),/無法儲存/);
+  assert.match(content(f.root),/已標記閱讀 1／39 單元/);
 });
