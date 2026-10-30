@@ -168,7 +168,7 @@ function onLockedWheelClick(){
 }
 const dialog=node('dialog','','player-dialog');
 const heading=node('h2','數術知識挑戰・帳號登入');
-const intro=node('p','請使用自己的電子郵件註冊。同一帳號累計答錯五次，將暫停挑戰三十分鐘；期滿歸零。\n\n✦ 文昌星救援：答錯時，可自行選擇是否使用 1 次救援，查看正確答案與解析。每位會員起始有 3 次救援機會，每兩小時補充 3 次，最多累積 10 次。救援不會抵銷答錯次數，也不會提前解除挑戰鎖定。');
+const intro=node('p','請使用自己的電子郵件註冊。同一帳號累計答錯五次，將暫停挑戰三十分鐘；期滿歸零。\n\n✦ 文昌星救援：答錯時，可自行選擇是否使用 1 次救援，查看正確答案與解析。每答對 1 題累積 1 點文昌點數；首次解鎖答錯題目的正解使用 1 點，已解鎖不重複扣點；不定時補點。救援不會抵銷答錯次數，也不會提前解除挑戰鎖定。');
 const form=node('form');form.id='playerAuthForm';
 const elabel=node('label','電子郵件'),email=node('input');email.type='email';email.required=true;email.autocomplete='email';email.inputMode='email';email.maxLength=254;email.id='playerEmail';elabel.append(email);
 const nicknameLabel=node('label','暱稱（2–18字，可使用中英文、數字、底線、連字號）'),nickname=node('input');nickname.type='text';nickname.id='playerNickname';nickname.maxLength=18;nickname.autocomplete='nickname';nicknameLabel.append(nickname);
@@ -346,7 +346,7 @@ async function completeMemberLogin(data,address){
  playerToken=data.access_token;playerEmail=address;
  password.value='';confirmPassword.value='';
  try{
-   // Existing server-side player state, activity and rescue credits are retained.
+   // Existing server-side player scores and previously unlocked answers are retained.
    try{await endpoint('/rest/v1/rpc/quiz_record_member_login','POST',{});}
    catch(error){console.warn('登入計次未寫入',error.message);}
    await refresh();
@@ -510,11 +510,11 @@ wenchangCSS.textContent=`
 document.head.append(wenchangCSS);
 const wenchangDialog=node('dialog','','wenchang-dialog');
 const wenchangHeading=node('h2','✦ 文昌星救援');
-const wenchangInfo=node('p','本題回答錯誤。是否使用 1 次文昌星救援，查看正確答案與解析？');
-const wenchangCredits=node('p','正在查詢救援次數…','wenchang-credit');
+const wenchangInfo=node('p','本題回答錯誤。可使用 1 點答對累積的文昌點數，解鎖正解與解析。');
+const wenchangCredits=node('p','正在查詢文昌點數…','wenchang-credit');
 const wenchangAnswer=node('div','','wenchang-answer');wenchangAnswer.hidden=true;
 const wenchangActions=node('div','','wenchang-actions');
-const wenchangYes=node('button','使用 1 次文昌星救援','wenchang-primary');wenchangYes.type='button';
+const wenchangYes=node('button','使用 1 點文昌點數','wenchang-primary');wenchangYes.type='button';
 const wenchangNo=node('button','暫不使用');wenchangNo.type='button';
 wenchangActions.append(wenchangNo,wenchangYes);
 wenchangDialog.append(wenchangHeading,wenchangInfo,wenchangCredits,wenchangAnswer,wenchangActions);
@@ -530,19 +530,25 @@ wenchangDialog.addEventListener('cancel',event=>{if(wenchangBusy)event.preventDe
 async function offerWenchang(question){
   wenchangPendingId=question.id;
   wenchangAnswer.hidden=true;wenchangAnswer.textContent='';
-  wenchangInfo.textContent='本題回答錯誤。是否使用 1 次「文昌星救援」查看正確答案與解析？';
+  wenchangInfo.textContent='本題回答錯誤。首次解鎖需花費 1 點；同題已解鎖免扣點。';
   wenchangNo.textContent='暫不使用';
   wenchangYes.hidden=false;wenchangYes.disabled=true;
-  wenchangCredits.textContent='正在查詢救援次數…';
+  wenchangCredits.textContent='正在查詢文昌點數…';
   if(!wenchangDialog.open)wenchangDialog.showModal();
   try{
     const status=await endpoint('/rest/v1/rpc/quiz_wenchang_status','POST',{});
     if(wenchangPendingId!==question.id)return;
-    const credits=Number(status.credits||0);
-    wenchangCredits.textContent='目前可用：'+credits+' / 10 次。每兩小時補充 3 次（累計上限 10 次）。';
-    wenchangYes.disabled=credits<1;
-    if(credits<1)wenchangInfo.textContent='本題回答錯誤，救援次數目前不足；可以等候下次補充，之後再嘗試。';
-  }catch(err){if(wenchangPendingId===question.id){wenchangCredits.textContent='救援次數查詢失敗：'+err.message;wenchangYes.disabled=true;}}
+    if(status.credit_source!=='correct_answers')throw Error('新文昌點數制度尚未啟用，請稍後再試');
+    const credits=Number(status.credits);
+    if(!Number.isSafeInteger(credits)||credits<0)throw Error('點數資料格式錯誤');
+    wenchangCredits.textContent='可用：'+credits+' 點｜答對 '+Number(status.earned||0)+' 題｜已用 '+Number(status.spent||0)+' 點。';
+    const access=await endpoint('/rest/v1/rpc/quiz_wenchang_question_access','POST',{p_question_id:question.id});
+    if(wenchangPendingId!==question.id)return;
+    const freeAccess=access.can_reveal_without_points===true;
+    wenchangYes.disabled=credits<1&&!freeAccess;
+    if(freeAccess)wenchangInfo.textContent='這道題目的答案已解鎖，現在可以免費重新查看。';
+    else if(credits<1)wenchangInfo.textContent='目前點數不足；答對新題目可再獲得文昌點數。';
+  }catch(err){if(wenchangPendingId===question.id){wenchangCredits.textContent='文昌點數查詢失敗：'+err.message;wenchangYes.disabled=true;}}
 }
 wenchangYes.addEventListener('click',async()=>{
   if(wenchangBusy||!wenchangPendingId)return;
@@ -556,9 +562,10 @@ wenchangYes.addEventListener('click',async()=>{
     const label=['A','B','C','D'][index]+'. '+question.options[index];
     wenchangAnswer.textContent='正確答案：'+label+(result.explanation?'\n\n解析：'+result.explanation:'');
     wenchangAnswer.hidden=false;
-    wenchangInfo.textContent=result.used_credit?'已扣除 1 次文昌星救援；下次仍可重新挑戰這道題目。':'本題答案已解鎖，不重複扣除救援次數。';
+    wenchangInfo.textContent=result.used_credit?'已扣除 1 點文昌點數；本題以後重新查看不扣點。':'本題答案已解鎖，沒有扣除文昌點數。';
     if(playerState?.locked)wenchangInfo.textContent+='\n您已累計五次答錯，目前仍須等候三十分鐘鎖定期結束；救援不會解除鎖定。';
-    wenchangCredits.textContent='目前剩餘：'+Number(result.status?.credits??0)+' / 10 次';
+    wenchangCredits.textContent='目前剩餘：'+Number(result.status?.credits??0)+' 點';
+    window.dispatchEvent(new Event('wenchang-points-changed'));
     wenchangYes.hidden=true;wenchangNo.textContent='關閉';
     if(activeQuestion?.id===id)$('answerFeedback').textContent='✕ 回答錯誤。已使用「文昌星救援」查看解析。'+(playerState?.locked?'\n本次已達五次答錯，請等待解鎖；點北極星可查看倒數。':'');
     window.dispatchEvent(new CustomEvent('quiz-learning-answer-revealed',{detail:{questionId:id,correctAnswer:index,explanation:result.explanation||''}}));
@@ -616,7 +623,7 @@ answerQuestion=async function(index){
     p_question_id:activeQuestion.id,p_answer_index:index});
   playerState={wrong_count:result.wrong_count,locked:result.locked,locked_until:result.locked_until,total_attempts:result.total_attempts??playerState?.total_attempts??0,correct_attempts:result.correct_attempts??playerState?.correct_attempts??0,success_rate:result.success_rate??playerState?.success_rate??0};
   if(!result.accepted){if(result.reason==='already_correct'||result.reason==='already_answered'){completedIds.add(activeQuestion.id);$('answerFeedback').textContent='這一題您已答對過，不會再次出題或計分；請重新抽宿。';$('answerOptions').querySelectorAll('button').forEach(b=>b.disabled=true);}drawState();return;}
-  if(result.correct)completedIds.add(activeQuestion.id);
+  if(result.correct){completedIds.add(activeQuestion.id);window.dispatchEvent(new Event('wenchang-points-changed'));}
   window.dispatchEvent(new CustomEvent('quiz-answer-graded',{detail:{correct:result.correct,questionId:activeQuestion.id}}));
   // Display server-checked result, not a locally guessed value.
   questionAnswered=true;answeredCount++;if(result.correct)correctCount++;
@@ -631,7 +638,7 @@ answerQuestion=async function(index){
   }else if(result.administrator_exempt && Number.isInteger(result.correct_answer) && result.correct_answer>=0 && result.correct_answer<4){
     $('answerFeedback').textContent='✕ 回答錯誤；正確答案：'+['A','B','C','D'][result.correct_answer]+'. '+activeQuestion.options[result.correct_answer]+(result.explanation?'\n'+result.explanation:'');
   }else{
-    $('answerFeedback').textContent='✕ 回答錯誤。可以選擇使用「文昌星救援」查看答案及解析，或保留次數稍後再挑戰。';
+    $('answerFeedback').textContent='✕ 回答錯誤。可花費 1 點答對累積的文昌點數查看解析，或保留點數稍後挑戰。';
     await offerWenchang(activeQuestion);
   }
   $('quizScore').textContent=`已答 ${answeredCount} 題 · 答對 ${correctCount} 題`;
