@@ -23,12 +23,16 @@ test('keyboard skip link goes to main content',async({page})=>{
 });
 test('quick navigation targets challenge and quiz without history',async({page})=>{
   const nav=page.getByRole('navigation',{name:'網站快速導覽'});
-  await expect(nav.getByRole('link')).toHaveCount(4);
+  await expect(nav.getByRole('link')).toHaveCount(5);
   for(const [name,target] of [['開始挑戰','spinBtn'],['題目與難度','quizTitle'],['會員留言板','guestbookTitle']]){
     const item=nav.getByRole('link',{name});
     await expect(item).toHaveAttribute('href','#'+target);
     await expect(page.locator('#'+target)).toHaveCount(1);
   }
+  const learningMap=nav.getByRole('link',{name:'互動學習地圖'});
+  await expect(learningMap).toHaveAttribute('href','#learningMap');
+  await expect(page.locator('#learningMap')).toHaveCount(1);
+  await expect(page.locator('.learn-map-node')).toHaveCount(11);
   const atlas=nav.getByRole('link',{name:'二十八宿互動圖鑑'});
   await expect(atlas).toHaveAttribute('href','./mansions-atlas.html');
   await nav.getByRole('link',{name:'題目與難度'}).click();
