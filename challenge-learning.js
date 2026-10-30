@@ -121,7 +121,7 @@ function renderBadges(){
 }
 function quizButton(id,left,right,disabled){
  const q=question(id),button=make('button');
- button.type='button';button.disabled=disabled||!q||busy;
+ button.type='button';button.disabled=disabled||!q;
  button.append(make('span',q?(q.prompt.length>58?q.prompt.slice(0,58)+'…':q.prompt):'題目載入中（請更新題庫）'));
  button.append(make('span',right,'learning-check'));
  button.title=left;
