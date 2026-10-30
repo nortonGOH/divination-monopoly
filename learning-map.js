@@ -189,7 +189,7 @@
     if (route === 'mansions') {
       detail.append(make('p', '所屬四象：' + item.group + '。先閱讀史料與圖鑑，再透過原有轉盤隨機抽宿練習。'));
       const atlas = make('a', '前往二十八宿互動圖鑑 →');
-      atlas.href = './mansions-atlas.html';
+      atlas.href = './mansions-atlas.html?m=' + encodeURIComponent(item.id.slice(0, 1));
       detail.append(atlas);
       const action = make('button', '前往抽宿挑戰', 'learn-map-detail-action');
       action.type = 'button';
