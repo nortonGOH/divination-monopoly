@@ -75,8 +75,12 @@
       hideQuestion('請按「抽宿挑戰」開始；點選星宿或切換難度不會直接出題。');
       return;
     }
-    if(typeof window.quizPlayerMayChallenge==='function' && !window.quizPlayerMayChallenge()) {
-      hideQuestion('請先註冊或登入，才能參加挑戰。');
+    // Active nickname beginners and unlocked registered members are both eligible.
+    // The old guest-trial gate must not override a verified nickname session.
+    const nicknameAllowed=Boolean(!window.quizMemberToken?.() && window.quizNicknameActive?.());
+    const memberAllowed=Boolean(window.quizMemberToken?.() && window.quizPlayerMayChallenge?.());
+    if(!nicknameAllowed && !memberAllowed) {
+      hideQuestion('請先輸入初階暱稱，或註冊登入會員才能參加挑戰。');
       return;
     }
     if(!playable.length){
