@@ -45,14 +45,9 @@ Deno.serve(async req=>{
       return respond(await database('quiz_trial_status',{p_identity:identity}));
     }
     if(payload.action==='answer'){
-      const id=payload.question_id;
-      const answer=payload.answer_index;
-      if(typeof id!=='string'||id.length<1||id.length>150||
-         !Number.isInteger(answer)||answer<0||answer>3)
-        return respond({error:'題目或選項不正確'},400);
-      const result=await database('quiz_trial_submit',{p_identity:identity,
-        p_question_id:id,p_answer_index:answer});
-      return respond(result);
+      // Legacy unrestricted trial answers could bypass the beginner-only rule.
+      // New unregistered challengers use quiz-nickname-beginner instead.
+      return respond({error:'初階請先輸入暱稱參加；中、高階須註冊會員'},403);
     }
     return respond({error:'無效試玩操作'},400);
   }catch(error){

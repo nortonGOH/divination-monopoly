@@ -1,84 +1,83 @@
 const {test,expect}=require('@playwright/test');
-const MOCK='https://mock-guest-trial.supabase.co';
-function question(i){return {id:'trial-q-'+i,mansion:'角木蛟',category:'二十八宿',
- difficulty:'初階',knowledge_type:'山',prompt:'第 '+i+' 題匿名試玩題目',
- options:['甲','乙','丙','丁'],answer:0,explanation:'不應公開的解析'};}
-async function boot(page,{fail=false}={}){
- const state={used:0,answered:new Set(),calls:[],questions:[1,2,3,4,5,6].map(question)};
+const MOCK='https://mock-nickname-trial.supabase.co';
+const questions=[1,2,3,4,5,6].map(i=>({
+ id:'beginner-q-'+i,mansion:'角木蛟',category:'二十八宿',difficulty:'初階',
+ knowledge_type:'山',prompt:'初階暱稱題目 '+i,options:['甲','乙','丙','丁'],
+ answer:0,explanation:'僅會員救援後才顯示的解析'
+}));
+async function boot(page){
+ const state={calls:[],used:0,correct:0,answered:new Set(),name:''};
  await page.route('**/*',async route=>{
-  const req=route.request(),url=new URL(req.url());
-  if(url.hostname==='127.0.0.1'){
-   if(url.pathname==='/config.js')return route.fulfill({status:200,contentType:'application/javascript',
-     body:"window.QUIZ_AUTH_CONFIG={supabaseUrl:'"+MOCK+"',publishableKey:'mock-publishable-key-0123456789',turnstileSiteKey:''};"});
+  const req=route.request(),u=new URL(req.url());
+  if(u.hostname==='127.0.0.1'){
+   if(u.pathname==='/config.js')return route.fulfill({status:200,contentType:'application/javascript',
+    body:`window.QUIZ_AUTH_CONFIG={supabaseUrl:'${MOCK}',publishableKey:'mock-public-key-1234567890',turnstileSiteKey:''};`});
    return route.continue();
   }
-  if(url.hostname!=='mock-guest-trial.supabase.co')return route.abort();
-  const path=url.pathname;
-  const h={'access-control-allow-origin':'*','access-control-allow-headers':'*',
-    'access-control-allow-methods':'POST,GET,OPTIONS'};
-  if(req.method()==='OPTIONS')return route.fulfill({status:204,headers:h});
-  const data=JSON.parse(req.postData()||'{}');
-  state.calls.push({path,data,token:req.headers().authorization});
-  const reply=(status,body)=>route.fulfill({status,headers:h,contentType:'application/json',body:JSON.stringify(body)});
+  if(u.hostname!=='mock-nickname-trial.supabase.co')return route.abort();
+  const headers={'access-control-allow-origin':'*',
+   'access-control-allow-headers':'*','access-control-allow-methods':'POST,GET,OPTIONS'};
+  if(req.method()==='OPTIONS')return route.fulfill({status:204,headers});
+  const path=u.pathname;let data={};
+  try{data=JSON.parse(req.postData()||'{}')}catch(_){}
+  state.calls.push({path,data,authorization:req.headers().authorization});
+  const reply=(status,payload)=>route.fulfill({status,headers,contentType:'application/json',body:JSON.stringify(payload)});
   if(path.endsWith('/rpc/quiz_public_question_bank'))
-    return reply(200,state.questions.map(({answer,explanation,...q})=>q));
-  if(path.endsWith('/functions/v1/quiz-guest-trial')){
-   if(fail)return reply(503,{error:'無法確認訪客 IP'});
-   if(data.action==='status')return reply(200,{used:state.used,remaining:5-state.used,limit:5,locked:state.used>=5});
+   return reply(200,questions.map(({answer,explanation,...q})=>q));
+  if(path.endsWith('/functions/v1/quiz-nickname-beginner')){
+   if(data.action==='join'){state.name=data.nickname;return reply(200,{accepted:true,nickname:state.name,total_attempts:state.used,correct_attempts:state.correct});}
+   if(data.action==='status')return reply(200,{accepted:true,nickname:state.name,total_attempts:state.used,correct_attempts:state.correct});
    if(data.action==='answer'){
-    if(state.used>=5)return reply(200,{accepted:false,reason:'limit_reached',used:state.used,remaining:0,limit:5,locked:true});
-    if(state.answered.has(data.question_id))
-      return reply(200,{accepted:false,reason:'already_answered',used:state.used,remaining:5-state.used,limit:5,locked:false});
-    const q=state.questions.find(item=>item.id===data.question_id);
-    if(!q)return reply(400,{error:'invalid question'});
-    state.answered.add(data.question_id);state.used++;
-    return reply(200,{accepted:true,correct:data.answer_index===q.answer,used:state.used,remaining:5-state.used,limit:5,locked:state.used>=5});
+    const q=questions.find(q=>q.id===data.question_id);
+    if(!q||q.difficulty!=='初階')return reply(403,{error:'中、高階須註冊會員'});
+    if(state.answered.has(q.id))return reply(200,{accepted:false,reason:'already_answered',nickname:state.name,total_attempts:state.used,correct_attempts:state.correct});
+    state.answered.add(q.id);state.used++;if(q.answer===data.answer_index)state.correct++;
+    return reply(200,{accepted:true,correct:q.answer===data.answer_index,nickname:state.name,total_attempts:state.used,correct_attempts:state.correct});
    }
   }
+  if(path.endsWith('/functions/v1/quiz-guest-trial'))return reply(403,{error:'舊訪客答題已停用'});
   if(path.endsWith('/rpc/quiz_wenchang_status'))return reply(200,{credits:3,earned:3,spent:0,credit_source:'correct_answers'});
   return reply(200,[]);
  });
  await page.goto('/');
- if(!fail)await expect(page.locator('#trialBanner')).toContainText('剩餘 5 次');
  return state;
 }
-test('five anonymous graded answers permanently exhaust IP quota after reload; no answer leaks',async({page})=>{
+test('anonymous must enter nickname; beginner records server score without old IP trial quota',async({page})=>{
  const state=await boot(page);
+ const banner=page.locator('#trialBanner');
+ await expect(banner).toContainText('請輸入暱稱');
+ await expect(page.locator('#spinBtn')).toBeDisabled();
+ await page.locator('#nicknameBeginnerInput').fill('試玩者甲');
+ await page.getByRole('button',{name:'用暱稱挑戰初階'}).click();
+ await expect(page.locator('#nicknameBeginnerStatus')).toContainText('暱稱 試玩者甲');
  await expect(page.locator('#spinBtn')).toBeEnabled();
+ await expect(banner).toContainText('暱稱挑戰');
+ // The public question bank is fetched asynchronously; do not simulate a spin
+ // before its content arrives, or the wheel can correctly show an empty pool.
+ await expect.poll(()=>page.evaluate(()=>questionBank.length)).toBe(6);
+ for(let i=1;i<=6;i++){
+  await page.evaluate(()=>{
+   const slot=BOARD_SLOTS.findIndex(c=>c.type==='mansion'&&c.mansionIndex===0);
+   finishSpin(slot);
+  });
+  await page.evaluate(id=>showQuestion({id,mansion:'角木蛟',category:'二十八宿',difficulty:'初階',knowledge_type:'山',prompt:'初階暱稱題目 '+id,options:['甲','乙','丙','丁'],explanation:''},6),'beginner-q-'+i);
+  await page.locator('#answerOptions button').first().click();
+  await expect(page.locator('#answerFeedback')).toContainText('已計入暱稱排行榜');
+  await expect(page.locator('#nicknameBeginnerStatus')).toContainText('答對 '+i+'／'+i+' 題');
+ }
+ expect(state.used).toBe(6);
+ expect(state.calls.filter(c=>c.path.endsWith('/functions/v1/quiz-nickname-beginner')&&c.data.action==='answer')).toHaveLength(6);
+ expect(state.calls.filter(c=>c.path.endsWith('/functions/v1/quiz-guest-trial')&&c.data.action==='answer')).toHaveLength(0);
+ expect(state.calls.filter(c=>c.path.includes('quiz_wenchang_reveal'))).toHaveLength(0);
+ expect(state.calls.filter(c=>c.path==='/rest/v1/quiz_questions')).toHaveLength(0);
+ await page.reload();
+ await expect(page.locator('#nicknameBeginnerStatus')).toContainText('答對 6／6 題');
+ await expect(page.locator('#spinBtn')).toBeEnabled();
+});
+test('Wenchang remains reserved for registered members',async({page})=>{
+ const state=await boot(page);
  await expect(page.locator('#wenchangCard')).toBeVisible();
  await expect(page.locator('#wenchangCardStatus')).toContainText('訪客試玩不累積');
- for(let i=1;i<=5;i++){
-  // Exercise v8's real wheel-completed gate rather than forcing a hidden panel.
-  await page.evaluate(()=>{
-    const slot=BOARD_SLOTS.findIndex(c=>c.type==='mansion'&&c.mansionIndex===0);
-    finishSpin(slot);
-  });
-  await expect(page.locator('.quiz-panel')).toBeVisible();
-  await page.evaluate(id=>showQuestion(questionBank.find(q=>q.id===id),6),'trial-q-'+i);
-  await page.locator('#answerOptions button').nth(i===1?0:1).click();
-  await expect(page.locator('#trialBanner')).toContainText(i===5?'已使用 5／5':'已答 '+i+'／5');
-  expect(state.used).toBe(i);
-  if(i===2)await expect(page.locator('#answerFeedback')).not.toContainText('不應公開的解析');
- }
- await expect(page.locator('#trialBanner')).toHaveAttribute('data-state','locked');
- await expect(page.locator('#spinBtn')).toBeDisabled();
- await page.reload();
- await expect(page.locator('#trialBanner')).toContainText('5／5');
- await expect(page.locator('#spinBtn')).toBeDisabled();
- expect(state.used).toBe(5);
- expect(state.calls.filter(x=>x.path.endsWith('/functions/v1/quiz-guest-trial')&&x.data.action==='answer')).toHaveLength(5);
- expect(state.calls.filter(x=>x.path.includes('quiz_wenchang_reveal'))).toHaveLength(0);
- expect(state.calls.filter(x=>x.path==='/rest/v1/quiz_questions')).toHaveLength(0);
-});
-test('failed trial status blocks all anonymous gameplay instead of inventing quota',async({page})=>{
- const state=await boot(page,{fail:true});
- await expect(page.locator('#trialBanner')).toHaveAttribute('data-state','error');
- await expect(page.locator('#trialBanner')).toContainText('無法確認訪客 IP');
- await expect(page.locator('#spinBtn')).toBeDisabled();
- expect(state.used).toBe(0);
-});
-test('Wenchang rescue card shows member balance and guest signup entry',async({page})=>{
- const state=await boot(page);
  await page.locator('#wenchangCardAction').click();
  await expect(page.getByRole('heading',{name:'數術知識挑戰・帳號登入'})).toBeVisible();
  await page.getByRole('button',{name:'關閉',exact:true}).click();
@@ -89,7 +88,7 @@ test('Wenchang rescue card shows member balance and guest signup entry',async({p
  await expect(page.locator('#wenchangCardAction')).toContainText('查看救援餘額');
  await page.locator('#wenchangCardAction').click();
  await expect(page.locator('#wenchangCardStatus')).toContainText('可用 3 點｜答對累積 3 點');
- const calls=state.calls.filter(x=>x.path.endsWith('/rpc/quiz_wenchang_status'));
+ const calls=state.calls.filter(c=>c.path.endsWith('/rpc/quiz_wenchang_status'));
  expect(calls).toHaveLength(1);
- expect(calls[0].token).toBe('Bearer mock-member');
+ expect(calls[0].authorization).toBe('Bearer mock-member');
 });

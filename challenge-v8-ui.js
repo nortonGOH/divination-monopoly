@@ -59,15 +59,15 @@
     const mansion=MANSIONS[index]?.name;
     const requestedType=typeof window.quizFiveArtsSelection==='function'?window.quizFiveArtsSelection():'all';
     // No selected challenge type means a mixed random draw across all three difficulties.
-    const level=requestedType==='all'?'all':($('quizDifficulty')?.value||'中階');
+    const level=window.quizMemberToken?.()?(requestedType==='all'?'all':($('quizDifficulty')?.value||'初階')):'初階';
     const levelLabel=level==='all'?'隨機初／中／高階':level;
     const completed=window.quizCompletedIds||new Set();
     const playable=questionBank.filter(q =>
       !completed.has(q.id) &&
       q.mansion===mansion && (level==='all'||(q.difficulty||'中階')===level) &&
       (requestedType==='all'||(typeof inferKnowledgeType==='function' && inferKnowledgeType(q)===requestedType)) &&
-      Array.isArray(q.options) && q.options.length===4 &&
-      Number.isInteger(Number(q.answer)) && Number(q.answer)>=0 && Number(q.answer)<=3
+      // Public quiz questions omit the answer; only the server grades submissions.
+      Array.isArray(q.options) && q.options.length===4
     );
     $('quizScope').textContent='目前星宿：'+mansion;
     $('quizAvailable').textContent=levelLabel+' · 本宿 '+playable.length+' 題四選一';
@@ -75,8 +75,12 @@
       hideQuestion('請按「抽宿挑戰」開始；點選星宿或切換難度不會直接出題。');
       return;
     }
-    if(typeof window.quizPlayerMayChallenge==='function' && !window.quizPlayerMayChallenge()) {
-      hideQuestion('請先註冊或登入，才能參加挑戰。');
+    // Active nickname beginners and unlocked registered members are both eligible.
+    // The old guest-trial gate must not override a verified nickname session.
+    const nicknameAllowed=Boolean(!window.quizMemberToken?.() && window.quizNicknameActive?.());
+    const memberAllowed=Boolean(window.quizMemberToken?.() && window.quizPlayerMayChallenge?.());
+    if(!nicknameAllowed && !memberAllowed) {
+      hideQuestion('請先輸入初階暱稱，或註冊登入會員才能參加挑戰。');
       return;
     }
     if(!playable.length){

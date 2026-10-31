@@ -19,7 +19,7 @@ let trialInfo=null,trialRequest=false,trialError='';
 const trialBanner=document.getElementById('trialBanner');
 let unlockTimer=null, unlockAt='';
 let completedIds=new Set();window.quizCompletedIds=completedIds;
-window.quizPlayerMayChallenge=()=>Boolean((playerToken&&!playerState?.locked)||(!playerToken&&trialInfo&&!trialInfo.locked));
+window.quizPlayerMayChallenge=()=>Boolean((playerToken&&!playerState?.locked)||(!playerToken&&window.quizNicknameActive?.()));
 async function reloadCompleted(){completedIds=new Set(await endpoint('/rest/v1/rpc/quiz_answered_question_ids','POST',{}));window.quizCompletedIds=completedIds;}
 const loginReady=Boolean(base&&key);
 async function trialApi(action,extras={}){
@@ -34,6 +34,7 @@ async function trialApi(action,extras={}){
 }
 function showTrialBanner(error=''){
   if(!trialBanner)return;
+  if(!playerToken){trialBanner.dataset.state='nickname';trialBanner.textContent=window.quizNicknameActive?.()?'初階暱稱挑戰｜已納入排行榜；中、高階須註冊。':'初階開放暱稱挑戰｜請輸入暱稱；中、高階須註冊。';return;}
   if(playerToken){
     trialBanner.dataset.state='member';
     trialBanner.textContent='會員正式挑戰模式｜試玩 IP 額度不影響註冊會員答題。';
@@ -317,11 +318,12 @@ function drawState(){
    }
  }
  showTrialBanner(trialError);
- summary.textContent=playerToken?`${playerNickname||'尚未設定暱稱'}｜參戰 ${playerState?.total_attempts??0} 次｜答對 ${playerState?.correct_attempts??0} 次｜成功率 ${Number(playerState?.success_rate??0).toFixed(1)}%｜當期答錯 ${playerState?.wrong_count??0}/5${locked?'｜暫停至 '+dateText(playerState.locked_until):''}`:trialInfo&&!trialInfo.locked?'訪客試玩：剩餘 '+trialInfo.remaining+' 次答題｜登入會員可保存成績與使用文昌星救援。':'請註冊或登入，才能開始正式數術挑戰。';
+ const nicknameReady=Boolean(!playerToken&&window.quizNicknameActive?.());
+ summary.textContent=playerToken?`${playerNickname||'尚未設定暱稱'}｜參戰 ${playerState?.total_attempts??0} 次｜答對 ${playerState?.correct_attempts??0} 次｜成功率 ${Number(playerState?.success_rate??0).toFixed(1)}%｜當期答錯 ${playerState?.wrong_count??0}/5${locked?'｜暫停至 '+dateText(playerState.locked_until):''}`:nicknameReady?'暱稱初階｜'+(window.quizNicknameProfile?.()?.nickname||'玩家')+'｜答對 '+(window.quizNicknameProfile?.()?.correct_attempts||0)+' 題｜中、高階須註冊。':'請輸入暱稱參與初階挑戰；中、高階須註冊會員。';
  logoutBtn.hidden=!playerToken;signInBtn.hidden=!!playerToken;profileBtn.hidden=!playerToken;
  if(locked){alertBox.hidden=false;}else{alertBox.hidden=true;alertBox.textContent='';}
  renderCooldown();
- const allowed=(!!playerToken && !locked)||(!playerToken&&!!trialInfo&&!trialInfo.locked);
+ const allowed=(!!playerToken && !locked)||nicknameReady;
  if(!spinning){
    $('spinBtn').disabled=!allowed;
    if(locked){$('spinBtn').textContent='🔒 挑戰暫停・查看解鎖時間';$('spinBtn').title='點擊可查看解鎖倒數與原因';}
@@ -576,6 +578,11 @@ const previousAnswer=answerQuestion;
 answerQuestion=async function(index){
  if(busy)return;
  if(!playerToken){
+   if(!window.quizNicknameActive?.()){
+     $('answerFeedback').textContent='請先輸入暱稱，才能參與初階挑戰。';window.quizNicknameFocus?.();return;
+   }
+   // The nickname module replaces this handler after initialization.
+   $('answerFeedback').textContent='暱稱答題尚未就緒，請重新整理。';return;
    if(!trialInfo||trialInfo.locked){
      drawState();setDialogMode('login');showDlg();return;
    }
@@ -664,7 +671,7 @@ window.challengeRecordOpen=async(q,mastered)=>{
 const priorSelect=selectQuizForMansion;
 selectQuizForMansion=function(index){
  activeMansion=index;
- if((playerToken&&playerState?.locked)||(!playerToken&&(!trialInfo||trialInfo.locked))){drawState();return;}
+ if((playerToken&&playerState?.locked)||(!playerToken&&!window.quizNicknameActive?.())){drawState();return;}
  priorSelect(index);
 };
 // The original spin handler was registered earlier; capture events before it executes.
@@ -672,12 +679,13 @@ for(const elem of [$('spinBtn'),$('polaris-trigger')]){
  if(!elem)continue;
  for(const eventName of ['click','keydown'])elem.addEventListener(eventName,e=>{
   if(eventName==='keydown'&&!['Enter',' '].includes(e.key))return;
-  if((playerToken&&playerState?.locked)||(!playerToken&&(!trialInfo||trialInfo.locked))){e.preventDefault();e.stopImmediatePropagation();
-    if(playerState?.locked)onLockedWheelClick();else{setDialogMode('login');showDlg();}}
+  if((playerToken&&playerState?.locked)||(!playerToken&&!window.quizNicknameActive?.())){e.preventDefault();e.stopImmediatePropagation();
+    if(playerState?.locked)onLockedWheelClick();else{window.quizNicknameFocus?.();}}
  },true);
 }
+window.addEventListener('quiz-nickname-state-changed',drawState);
 setDialogMode('login');
-const oldStatus=drawState;oldStatus();void refreshTrial();
+const oldStatus=drawState;oldStatus();
 if(recoveryAccessToken){
   setDialogMode('reset');showDlg();password.focus();
 }else if(isRecoveryLink||recoveryError){

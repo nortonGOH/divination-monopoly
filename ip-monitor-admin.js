@@ -17,8 +17,8 @@
  const refresh=make('button','重新整理');refresh.type='button';
  const close=make('button','關閉');close.type='button';close.onclick=()=>dialog.close();
  controls.append(refresh,close);
- const warning=make('div'),top=make('div'),recent=make('div');
- dialog.append(title,note,status,controls,warning,top,recent);document.body.append(dialog);
+ const warning=make('div'),top=make('div'),recent=make('div'),nicknameSources=make('div');
+ dialog.append(title,note,status,controls,warning,top,recent,nicknameSources);document.body.append(dialog);
  async function report(){
   if(typeof adminAccessToken!=='string'||!adminAccessToken)throw Error('請先登入管理員');
   const r=await fetch(base+'/rest/v1/rpc/quiz_admin_ip_monitor_report',{
@@ -58,6 +58,21 @@
    table(recent,['時間','IP','事件','頁面','控制項'],(data.recent||[]).map(x=>[
     new Date(x.occurred_at).toLocaleString('zh-TW',{hour12:false}),x.ip,x.kind,x.page,x.target||'—'
    ]));
+   nicknameSources.replaceChildren(make('h3','暱稱玩家同 IP 來源觀測'));
+   const x=await fetch(base+'/rest/v1/rpc/quiz_admin_nickname_ip_report',{
+     method:'POST',headers:{apikey:key,Authorization:'Bearer '+adminAccessToken,
+       'Content-Type':'application/json'},body:'{}',cache:'no-store'
+   });
+   if(x.ok){
+     const n=await x.json();
+     nicknameSources.append(make('p','同一來源 IP 可能有多位不同玩家；僅供觀察，不合併身分、不封鎖。'));
+     table(nicknameSources,['IP','事件數','不同暱稱工作階段','最近活動'],(n.shared_sources||[]).map(v=>[
+       v.ip,v.events,v.nickname_sessions,new Date(v.last_seen).toLocaleString('zh-TW',{hour12:false})
+     ]));
+     table(nicknameSources,['時間','來源 IP','暱稱','事件'],(n.recent||[]).map(v=>[
+       new Date(v.occurred_at).toLocaleString('zh-TW',{hour12:false}),v.ip,v.nickname,v.action
+     ]));
+   }else nicknameSources.append(make('p','暱稱玩家來源觀測尚未部署或目前無權限讀取。'));
    if(!silent)status.textContent='觀測資料已更新。流量監測從部署後開始。';
   }catch(e){launch.textContent='IP 流量觀測';if(!silent)status.textContent='尚未能取得觀測資料：'+e.message;}
  }
