@@ -48,41 +48,68 @@ close.onclick=()=>dialog.close();
 // Dedicated order editor; keep it separate from visibility toggles and their revisions.
 const orderBtn=el('button','首頁區塊排序');orderBtn.type='button';orderBtn.className='outline-btn';bar.append(orderBtn);
 const orderDialog=el('dialog');orderDialog.style.cssText='width:min(600px,calc(100vw - 24px));max-height:88dvh;overflow:auto;padding:22px;border:1px solid #cbbd9e;border-radius:14px;background:#fffaf0';
-const orderTitle=el('h2','首頁區塊排序'),orderTip=el('p','使用上移／下移調整右側內容區塊順序，不會更動內容、資料或顯示開關。'),orderStatus=el('p');
+const orderTitle=el('h2','首頁區塊排序・九宮格編號'),orderTip=el('p','將區塊分配至 1–9 號位置。編號由小至大決定首頁區塊的上下順序；空格不顯示。此設定不改變資料、可見性或圓盤位置。'),orderStatus=el('p');
 orderStatus.setAttribute('role','status');
-const orderList=el('div');orderList.style.cssText='display:grid;gap:8px;margin:12px 0';
-const orderSave=el('button','儲存排序'),orderClose=el('button','關閉');orderSave.type=orderClose.type='button';
+const orderList=el('div');orderList.id='homepageNineGridOrder';orderList.style.cssText='display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:15px 0';
+const orderSave=el('button','儲存九宮格排序'),orderClose=el('button','關閉');orderSave.type=orderClose.type='button';
 orderDialog.append(orderTitle,orderTip,orderStatus,orderList,orderSave,orderClose);document.body.append(orderDialog);
-const orderNames={daily_knowledge_front:'每日知識解析卡（首頁輪播）',learning_journal:'學習修行簿',spin_challenge:'抽宿挑戰',quiz:'數術問答',wenchang:'文昌星救援卡'};
+const orderNames={daily_knowledge_front:'每日知識解析卡',learning_journal:'學習修行簿',spin_challenge:'按我或北極星開始挑戰',quiz:'數術問答',wenchang:'文昌星救援卡'};
 const orderKeys=Object.keys(orderNames);
-let orderValue=orderKeys.slice(),orderRevision=null;
+const nineSlots=9;
+let orderValue=[...orderKeys,...Array(nineSlots-orderKeys.length).fill(null)],orderRevision=null;
+function normalizedOrder(value){
+ if(!Array.isArray(value)||![orderKeys.length,nineSlots].includes(value.length))return null;
+ const next=value.length===nineSlots?value.slice():[...value,...Array(nineSlots-value.length).fill(null)];
+ const keys=next.filter(item=>item!==null);
+ if(keys.length!==orderKeys.length||new Set(keys).size!==orderKeys.length||keys.some(k=>!orderKeys.includes(k)))return null;
+ return next;
+}
 function renderOrder(){
  orderList.replaceChildren();
  orderValue.forEach((key,i)=>{
-  const row=el('div');row.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px;border:1px solid #d4c29f;border-radius:8px';
-  row.append(el('span',(i+1)+'．'+orderNames[key]));
-  const controls=el('div');controls.style.cssText='display:flex;gap:5px';
-  for(const [label,offset] of [['上移',-1],['下移',1]]){
-   const b=el('button',label);b.type='button';b.disabled=i+offset<0||i+offset>=orderValue.length;
-   b.onclick=()=>{const other=i+offset;[orderValue[i],orderValue[other]]=[orderValue[other],orderValue[i]];renderOrder();};
-   controls.append(b);
+  const cell=el('label');
+  cell.style.cssText='display:flex;flex-direction:column;gap:8px;min-width:0;padding:11px 7px;border:1px solid #cbbd9e;border-radius:10px;background:'+(key?'#fffdf7':'#f5efe2');
+  const number=el('strong','位置 '+(i+1));
+  number.style.cssText='font-size:.88rem;color:#3d574e';
+  const chooser=el('select');
+  chooser.setAttribute('aria-label','位置 '+(i+1)+' 的區塊');
+  chooser.style.cssText='width:100%;min-width:0;max-width:100%;padding:8px 2px;border:1px solid #b9aa8e;border-radius:6px;background:white;font:inherit;font-size:.82rem';
+  const empty=el('option','— 空白 —');empty.value='';chooser.append(empty);
+  for(const [name,label] of Object.entries(orderNames)){
+   const option=el('option',label);option.value=name;chooser.append(option);
   }
-  row.append(controls);orderList.append(row);
+  chooser.value=key||'';
+  chooser.onchange=()=>{
+   const wanted=chooser.value||null;
+   if(wanted===orderValue[i])return;
+   const previous=orderValue[i];
+   if(wanted){
+    const other=orderValue.indexOf(wanted);
+    if(other===-1){renderOrder();return;}
+    orderValue[other]=previous;orderValue[i]=wanted;
+   }else if(previous){
+    const spare=orderValue.findIndex((item,pos)=>item===null&&pos!==i);
+    if(spare===-1){renderOrder();return;}
+    orderValue[spare]=previous;orderValue[i]=null;
+   }
+   renderOrder();orderStatus.textContent='排序已調整，請按「儲存九宮格排序」。';
+  };
+  cell.append(number,chooser);orderList.append(cell);
  });
 }
 orderBtn.onclick=async()=>{
  if(!token()){if(typeof displayBankToast==='function')displayBankToast('請先完成管理員登入');return;}
  orderDialog.showModal();orderSave.disabled=true;orderStatus.textContent='正在讀取排序…';
- try{const data=await rpc('quiz_admin_homepage_order');orderValue=Array.isArray(data.order)&&data.order.length===orderKeys.length?data.order:orderKeys.slice();orderRevision=data.revision;renderOrder();orderSave.disabled=false;orderStatus.textContent='可使用上移及下移調整順序。';}
+ try{const data=await rpc('quiz_admin_homepage_order');orderValue=normalizedOrder(data.order)||[...orderKeys,...Array(nineSlots-orderKeys.length).fill(null)];orderRevision=data.revision;renderOrder();orderSave.disabled=false;orderStatus.textContent='選取九宮格位置中的區塊即可交換位置，空格會自動保留。';}
  catch(error){orderStatus.textContent='讀取失敗：'+error.message;}
 };
 orderSave.onclick=async()=>{
  if(orderRevision===null)return;
  orderSave.disabled=true;orderStatus.textContent='儲存中…';
- try{const data=await rpc('quiz_admin_save_homepage_order',{p_order:orderValue,p_expected_revision:orderRevision});orderRevision=data.revision;await window.quizRefreshHomepageOrder?.();orderStatus.textContent='排序已儲存並套用。';}
+ try{const data=await rpc('quiz_admin_save_homepage_order',{p_order:orderValue,p_expected_revision:orderRevision});orderRevision=data.revision;await window.quizRefreshHomepageOrder?.();orderStatus.textContent='九宮格排序已儲存並套用。';}
  catch(error){orderStatus.textContent='儲存失敗：'+error.message+'（請重新開啟讀取）';}
  finally{orderSave.disabled=false;}
 };
 orderClose.onclick=()=>orderDialog.close();
-window.addEventListener('quiz-admin-session-changed',()=>{if(!token()&&dialog.open){revision=null;dialog.close();}});
+window.addEventListener('quiz-admin-session-changed',()=>{if(!token()){if(dialog.open){revision=null;dialog.close();}if(orderDialog.open){orderRevision=null;orderDialog.close();}}});
 })();
