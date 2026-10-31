@@ -14,7 +14,7 @@ RETURNS jsonb LANGUAGE plpgsql VOLATILE SECURITY INVOKER SET search_path=''
 AS $$
 DECLARE v_blocked boolean; v_n integer; v_purge boolean;
 BEGIN
- IF p_ip IS NULL OR masklen(p_ip)<>CASE WHEN family(p_ip)=4 THEN 32 ELSE 128 END
+ IF p_ip IS NULL OR masklen(p_ip)<>(CASE WHEN family(p_ip)=4 THEN 32 ELSE 128 END)
  OR p_kind IS NULL OR p_kind NOT IN ('view','click','trial')
  OR p_page IS NULL OR p_page NOT IN ('home','atlas')
  OR p_source IS NULL OR p_source NOT IN ('direct','search','social','referral','internal','unknown')
