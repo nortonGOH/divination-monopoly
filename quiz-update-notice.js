@@ -21,11 +21,11 @@
  dialog.insertBefore(knowledge,close);
  const noticeRequest=fetch(base+'/functions/v1/quiz-update-notice',{method:'POST',headers:{'Content-Type':'application/json',apikey:String(cfg.publishableKey||'')},body:'{}',cache:'no-store'})
   .then(r=>{if(!r.ok)throw Error('notice');return r.json();}).catch(()=>({show:false}));
- const ready=Promise.allSettled([noticeRequest,window.quizFeatureVisibilityReady||Promise.resolve(),window.quizDailyKnowledgeReady||Promise.resolve()]);
+ const ready=Promise.allSettled([noticeRequest,window.quizFeatureVisibilityReady||Promise.resolve(),window.quizDailyKnowledgeReady||Promise.resolve(),window.quizHomepageBlocksReady||Promise.resolve()]);
  ready.then(results=>{
    const data=results[0].status==='fulfilled'?results[0].value:{show:false};
    const showNotice=data?.show===true;
-   const canShowCard=window.quizFeatureVisibility?.daily_knowledge_visible===true;
+   const canShowCard=window.quizFeatureVisibility?.daily_knowledge_visible===true && window.quizHomepageBlockVisibility?.daily_knowledge!==false;
    const item=canShowCard?window.quizPickDailyKnowledgeForPopup?.():null;
    if(!showNotice&&!item)return;
    title.textContent=showNotice?String(data.title||'近期題庫更新公告'):'每日知識解析卡';
