@@ -14,6 +14,8 @@ const key=String(cfg.publishableKey||'');
 const EMAIL_CONFIRM_REDIRECT='https://nortongoh.github.io/divination-monopoly/';
 let playerToken=null, playerEmail='', playerNickname='', playerState=null, busy=false;
 window.quizMemberToken=()=>playerToken;
+// UI eligibility only; server RPCs remain the authorization boundary.
+window.quizEmailMemberSession=()=>Boolean(playerToken && playerEmail);
 let lastAnnouncedMemberToken;
 let trialInfo=null,trialRequest=false,trialError='';
 const trialBanner=document.getElementById('trialBanner');

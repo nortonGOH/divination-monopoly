@@ -1,0 +1,26 @@
+name: Nickname IP Registration Staging
+on:
+  pull_request:
+    paths:
+      - 'registration-mode-admin.js'
+      - 'quiz-challenge-v7.js'
+      - 'wenchang-rescue-cards.js'
+      - 'database/wenchang-email-member-only.sql'
+      - 'traffic-admin-dashboard.js'
+      - 'database/nickname-ip-registration-traffic.sql'
+      - 'database/ip-traffic-events.sql'
+      - 'docs/nickname-ip-traffic-rollout.md'
+      - 'tests/nickname-ip-traffic-staging.test.cjs'
+      - '.github/workflows/nickname-ip-traffic-staging.yml'
+  workflow_dispatch:
+jobs:
+  staged-unit-checks:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/nickname-ip-traffic-staging.test.cjs

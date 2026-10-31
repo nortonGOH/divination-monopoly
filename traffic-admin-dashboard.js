@@ -64,3 +64,6 @@
  refresh.onclick=()=>void load();
  button.onclick=()=>{if(!adminAccessToken){if(typeof displayBankToast==='function')displayBankToast('請先登入管理員。');return;}dialog.showModal();void load();};
 })();
+
+// Load the independent registration settings control without changing the main page template.
+(()=>{const s=document.createElement('script');s.src='./registration-mode-admin.js';s.defer=true;document.head.appendChild(s);})();
