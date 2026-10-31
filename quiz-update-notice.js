@@ -25,7 +25,7 @@
  ready.then(results=>{
    const data=results[0].status==='fulfilled'?results[0].value:{show:false};
    const showNotice=data?.show===true;
-   const canShowCard=window.quizHomepageBlockVisibility?.daily_knowledge_popup!==false && window.quizHomepageBlockVisibility?.daily_knowledge!==false;
+   const canShowCard=window.quizHomepageBlockVisibility?.daily_knowledge_popup!==false;
    const item=canShowCard?window.quizPickDailyKnowledgeForPopup?.():null;
    if(!showNotice&&!item)return;
    title.textContent=showNotice?String(data.title||'近期題庫更新公告'):'每日知識解析卡';
