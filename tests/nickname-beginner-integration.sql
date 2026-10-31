@@ -57,7 +57,7 @@ BEGIN
 END $$;
 SELECT public.quiz_nickname_beginner_action('join',repeat('b',64),'198.51.100.42','Visitor2',NULL,NULL);
 -- Names belong to one nickname session. Case differences and padding cannot claim it.
-DO $
+DO $$
 DECLARE rejected boolean:=false; v_count bigint;
 BEGIN
  BEGIN
@@ -85,16 +85,16 @@ BEGIN
  IF NOT EXISTS(SELECT 1 FROM public.quiz_nickname_players
    WHERE token_digest=repeat('a',64) AND nickname='Visitor' AND correct_attempts=1)
  THEN RAISE EXCEPTION 'Duplicate claim changed original account score or nickname'; END IF;
-END $;
+END $$;
 -- The same token may rejoin under its own existing name without resetting score.
 SELECT public.quiz_nickname_beginner_action('join',repeat('a',64),
  '198.51.100.42','VISITOR',NULL,NULL);
-DO $
+DO $$
 BEGIN
  IF NOT EXISTS(SELECT 1 FROM public.quiz_nickname_players
    WHERE token_digest=repeat('a',64) AND nickname='VISITOR' AND correct_attempts=1)
  THEN RAISE EXCEPTION 'Original player was not allowed to reuse own nickname'; END IF;
-END $;
+END $$;
 RESET ROLE;
 
 SET ROLE authenticated;
