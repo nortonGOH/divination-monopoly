@@ -1,4 +1,4 @@
-/* Page-load counting for both guests and members. No identifying information collected. */
+/* Page and button-click monitoring. IP is never read or submitted by this script. */
 (()=>{
  'use strict';
  const cfg=window.QUIZ_AUTH_CONFIG||{};
@@ -17,8 +17,21 @@
   else if(ref)source=ref.origin===location.origin?'internal':'referral';
   else if(campaign)source='referral';
  }catch(_){source='unknown';}
- fetch(base+'/rest/v1/rpc/quiz_track_page_view',{
-  method:'POST',headers:{apikey:key,'Content-Type':'application/json'},
-  body:JSON.stringify({p_page:page,p_source:source}),keepalive:true,cache:'no-store'
- }).catch(()=>{}); // Analytics must never interfere with the website.
+ const endpoint=base+'/functions/v1/quiz-ip-monitor';
+ function record(kind,target=''){
+  return fetch(endpoint,{
+   method:'POST',headers:{apikey:key,'Content-Type':'application/json'},
+   body:JSON.stringify({kind,page,source,target}),keepalive:true,cache:'no-store'
+  }).catch(()=>{}); // Monitoring must not interrupt viewing or navigation.
+ }
+ void record('view');
+ const safeIds=new Set(['spinBtn','nextQuestionBtn','polaris-trigger',
+   'playerSignInBtn','guestbookLogin','manageBankBtn']);
+ document.addEventListener('click',event=>{
+  const button=event.target?.closest?.('button,a,[role="button"]');
+  if(!button)return;
+  // No URLs, email addresses, user-entered values, or option text are sent.
+  const target=safeIds.has(button.id)?button.id:(button.tagName==='A'?'link':'button');
+  void record('click',target);
+ },{passive:true});
 })();
