@@ -37,6 +37,6 @@ async function call(method,body,origin='https://nortongoh.github.io',extra={}){
  const spoof=await call('POST',{kind:'click',page:'home',source:'internal',target:'button'},
   'https://nortongoh.github.io',{'cf-connecting-ip':'198.51.100.29'});
  console.log('Caller-supplied IP attempt:',spoof.status);
- assert.equal(spoof.status,200);
- console.log('Smoke checks passed; inspect IP source in DB before merging.');
+ assert.equal(spoof.status,403,'Gateway must reject caller-supplied provider IP header');
+ console.log('Live smoke passed: GET 405, origin 403, invalid 400, valid 200, forged IP 403.');
 })().catch(e=>{console.error(String(e));process.exitCode=1;});
