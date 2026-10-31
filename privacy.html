@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>個資與流量告知｜數術知識大挑戰</title>
+<style>
+:root{color-scheme:light dark}*{box-sizing:border-box}
+body{max-width:800px;margin:0 auto;padding:28px 20px;font-family:system-ui,"Noto Sans TC",sans-serif;line-height:1.8}
+header{border-bottom:1px solid #8886;margin-bottom:24px}
+h1{font-size:1.8rem}h2{font-size:1.15rem;margin-top:1.7rem}
+a{text-underline-offset:3px}a:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+.notice{border:1px solid #8886;border-radius:12px;padding:12px 18px}
+footer{border-top:1px solid #8886;margin-top:28px;padding-top:18px;display:flex;gap:16px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<header>
+<h1>個資與流量告知</h1>
+<p>數術知識大挑戰及二十八宿互動圖鑑的網站流量觀測說明</p>
+</header>
+<main>
+<p class="notice">本功能僅供流量分析及異常活動提醒，<strong>不會因來源 IP 而封鎖、停權或限制會員、訪客及試玩資格</strong>。</p>
+<h2>一、蒐集內容</h2>
+<p>當您瀏覽本站首頁或二十八宿互動圖鑑、點擊按鈕或連結時，系統可能由伺服器紀錄來源 IP 位址、事件日期時間、頁面類別、訪問來源類別、事件種類（瀏覽或點擊）及預設控制項代碼（如 button、link）。本流量觀測功能不主動蒐集表單輸入、密碼、電子郵件、題目答案或點擊連結的完整網址。會員等其他既有功能的資料處理不屬於本頁說明範圍。</p>
+<h2>二、蒐集目的</h2>
+<p>上述資料用於了解瀏覽及點擊情況，協助排查異常流量。同一 IP 五分鐘內有 80 次活動或 40 次點擊時，管理後台只顯示警示，不會自動或手動封鎖任何 IP。IP 可能由多位使用者共用，不能將 IP 數直接視為獨立人數。</p>
+<h2>三、資料存取</h2>
+<p>來源 IP 事件明細由本站既有 Supabase 後端處理，僅供通過管理員身分驗證與權限檢查的人員查看。一般訪客和會員無法直接讀取其他人的 IP 事件明細。本功能不使用廣告追蹤作為資料蒐集目的。</p>
+<h2>四、保存期間</h2>
+<p>本功能新增的 IP 事件明細以 30 天為保存目標，透過後續新流量寫入時清理過期紀錄。若沒有新流量，清理可能延後。聚合統計與底層服務日誌可能依各自規則保存，不保證同樣在 30 天內刪除。</p>
+<h2>五、資料相關問題</h2>
+<p>如對資料蒐集、查詢、更正或刪除有疑問，可透過 <a href="https://github.com/nortonGOH/divination-monopoly/issues" target="_blank" rel="noopener noreferrer">GitHub 專案議題區</a> 請管理者提供私人聯絡方式。該議題區為公開頁面，請勿直接貼出完整 IP、電子郵件、帳號或其他敏感資料。</p>
+</main>
+<footer><a href="./index.html">返回網站首頁</a><a href="./mansions-atlas.html">二十八宿互動圖鑑</a></footer>
+</body>
+</html>

@@ -58,7 +58,7 @@ test('local quiz grades an answer and never posts membership results',async({pag
   await expect(page.locator('#quizOptions button:disabled')).toHaveCount(4);
   await page.locator('#nextQuiz').click();
   await expect(page.locator('#quizOptions button:not(:disabled)')).toHaveCount(4);
-  expect(requests.filter(url=>!url.endsWith('/rest/v1/rpc/quiz_track_page_view'))).toEqual([]);
+  expect(requests.filter(url=>!url.endsWith('/rest/v1/rpc/quiz_track_page_view') && !url.endsWith('/functions/v1/quiz-ip-monitor'))).toEqual([]);
 });
 
 test('mobile atlas remains usable without horizontal overflow',async({page})=>{

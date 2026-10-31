@@ -17,8 +17,11 @@ test('scripts parse and are installed on both pages',()=>{
  assert.match(atlas,/src="\.\/traffic-tracker\.js"/);
 });
 test('visitor tracker counts without identity or raw referrer capture',()=>{
- assert.match(tracker,/quiz_track_page_view/);
- assert.match(tracker,/p_page:page,p_source:source/);
+ assert.match(tracker,/quiz-ip-monitor/);
+ assert.match(tracker,/kind,page,source,target/);
+ const edge=fs.readFileSync(path.join(root,'supabase/functions/quiz-ip-monitor/index.ts'),'utf8');
+ assert.match(edge,/quiz_track_page_view/);
+ assert.match(edge,/p_page:page,p_source:source/);
  assert.doesNotMatch(tracker,/localStorage|sessionStorage|cookie|fingerprint|email|user_id|visitor_id|ip_address|document\.referrer\s*:/i);
  assert.doesNotMatch(tracker,/Authorization:\s*['"]Bearer/);
 });

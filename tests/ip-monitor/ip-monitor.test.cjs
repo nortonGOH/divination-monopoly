@@ -1,0 +1,43 @@
+'use strict';
+const test=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const vm=require('node:vm');
+const path=require('node:path');
+const root=path.join(__dirname,'..','..');
+const read=p=>fs.readFileSync(path.join(root,p),'utf8');
+test('observation dashboard parses without lock or ban action',()=>{
+ const ui=read('ip-monitor-admin.js');
+ new vm.Script(ui);
+ new vm.Script(read('traffic-tracker.js'));
+ assert.match(read('traffic-admin-dashboard.js'),/ip-monitor-admin\.js/);
+ assert.match(ui,/IP 流量觀測/);
+ assert.doesNotMatch(ui,/quiz_admin_ip_monitor_action|鎖定 IP|解鎖|p_action/);
+});
+test('browser never sends raw IP or form contents',()=>{
+ const tracker=read('traffic-tracker.js');
+ assert.match(tracker,/functions\/v1\/quiz-ip-monitor/);
+ assert.match(tracker,/safeIds/);
+ assert.doesNotMatch(tracker,/document\.cookie|localStorage|sessionStorage/);
+ assert.doesNotMatch(tracker,/\bsource_ip\b|\bx-forwarded-for\b/i);
+});
+test('server records IP from managed edge without blocking any IP',()=>{
+ const edge=read('supabase/functions/quiz-ip-monitor/index.ts');
+ const trial=read('supabase/functions/quiz-guest-trial/index.ts');
+ assert.match(edge,/cf-connecting-ip/);
+ assert.match(edge,/quiz_ip_monitor_record/);
+ assert.doesNotMatch(edge,/result\?\.blocked|IP access restricted/);
+ assert.doesNotMatch(trial,/quiz_ip_monitor_record|gate\?\.blocked/);
+ const schema=read('database/ip-monitor-schema.sql');
+ const report=read('database/ip-monitor-report.sql');
+ const intake=read('database/ip-monitor-intake.sql');
+ assert.doesNotMatch(schema,/quiz_ip_monitor_blocks|denied boolean/);
+ assert.doesNotMatch(report,/quiz_ip_monitor_blocks|'blocks'/);
+ assert.doesNotMatch(intake,/quiz_ip_monitor_blocks|v_blocked/);
+ assert.match(report,/quiz_admins/);
+ assert.match(intake,/interval '30 days'/);
+ assert.match(schema,/ENABLE ROW LEVEL SECURITY/);
+ assert.match(schema,/REVOKE ALL ON public\.quiz_ip_monitor_events FROM PUBLIC,anon,authenticated/);
+ assert.match(report,/threshold_5m_total',80/);
+ assert.match(report,/threshold_5m_clicks',40/);
+});
