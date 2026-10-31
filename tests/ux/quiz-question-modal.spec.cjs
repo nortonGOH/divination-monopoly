@@ -25,18 +25,21 @@ async function boot(page){
   calls.push({path,body});
   let data=[],status=200;
   if(path.endsWith('/rpc/quiz_public_question_bank'))data=questions;
-  else if(path==='/functions/v1/quiz-guest-trial'){
-   if(body.action==='answer'){
+  else if(path==='/functions/v1/quiz-nickname-beginner'){
+   if(body.action==='join')data={accepted:true,nickname:body.nickname,total_attempts:0,correct_attempts:0};
+   else if(body.action==='answer'){
     used++;
-    data={accepted:true,correct:false,used,remaining:5-used,limit:5,locked:used>=5};
-   }else data={used,remaining:5-used,limit:5,locked:used>=5};
+    data={accepted:true,correct:false,nickname:'模態測試者',total_attempts:used,correct_attempts:0};
+   }else data={accepted:true,nickname:'模態測試者',total_attempts:used,correct_attempts:0};
   }else if(path.endsWith('/rpc/quiz_public_leaderboard'))data=[];
   else if(path.endsWith('/rpc/quiz_public_registration_count'))data={registered_count:0};
   return route.fulfill({status,headers,contentType:'application/json',body:JSON.stringify(data)});
  });
  await page.goto('/');
  await expect.poll(()=>page.evaluate(()=>questionBank.length)).toBe(2);
- await expect(page.locator('#trialBanner')).toContainText('剩餘 5 次');
+ await page.locator('#nicknameBeginnerInput').fill('模態測試者');
+ await page.getByRole('button',{name:'用暱稱挑戰初階'}).click();
+ await expect(page.locator('#trialBanner')).toContainText('暱稱挑戰');
  return {calls};
 }
 
@@ -59,7 +62,7 @@ test('finishing a mansion spin opens the question as an in-page modal',async({pa
  await expect(dialog.locator('#quizQuestionDialogSubtitle')).toContainText('角木蛟');
  expect(page.url()).toBe(original);
  await expect(page.locator('#skyWheel')).toBeVisible();
- expect(calls.filter(x=>x.path==='/functions/v1/quiz-guest-trial'&&x.body.action==='answer')).toHaveLength(0);
+ expect(calls.filter(x=>x.path==='/functions/v1/quiz-nickname-beginner'&&x.body.action==='answer')).toHaveLength(0);
 });
 
 test('close, Escape and return to same ungraded question do not double-score',async({page})=>{
@@ -78,13 +81,13 @@ test('close, Escape and return to same ungraded question do not double-score',as
  await expect(dialog).toBeHidden();
  await page.locator('#quizQuestionResume').click();
  await dialog.locator('#answerOptions .answer-btn').first().click();
- await expect(dialog.locator('#answerFeedback')).toContainText('試玩回答錯誤');
- await expect(page.locator('#quizScore')).toContainText('已答 1／5');
+ await expect(dialog.locator('#answerFeedback')).toContainText('初階答錯');
+ await expect(page.locator('#quizScore')).toContainText('暱稱已答 1 題');
  await expect(dialog.locator('#answerOptions .answer-btn').first()).toBeDisabled();
  await page.locator('#quizQuestionDialogClose').click();
  await page.locator('#quizQuestionResume').click();
  await expect(dialog.locator('#answerOptions .answer-btn').first()).toBeDisabled();
- expect(calls.filter(x=>x.path==='/functions/v1/quiz-guest-trial'&&x.body.action==='answer')).toHaveLength(1);
+ expect(calls.filter(x=>x.path==='/functions/v1/quiz-nickname-beginner'&&x.body.action==='answer')).toHaveLength(1);
 });
 
 test('special wheel square does not open question modal, and clears resume',async({page})=>{
