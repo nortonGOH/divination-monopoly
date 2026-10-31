@@ -68,6 +68,9 @@ const card=make('aside','','learning-knowledge');card.hidden=true;
 card.setAttribute('aria-label','知識解析卡');
 root.append(title,note,actions,summary,status,list,badges,card);
 quiz.before(root);
+// Keep the original spin button and listeners; only reposition its existing block.
+const spinBlock=document.getElementById('spinChallengeBlock');
+if(spinBlock)root.after(spinBlock);
 let snapshot=null,mode='daily',busy=false,shownQuestionId='',lastKnowledge=null;
 const hasToken=()=>Boolean(window.quizMemberToken?.());
 const question=(id)=>typeof questionBank!=='undefined' && Array.isArray(questionBank)?
