@@ -13,7 +13,7 @@ BEGIN
  THEN RAISE EXCEPTION 'Invalid nickname request' USING ERRCODE='22023'; END IF;
  IF p_action='join' THEN
    IF p_nickname IS NULL OR length(p_nickname) NOT BETWEEN 2 AND 18
-      OR p_nickname !~ '^[[:alnum:]_-]+$'
+      OR p_nickname ~ '[[:cntrl:][:space:]]'
    THEN RAISE EXCEPTION 'Invalid nickname' USING ERRCODE='22023'; END IF;
    INSERT INTO public.quiz_nickname_players(token_digest,nickname) VALUES(p_token_digest,p_nickname)
      ON CONFLICT(token_digest) DO UPDATE SET nickname=EXCLUDED.nickname,updated_at=now();
@@ -44,6 +44,7 @@ BEGIN
  IF p_action IN ('join','answer') THEN
   INSERT INTO public.quiz_nickname_ip_activity(token_digest,source_ip,action)
   VALUES(p_token_digest,p_source_ip,p_action);
+  DELETE FROM public.quiz_nickname_ip_activity WHERE occurred_at<now()-interval '30 days';
  END IF;
  RETURN jsonb_build_object('accepted',true,
   'correct',CASE WHEN p_action='answer' THEN v_correct ELSE NULL END,
