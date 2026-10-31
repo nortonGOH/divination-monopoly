@@ -95,8 +95,8 @@ create or replace function public.quiz_admin_daily_knowledge_save(
 returns jsonb language plpgsql security definer set search_path=''
 as $$
 declare uid uuid:=auth.uid(); r public.quiz_daily_knowledge_cards%rowtype;
-        v_title text:=btrim(coalesce(p_title,'')),v_body text:=btrim(coalesce(p_body,'')),
-        v_source text:=btrim(coalesce(p_source_label,'')),v_url text:=btrim(coalesce(p_source_url,''));
+        v_title text:=btrim(coalesce(p_title,'')); v_body text:=btrim(coalesce(p_body,''));
+        v_source text:=btrim(coalesce(p_source_label,'')); v_url text:=btrim(coalesce(p_source_url,''));
         v_caution text:=btrim(coalesce(p_caution,''));
         v_visible boolean;
 begin
