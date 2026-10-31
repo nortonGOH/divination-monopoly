@@ -57,7 +57,7 @@ test('anonymous must enter nickname; beginner records server score without old I
    const slot=BOARD_SLOTS.findIndex(c=>c.type==='mansion'&&c.mansionIndex===0);
    finishSpin(slot);
   });
-  await page.evaluate(id=>showQuestion(questionBank.find(q=>q.id===id),6),'beginner-q-'+i);
+  await page.evaluate(id=>showQuestion({id,mansion:'角木蛟',category:'二十八宿',difficulty:'初階',knowledge_type:'山',prompt:'初階暱稱題目 '+id,options:['甲','乙','丙','丁'],explanation:''},6),'beginner-q-'+i);
   await page.locator('#answerOptions button').first().click();
   await expect(page.locator('#answerFeedback')).toContainText('已計入暱稱排行榜');
   await expect(page.locator('#nicknameBeginnerStatus')).toContainText('答對 '+i+'／'+i+' 題');
