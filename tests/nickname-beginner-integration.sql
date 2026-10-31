@@ -56,6 +56,45 @@ BEGIN
  IF NOT denied THEN RAISE EXCEPTION 'Unregistered player answered advanced question'; END IF;
 END $$;
 SELECT public.quiz_nickname_beginner_action('join',repeat('b',64),'198.51.100.42','Visitor2',NULL,NULL);
+-- Names belong to one nickname session. Case differences and padding cannot claim it.
+DO $
+DECLARE rejected boolean:=false; v_count bigint;
+BEGIN
+ BEGIN
+   PERFORM public.quiz_nickname_beginner_action('join',repeat('c',64),
+     '198.51.100.42','visitor',NULL,NULL);
+ EXCEPTION WHEN SQLSTATE '23505' THEN rejected:=true;
+ END;
+ IF NOT rejected THEN RAISE EXCEPTION 'Case-variant nickname was incorrectly accepted'; END IF;
+ rejected:=false;
+ BEGIN
+   PERFORM public.quiz_nickname_beginner_action('join',repeat('c',64),
+     '198.51.100.42',' Visitor ',NULL,NULL);
+ EXCEPTION WHEN SQLSTATE '23505' THEN rejected:=true;
+ END;
+ IF NOT rejected THEN RAISE EXCEPTION 'Whitespace-variant nickname was incorrectly accepted'; END IF;
+ rejected:=false;
+ BEGIN
+   PERFORM public.quiz_nickname_beginner_action('join',repeat('a',64),
+     '198.51.100.42','Visitor2',NULL,NULL);
+ EXCEPTION WHEN SQLSTATE '23505' THEN rejected:=true;
+ END;
+ IF NOT rejected THEN RAISE EXCEPTION 'Existing player was able to claim another nickname'; END IF;
+ SELECT count(*) INTO v_count FROM public.quiz_nickname_players;
+ IF v_count<>2 THEN RAISE EXCEPTION 'Rejected registration created unexpected player'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM public.quiz_nickname_players
+   WHERE token_digest=repeat('a',64) AND nickname='Visitor' AND correct_attempts=1)
+ THEN RAISE EXCEPTION 'Duplicate claim changed original account score or nickname'; END IF;
+END $;
+-- The same token may rejoin under its own existing name without resetting score.
+SELECT public.quiz_nickname_beginner_action('join',repeat('a',64),
+ '198.51.100.42','VISITOR',NULL,NULL);
+DO $
+BEGIN
+ IF NOT EXISTS(SELECT 1 FROM public.quiz_nickname_players
+   WHERE token_digest=repeat('a',64) AND nickname='VISITOR' AND correct_attempts=1)
+ THEN RAISE EXCEPTION 'Original player was not allowed to reuse own nickname'; END IF;
+END $;
 RESET ROLE;
 
 SET ROLE authenticated;
