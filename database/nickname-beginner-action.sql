@@ -15,8 +15,17 @@ BEGIN
    IF p_nickname IS NULL OR length(p_nickname) NOT BETWEEN 2 AND 18
       OR p_nickname ~ '[[:cntrl:][:space:]]'
    THEN RAISE EXCEPTION 'Invalid nickname' USING ERRCODE='22023'; END IF;
-   INSERT INTO public.quiz_nickname_players(token_digest,nickname) VALUES(p_token_digest,p_nickname)
-     ON CONFLICT(token_digest) DO UPDATE SET nickname=EXCLUDED.nickname,updated_at=now();
+   -- A database uniqueness constraint prevents concurrent registrations from claiming
+   -- the same name. Existing sessions may keep their own name and accumulated score.
+   BEGIN
+     INSERT INTO public.quiz_nickname_players(token_digest,nickname)
+       VALUES(p_token_digest,btrim(p_nickname))
+       ON CONFLICT(token_digest) DO UPDATE
+       SET nickname=EXCLUDED.nickname,updated_at=now();
+   EXCEPTION WHEN unique_violation THEN
+     RAISE EXCEPTION 'Nickname already taken; please choose another name'
+       USING ERRCODE='23505';
+   END;
  END IF;
  SELECT * INTO v_player FROM public.quiz_nickname_players WHERE token_digest=p_token_digest FOR UPDATE;
  IF NOT FOUND THEN RAISE EXCEPTION 'Join with nickname before answering' USING ERRCODE='22023'; END IF;
