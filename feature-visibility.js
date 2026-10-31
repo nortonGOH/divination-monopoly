@@ -2,7 +2,7 @@
 const cfg=window.QUIZ_AUTH_CONFIG||{},base=String(cfg.supabaseUrl||'').replace(/\/$/,'');
 const key=String(cfg.publishableKey||'');
 const style=document.createElement('style');style.id='featureVisibilityCSS';document.head.append(style);
-const blockSelectors={wenchang:'#wenchangCard',daily_knowledge:'#dailyKnowledgeCarousel',learning_journal:'.learning-hub',wheel:'.wheel-card',star_details:'.information',quiz:'.quiz-section',guestbook:'#guestbook',leaderboard:'.challenge-leaderboard'};
+const blockSelectors={wenchang:'#wenchangCard',daily_knowledge:'#dailyKnowledgeCarousel',learning_journal:'.learning-hub',wheel:'.wheel-card',quiz:'.information > .quiz-section',guestbook:'#guestbook',leaderboard:'.challenge-leaderboard'};
 const selectors={guestbook:'#guestbook, .ux-quick-nav a[href="#guestbookTitle"]',leaderboard:'.challenge-leaderboard'};
 let blockFlags={};
 function applyBlocks(flags){

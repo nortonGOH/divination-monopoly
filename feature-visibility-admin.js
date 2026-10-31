@@ -13,8 +13,8 @@ for(const n of [la,lb])n.style.cssText='display:block;padding:12px 0';
 const save=el('button','儲存顯示設定'),close=el('button','關閉');save.type=close.type='button';save.className=close.className='outline-btn';
 const sections=[
  ['wenchang','文昌星救援卡'],['daily_knowledge','每日知識解析卡'],['learning_journal','學習修行簿'],
- ['wheel','二十八宿＋四特殊格 · 32格圓盤'],['star_details','選擇星宿，開始挑戰（星宿詳情）'],
- ['quiz','QUIZ · 數術知識題庫／數術問答'],['guestbook','數術交流留言板'],['leaderboard','挑戰者排行榜']
+ ['wheel','二十八宿＋四特殊格 · 32格圓盤'],
+ ['quiz','數術問答（含難度、類型、試玩資訊與題目）'],['guestbook','數術交流留言板'],['leaderboard','挑戰者排行榜']
 ];
 const blockInputs={};const blockArea=el('div');blockArea.style.cssText='max-height:52vh;overflow:auto;display:grid;gap:8px;margin:12px 0';
 for(const [key,label] of sections){const row=el('label');row.style.cssText='display:flex;align-items:center;gap:10px;padding:12px;background:#fffdf8;border:1px solid #dccbaa;border-radius:9px';const input=el('input');input.type='checkbox';input.checked=true;blockInputs[key]=input;row.append(input,document.createTextNode(label));blockArea.append(row);}
