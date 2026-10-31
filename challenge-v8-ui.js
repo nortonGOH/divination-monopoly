@@ -59,7 +59,7 @@
     const mansion=MANSIONS[index]?.name;
     const requestedType=typeof window.quizFiveArtsSelection==='function'?window.quizFiveArtsSelection():'all';
     // No selected challenge type means a mixed random draw across all three difficulties.
-    const level=requestedType==='all'?'all':($('quizDifficulty')?.value||'中階');
+    const level=window.quizMemberToken?.()?(requestedType==='all'?'all':($('quizDifficulty')?.value||'初階')):'初階';
     const levelLabel=level==='all'?'隨機初／中／高階':level;
     const completed=window.quizCompletedIds||new Set();
     const playable=questionBank.filter(q =>
