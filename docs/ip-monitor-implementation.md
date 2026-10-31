@@ -1,27 +1,27 @@
-# IP 監控、手動鎖定與異常流量警示：部署與驗收規格
+# IP 來源流量觀測與異常提示（無鎖定功能）
 
-## 功能範圍
-- 網站首頁與二十八宿圖鑑：記錄頁面開啟與按鈕／連結點擊事件，僅使用允許的控制項代碼；不記錄表單內容、連結 URL、電子郵件、答題選項或密碼。
-- Supabase Edge Function 從受信任的邊緣來源識別 IP，前端不傳送來源 IP。部署前須驗證平台會覆寫 `cf-connecting-ip`；若未能驗證，維持 fail-closed，不採用使用者可偽造的 X-Forwarded-For。
-- 後台「IP 流量監控」列出 24 小時來源 IP、最近 100 筆事件、鎖定清單，並每分鐘檢查警示（僅管理員登入期間）。
-- 同一 IP 五分鐘內活動 >=80 或點擊 >=40 顯示異常警示；**不自動封鎖**。管理員確認後可鎖定 60、1440、10080 分鐘，亦可提前解鎖。後端保存稽核紀錄，過期自動失效。
-- 伺服器端封鎖只涵蓋 `quiz-guest-trial` 試玩狀態／答題與新的 `quiz-ip-monitor` 事件請求。**GitHub Pages 公開頁面、既有其他 RPC、會員登入及救援卡不會由此封鎖**；如需全站 HTTP 封鎖，須另外部署 CDN/WAF 代理。
-- IP 地址不代表個人，NAT、學校網路、行動網路與 VPN 可能共用或變更來源。僅提供人工判斷和解除封鎖機制。
+## 目的與範圍
+- 後台只顯示來源 IP、最近 24 小時瀏覽與點擊計數、最近 100 筆事件，以及五分鐘異常警示。
+- 五分鐘內同一 IP 的活動達 80 次或點擊達 40 次，僅標示「頻繁流量」；**絕不自動或人工封鎖**。
+- 不建立封鎖名單、解鎖操作、封鎖稽核表或封鎖權限 API；原有訪客五次試玩、會員登入、電子郵件會員專屬救援卡均維持原狀。
+- 靜態 GitHub Pages 網站的存取完全不受觀測功能限制。
 
-## 資料安全
-- `quiz_ip_monitor_events`、`quiz_ip_monitor_blocks`、`quiz_ip_monitor_audit` 皆啟用 RLS 並禁止 anon/authenticated 直接讀取。
-- 管理員報表與鎖定 RPC 必須同時驗證 Supabase Auth 身分、非匿名 JWT 與 `quiz_admins` 資格。
-- Edge Function 使用服務端環境變數，不得將 `service_role` 金鑰放到 GitHub Pages。
-- 每 IP 每分鐘記錄最多 150 筆活動，限制資料庫負載；超限暫拒該 IP 監測／試玩請求。
-- 事件資料目標保存 30 天；目前由下一次流量寫入觸發每日最多一次的過期清除。若需要空站期間亦準時刪除，正式部署須另設定可信任的定期清理工作。
-- 正式啟用前需在網站增加個資告知（蒐集目的、資料項目、存續期間、申訴與聯絡方式），並進行隱私法規審查。
+## 個資與安全
+- 來源 IP 由 Edge 伺服器讀取可信的 `cf-connecting-ip`，瀏覽器不送出 IP 欄位，不採信使用者可填寫的 X-Forwarded-For。
+- 只記錄事件、頁面類型、固定的非個人識別控制項代碼與來源類別；不記錄密碼、電子郵件、答題內容、表單文字或外部連結完整 URL。
+- IP 屬個人資料：只有經 `quiz_admins` 授權的管理員才能讀取 IP 報表；前台不能直接讀事件資料表。
+- 事件保留 30 天，透過新事件寫入時順帶執行到期清理；如需沒有流量時仍準時刪除，應使用已核准的既有排程，不另行建立收費資源。
+- 計數資料並不代表不重複的真實使用者；同一 IP 可能屬於公司、校園、VPN 或共享網路。
+- 上線前應公布來源 IP 記錄目的、事件種類、使用者資料權利、保存期限及聯絡方式；依適用個人資料保護規範審查。
 
-## 程式部署順序（**不可跳步**）
-1. 在獨立 PostgreSQL 測試環境執行四個 SQL：`ip-monitor-schema.sql`、`ip-monitor-admin.sql`、`ip-monitor-report.sql`、`ip-monitor-intake.sql`；跑 `tests/ip-monitor/integration.sql`。
-2. 確認資料庫 RLS、測試非管理員不得存取原始 IP、人工鎖定與解鎖、到期行為、80/40 門檻；執行 Supabase Security Advisor。
-3. 在隔離 Supabase 專案部署 `quiz-ip-monitor`（verify_jwt=false；API 在函式內驗證來源、輸入和邊緣 IP）與變更後的 `quiz-guest-trial`（verify_jwt=false），以 Mock 與真實 HTTP 測試 200/403/429。
-4. 驗證現有 5 次試玩計數、每日流量彙總及會員系統未回歸；對不同 IP、共享 IP、無法辨識 IP、頻繁請求作邊界測試。
-5. 測試成功後先部署正式四個 SQL（含將既有每日統計 RPC 的 EXECUTE 授權給 service_role），再部署 Edge Functions，接著合併／部署前端；最後確認新事件進庫後才執行 `database/ip-monitor-cutover.sql`，撤銷匿名用戶直呼舊計數 RPC 的權限。**未驗證切勿先部署新版試玩 Edge Function，否則因缺少新 RPC 會導致所有試玩故障。**
+## 零額外費用驗收
+- 不建立付費的 Supabase 開發分支，不增加付費服務。
+- 現有 GitHub 公開儲存庫的標準 Actions runners 執行 Node、Deno 型別檢查、PostgreSQL 17 隔離邏輯與 Playwright 測試。
+- 測試需要核對無管理員讀取、五分鐘警示、30 天清理和無任何封鎖功能；合併前再核對所有 CI。
+- GitHub Actions 隔離測試成功不能視為正式 Supabase Edge 網關來源 IP 標頭驗證。沒有完成部署環境驗證時，維持 PR Draft，不合併主線。
 
-## 測試範圍限制
-GitHub Actions 的 PostgreSQL 17 使用自建的 auth 介面模擬 Supabase 身分規則。通過代表資料庫邏輯在隔離環境可運作，**不等於已確認正式 Supabase Edge 網關、真實來源 IP 標頭與正式使用者路徑**。
+## 部署順序（待正式環境驗證後）
+1. 確認現有 Supabase 配額足以處理額外的事件與 Edge Function 呼叫；不能承諾超額時絕不計費。
+2. 部署 `database/ip-monitor-schema.sql`、`database/ip-monitor-report.sql`、`database/ip-monitor-intake.sql`，確認安全 Advisor、存取授權、RLS。
+3. 部署新的 `quiz-ip-monitor` Edge Function，不修改既有 `quiz-guest-trial` 的程式與設定。
+4. 驗證前端觀測與每日既有統計後，才合併網站前端。無須部署封鎖、解鎖或切換訪客權限的程式。
