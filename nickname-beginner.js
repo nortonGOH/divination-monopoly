@@ -80,7 +80,12 @@
  window.quizNicknameSubmit=async(question_id,answer_index)=>{
   if(!active())throw Error('請先用暱稱加入初階挑戰。');
   const result=await request('answer',{question_id,answer_index});
-  if(result.accepted){profile={...profile,...result};emit();window.dispatchEvent(new Event('quiz-leaderboard-refresh'));}
+  if(result.accepted){
+   profile={...profile,...result};
+   controls(); // Reflect server-confirmed attempts and correct answers immediately.
+   emit();
+   window.dispatchEvent(new Event('quiz-leaderboard-refresh'));
+  }
   return result;
  };
  join.addEventListener('click',()=>void joinNickname());
