@@ -3,6 +3,9 @@ on:
   pull_request:
     paths:
       - 'registration-mode-admin.js'
+      - 'quiz-challenge-v7.js'
+      - 'wenchang-rescue-cards.js'
+      - 'database/wenchang-email-member-only.sql'
       - 'traffic-admin-dashboard.js'
       - 'database/nickname-ip-registration-traffic.sql'
       - 'database/ip-traffic-events.sql'
