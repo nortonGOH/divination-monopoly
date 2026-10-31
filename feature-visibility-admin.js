@@ -12,7 +12,7 @@ const la=el('label',' 顯示留言板'),lb=el('label',' 顯示挑戰者排行榜
 for(const n of [la,lb])n.style.cssText='display:block;padding:12px 0';
 const save=el('button','儲存顯示設定'),close=el('button','關閉');save.type=close.type='button';save.className=close.className='outline-btn';
 const sections=[
- ['wenchang','文昌星救援卡'],['daily_knowledge','每日知識解析卡'],['learning_journal','學習修行簿'],
+ ['wenchang','文昌星救援卡'],['daily_knowledge_popup','每日知識解析卡（開啟網頁彈出）'],['daily_knowledge_front','每日知識解析卡（首頁輪播）'],['spin_challenge','抽宿挑戰'],['learning_journal','學習修行簿'],
  ['wheel','二十八宿＋四特殊格 · 32格圓盤'],
  ['quiz','數術問答（含難度、類型、試玩資訊與題目）'],['guestbook','數術交流留言板'],['leaderboard','挑戰者排行榜']
 ];
@@ -30,7 +30,7 @@ async function rpc(name,payload={}){
 }
 async function load(){
  save.disabled=true;status.textContent='正在讀取設定…';
- try{const x=await rpc('quiz_admin_homepage_blocks');blockRevision=x.revision;revision=x.revision;for(const [key,input] of Object.entries(blockInputs)){const legacy={guestbook:x.guestbook_visible,leaderboard:x.leaderboard_visible,daily_knowledge:x.daily_knowledge_visible};input.checked=typeof x.blocks?.[key]==='boolean'?x.blocks[key]:legacy[key]!==false;}save.disabled=false;status.textContent='設定已載入。';}
+ try{const x=await rpc('quiz_admin_homepage_blocks');blockRevision=x.revision;revision=x.revision;for(const [key,input] of Object.entries(blockInputs)){const legacy={guestbook:x.guestbook_visible,leaderboard:x.leaderboard_visible,daily_knowledge_front:x.daily_knowledge_visible,daily_knowledge_popup:x.blocks?.daily_knowledge!==false};input.checked=typeof x.blocks?.[key]==='boolean'?x.blocks[key]:legacy[key]!==false;}save.disabled=false;status.textContent='設定已載入。';}
  catch(e){revision=null;status.textContent='讀取失敗：'+e.message;}
 }
 open.onclick=()=>{if(!token()){if(typeof displayBankToast==='function')displayBankToast('請先完成管理員登入');return;}dialog.showModal();void load();};
