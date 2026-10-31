@@ -1,0 +1,20 @@
+name: IP observation live smoke
+on:
+  pull_request:
+    paths:
+      - 'tests/ip-monitor/live-smoke.cjs'
+      - '.github/workflows/ip-observation-live-smoke.yml'
+  workflow_dispatch:
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate production Edge endpoint with public key only
+        run: node tests/ip-monitor/live-smoke.cjs
