@@ -11,6 +11,7 @@ const style=document.createElement('style');style.textContent=`
 .daily-knowledge-carousel .daily-knowledge-card{min-height:120px;padding:15px;border-radius:11px;background:#fffdf8;border:1px solid #e1d2b6}
 .daily-knowledge-carousel .daily-knowledge-card h3{font-size:1rem;margin:0 0 8px}
 .daily-knowledge-carousel .daily-knowledge-card p{line-height:1.75;margin:6px 0}
+.daily-knowledge-carousel .daily-knowledge-source{font-size:.78rem;color:#5d665e}
 .daily-knowledge-carousel .daily-knowledge-controls{display:flex;align-items:center;justify-content:space-between;gap:9px;margin-top:10px;flex-wrap:wrap}
 .daily-knowledge-carousel button{font:inherit;cursor:pointer;border:1px solid #ad976c;border-radius:8px;background:#fff;padding:8px 12px;min-height:40px}
 .daily-knowledge-carousel .daily-knowledge-meta{font-size:.77rem;color:#6b655a;margin-bottom:10px}
@@ -34,6 +35,7 @@ function render(){
  card.replaceChildren(make('h3',item.title),make('p',item.content));
  if(item.knowledge_type)card.insertBefore(make('p','數術類型：'+item.knowledge_type),card.firstChild);
  if(item.caution)card.append(make('p','研究提醒：'+item.caution));
+ if(item.source?.length){const labels=item.source.map(source=>String(source.label||'').trim()).filter(Boolean);if(labels.length){const sourceText=make('p','資料來源：'+labels.join('、'));sourceText.className='daily-knowledge-source';card.append(sourceText);}}
  counter.textContent=(index+1)+'／3';meta.textContent='臺灣日期 '+date+'｜每日精選三則，隔日更新';
 }
 function sync(){const d=today();if(d!==date){date=d;selected=pick(d);index=0;render();}}

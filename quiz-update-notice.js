@@ -43,10 +43,9 @@
      knowledgeBody.textContent=String(item.content||'');
      knowledgeCaution.textContent=item.caution?'研究提醒：'+item.caution:'';
      knowledgeSource.replaceChildren();
-     for(const source of item.source||[]){
-       if(!source?.url||!/^https:\/\//i.test(source.url))continue;
-       const link=document.createElement('a');link.href=source.url;link.target='_blank';link.rel='noopener noreferrer';link.textContent=source.label||'參考文獻';knowledgeSource.append(link);
-     }
+     const sourceLabels=(item.source||[]).map(source=>String(source?.label||'').trim()).filter(Boolean);
+     knowledgeSource.textContent=sourceLabels.length?'資料來源：'+sourceLabels.join('、'):'';
+     knowledgeSource.hidden=!sourceLabels.length;
    }
    if(!dialog.open)dialog.showModal();
    close.focus();
