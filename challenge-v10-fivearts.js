@@ -13,7 +13,7 @@ const filterLabel=document.createElement('label');filterLabel.textContent='數�
 const filterSelect=chooser('bankKnowledgeType',true);filterLabel.append(filterSelect);filterBar.append(filterLabel);
 const challengeHeader=$('quizTitle')?.closest('.quiz-heading');
 const challengeLabel=document.createElement('label');challengeLabel.className='level-chooser';challengeLabel.textContent='挑戰類型';
-const challengeSelect=chooser('challengeKnowledgeType',true);challengeLabel.append(challengeSelect);challengeHeader?.append(challengeLabel);
+const challengeSelect=chooser('challengeKnowledgeType',true);challengeSelect.options[0].textContent='未選擇（隨機初／中／高階）';challengeLabel.append(challengeSelect);challengeHeader?.append(challengeLabel);
 const style=document.createElement('style');style.textContent='#editKnowledgeType,#bankKnowledgeType,#challengeKnowledgeType{max-width:100%;border:1px solid #cbb99d;background:#fffaf0;padding:8px;border-radius:9px;font:inherit;color:#343b3d}.quiz-heading{flex-wrap:wrap}';document.head.append(style);
 // The base bank's editors call global functions dynamically, so wrap both entry points.
 // Sync the administrator's manual classification with the editor when a question is opened.
