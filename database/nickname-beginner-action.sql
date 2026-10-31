@@ -6,20 +6,21 @@ CREATE OR REPLACE FUNCTION public.quiz_nickname_beginner_action(
 AS $$
 DECLARE v_player public.quiz_nickname_players%rowtype;
  v_answer integer; v_level text; v_correct boolean;
+ v_name text:=btrim(p_nickname);
 BEGIN
  IF p_action IS NULL OR p_action NOT IN ('join','status','answer')
  OR p_token_digest IS NULL OR p_token_digest !~ '^[a-f0-9]{64}$'
  OR p_source_ip IS NULL OR masklen(p_source_ip)<>(CASE WHEN family(p_source_ip)=4 THEN 32 ELSE 128 END)
  THEN RAISE EXCEPTION 'Invalid nickname request' USING ERRCODE='22023'; END IF;
  IF p_action='join' THEN
-   IF p_nickname IS NULL OR length(p_nickname) NOT BETWEEN 2 AND 18
-      OR p_nickname ~ '[[:cntrl:][:space:]]'
+   IF v_name IS NULL OR length(v_name) NOT BETWEEN 2 AND 18
+      OR v_name ~ '[[:cntrl:][:space:]]'
    THEN RAISE EXCEPTION 'Invalid nickname' USING ERRCODE='22023'; END IF;
    -- A database uniqueness constraint prevents concurrent registrations from claiming
    -- the same name. Existing sessions may keep their own name and accumulated score.
    BEGIN
      INSERT INTO public.quiz_nickname_players(token_digest,nickname)
-       VALUES(p_token_digest,btrim(p_nickname))
+       VALUES(p_token_digest,v_name)
        ON CONFLICT(token_digest) DO UPDATE
        SET nickname=EXCLUDED.nickname,updated_at=now();
    EXCEPTION WHEN unique_violation THEN
