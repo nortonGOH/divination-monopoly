@@ -52,6 +52,9 @@ test('anonymous must enter nickname; beginner records server score without old I
  await expect(page.locator('#nicknameBeginnerStatus')).toContainText('暱稱 試玩者甲');
  await expect(page.locator('#spinBtn')).toBeEnabled();
  await expect(banner).toContainText('暱稱挑戰');
+ // The public question bank is fetched asynchronously; do not simulate a spin
+ // before its content arrives, or the wheel can correctly show an empty pool.
+ await expect.poll(()=>page.evaluate(()=>questionBank.length)).toBe(6);
  for(let i=1;i<=6;i++){
   await page.evaluate(()=>{
    const slot=BOARD_SLOTS.findIndex(c=>c.type==='mansion'&&c.mansionIndex===0);
