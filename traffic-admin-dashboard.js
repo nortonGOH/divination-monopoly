@@ -64,3 +64,6 @@
  refresh.onclick=()=>void load();
  button.onclick=()=>{if(!adminAccessToken){if(typeof displayBankToast==='function')displayBankToast('請先登入管理員。');return;}dialog.showModal();void load();};
 })();
+
+// Load the IP security console alongside the existing traffic dashboard.
+(()=>{const script=document.createElement('script');script.src='./ip-monitor-admin.js';document.head.append(script);})();
