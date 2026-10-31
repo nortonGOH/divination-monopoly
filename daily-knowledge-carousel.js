@@ -33,6 +33,7 @@ function pick(day){const shuffled=pool.map(x=>({x,score:hash(day+':'+x.id)})).so
 function render(){
  const item=selected[index];if(!item)return;
  card.replaceChildren(make('h3',item.title),make('p',item.content));
+ if(item.knowledge_type)card.insertBefore(make('p','數術類型：'+item.knowledge_type),card.firstChild);
  if(item.caution)card.append(make('p','研究提醒：'+item.caution));
  if(item.source.length){const wrap=make('p','資料來源：');wrap.className='daily-knowledge-source';for(const [i,source] of item.source.entries()){if(i)wrap.append(document.createTextNode('、'));const a=make('a',source.label);a.href=source.url;a.target='_blank';a.rel='noopener noreferrer';wrap.append(a);}card.append(wrap);}
  counter.textContent=(index+1)+'／3';meta.textContent='臺灣日期 '+date+'｜每日精選三則，隔日更新';
@@ -51,7 +52,7 @@ async function loadPublic(){
  const response=await fetch(base+'/rest/v1/rpc/quiz_public_daily_knowledge_cards',{method:'POST',headers:{apikey:key,'Content-Type':'application/json'},body:'{}',cache:'no-store'});
  if(!response.ok)throw Error('card read failed');
  const data=await response.json();if(!Array.isArray(data?.cards))throw Error('invalid cards');
- pool=data.cards.map(x=>({id:x.id,title:x.title,content:x.content,caution:x.caution||'',source:[{label:x.source_label,url:x.source_url}]}));
+ pool=data.cards.map(x=>({id:x.id,title:x.title,content:x.content,knowledge_type:x.knowledge_type||'',caution:x.caution||'',source:[{label:x.source_label,url:x.source_url}]}));
  date='';sync();visibility();
  }catch(_){section.hidden=true;}
 }
