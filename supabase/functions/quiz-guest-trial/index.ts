@@ -40,6 +40,13 @@ Deno.serve(async req=>{
   try{
     const payload=await req.json();
     if(payload===null||typeof payload!=='object'||Array.isArray(payload))return respond({error:'無效請求'},400);
+    // Server-side enforcement: do not trust any visitor-supplied IP or identity.
+    const gate=await database('quiz_ip_monitor_record',{
+      p_ip:ip,p_kind:'trial',p_page:'home',p_source:'unknown',p_target:String(payload.action||'')
+    });
+    if(gate?.blocked)return respond({error:'此 IP 已被管理員暫停試玩；可聯絡管理員申請解鎖'},403);
+    if(gate?.rate_limited)return respond({error:'操作過於頻繁，請稍後再試'},429);
+    if(!gate?.recorded)return respond({error:'無法確認試玩權限'},503);
     const identity=await hashIP(ip);
     if(payload.action==='status'){
       return respond(await database('quiz_trial_status',{p_identity:identity}));
