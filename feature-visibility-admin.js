@@ -12,7 +12,7 @@ const la=el('label',' 顯示留言板'),lb=el('label',' 顯示挑戰者排行榜
 for(const n of [la,lb])n.style.cssText='display:block;padding:12px 0';
 const save=el('button','儲存顯示設定'),close=el('button','關閉');save.type=close.type='button';save.className=close.className='outline-btn';
 const sections=[
- ['wenchang','文昌星救援卡'],['daily_knowledge_popup','每日知識解析卡（開啟網頁彈出）'],['daily_knowledge_front','每日知識解析卡（首頁輪播）'],['spin_challenge','抽宿挑戰'],['learning_journal','學習修行簿'],
+ ['wenchang','文昌星救援卡'],['daily_knowledge_popup','每日知識解析卡（開啟網頁彈出）'],['daily_knowledge_front','每日知識解析卡（首頁輪播）'],['spin_challenge','抽宿挑戰'],['quick_nav','首頁快捷導覽（開始挑戰／題目與難度／二十八宿互動圖鑑／互動學習地圖）'],['learning_journal','學習修行簿'],
  ['wheel','二十八宿＋四特殊格 · 32格圓盤'],
  ['quiz','數術問答（含難度、類型、試玩資訊與題目）'],['guestbook','數術交流留言板'],['leaderboard','挑戰者排行榜']
 ];
