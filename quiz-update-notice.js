@@ -14,7 +14,7 @@
  dialog.append(title,message,intro,list,close);document.body.append(dialog);
  const knowledge=document.createElement('section');knowledge.id='quizPopupKnowledge';knowledge.style.cssText='margin:16px 0;padding:15px;border:1px solid #ccb58d;border-radius:12px;background:#fffdf6';
  const knowledgeTitle=document.createElement('h3');knowledgeTitle.textContent='✦ 今日知識解析卡';
- const knowledgeBody=document.createElement('p');knowledgeBody.style.lineHeight='1.8';
+ const knowledgeBody=document.createElement('p');knowledgeBody.style.cssText='line-height:1.8;white-space:pre-line';
  const knowledgeCaution=document.createElement('p');knowledgeCaution.style.fontSize='.84rem';
  const knowledgeSource=document.createElement('p');
  knowledge.append(knowledgeTitle,knowledgeBody,knowledgeCaution,knowledgeSource);
@@ -40,7 +40,7 @@
    knowledge.hidden=!item;
    if(item){
      knowledgeTitle.textContent='✦ '+String(item.title||'今日知識解析卡');
-     knowledgeBody.textContent=String(item.content||'');
+     knowledgeBody.textContent=String(item.content||'').replace(/\s*(題目|正確答案|知識解析)\s*([：:])/g,(_match,label,colon)=>'\n'+label+colon).trim();
      knowledgeCaution.textContent=item.caution?'研究提醒：'+item.caution:'';
      knowledgeSource.replaceChildren();
      const sourceLabels=(item.source||[]).map(source=>String(source?.label||'').trim()).filter(Boolean);
