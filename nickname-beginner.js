@@ -27,7 +27,36 @@
  const active=()=>Boolean(profile?.nickname)&&!window.quizMemberToken?.();
  window.quizNicknameActive=active;
  window.quizNicknameProfile=()=>profile;
- window.quizNicknameFocus=()=>{input.focus();status.textContent='輸入暱稱，即可參與初階排行；中、高階須註冊會員。';};
+ const promptDialog=document.createElement('dialog');promptDialog.id='nicknameBeginnerPrompt';
+ promptDialog.style.cssText='width:min(470px,calc(100vw - 24px));padding:24px;border:2px solid #c5a56f;border-radius:16px;background:#fffaf0;color:#273832;max-height:85dvh;overflow:auto';
+ const promptTitle=document.createElement('h2');promptTitle.textContent='請先設定初階挑戰暱稱';
+ const promptMessage=document.createElement('p');promptMessage.textContent='免註冊即可使用暱稱挑戰初階題庫，成績可列入暱稱排行榜；中階、高階挑戰須註冊並登入會員。';
+ const promptForm=document.createElement('form');promptForm.style.cssText='display:grid;gap:12px';promptForm.noValidate=true;
+ const promptLabel=document.createElement('label');promptLabel.textContent='初階暱稱（免註冊）';
+ const promptInput=document.createElement('input');promptInput.type='text';promptInput.id='nicknameBeginnerPromptInput';promptInput.maxLength=18;promptInput.minLength=2;promptInput.required=true;promptInput.placeholder='2–18 字中英文、數字';promptInput.autocomplete='nickname';promptInput.style.cssText='display:block;width:100%;margin-top:6px;padding:11px;border:1px solid #bba981;border-radius:8px;font:inherit';
+ promptLabel.append(promptInput);
+ const promptError=document.createElement('p');promptError.setAttribute('role','alert');promptError.style.cssText='color:#913b30;margin:0;min-height:1.4em';
+ const promptActions=document.createElement('div');promptActions.style.cssText='display:flex;gap:10px;flex-wrap:wrap';
+ const promptSubmit=document.createElement('button');promptSubmit.type='submit';promptSubmit.textContent='設定暱稱並開始初階挑戰';
+ const promptCancel=document.createElement('button');promptCancel.type='button';promptCancel.textContent='取消';
+ promptActions.append(promptSubmit,promptCancel);promptForm.append(promptLabel,promptError,promptActions);
+ promptDialog.append(promptTitle,promptMessage,promptForm);document.body.append(promptDialog);
+ promptCancel.onclick=()=>promptDialog.close();
+ promptForm.addEventListener('submit',async event=>{
+  event.preventDefault();if(pending)return;
+  const nickname=promptInput.value.trim();
+  if(!validNickname(nickname)){promptError.textContent='請輸入 2–18 字中英文、數字、底線或連字號。';promptInput.focus();return;}
+  promptSubmit.disabled=true;promptError.textContent='正在驗證暱稱…';
+  input.value=nickname;
+  try{await joinNickname();if(active()){promptDialog.close();}else{promptError.textContent=status.textContent||'暱稱設定失敗，請再試一次。';}}
+  finally{promptSubmit.disabled=false;}
+ });
+ window.quizNicknameFocus=()=>{
+  if(active()||window.quizMemberToken?.())return;
+  promptInput.value=input.value.trim();promptError.textContent='';
+  if(!promptDialog.open)promptDialog.showModal();
+  promptInput.focus();
+ };
  async function request(action,options={}){
   if(!token)throw Error('請先設定暱稱。');
   const r=await fetch(base+'/functions/v1/quiz-nickname-beginner',{
