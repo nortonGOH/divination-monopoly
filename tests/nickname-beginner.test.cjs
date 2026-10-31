@@ -52,3 +52,20 @@ test('privacy: server-only tables, administrator gate and no IP bans',()=>{
  assert.match(admin,/REVOKE ALL ON FUNCTION/);
  assert.doesNotMatch(admin,/block\(|ban\(/i);
 });
+
+test('duplicate nickname registration surfaces HTTP 409 warning and retains existing score',()=>{
+ const players=read('database/nickname-beginner-players.sql');
+ assert.match(players,/CREATE UNIQUE INDEX IF NOT EXISTS quiz_nickname_players_unique_name/);
+ assert.match(players,/lower\(btrim\(nickname\)\)/);
+ const sql=read('database/nickname-beginner-action.sql');
+ assert.match(sql,/EXCEPTION WHEN unique_violation/);
+ assert.match(sql,/Nickname already taken/);
+ const edge=read('supabase/functions/quiz-nickname-beginner/index.ts');
+ assert.match(edge,/result\?\.code==='23505'/);
+ assert.match(edge,/nickname_taken/);
+ assert.match(edge,/409/);
+ const ui=read('nickname-beginner.js');
+ assert.match(ui,/e\.code==='nickname_taken'/);
+ assert.match(ui,/已有人使用/);
+ assert.match(ui,/aria-invalid/);
+});
