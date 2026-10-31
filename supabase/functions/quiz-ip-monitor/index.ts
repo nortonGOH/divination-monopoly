@@ -40,11 +40,11 @@ Deno.serve(async req=>{
   const result=await rpc('quiz_ip_monitor_record',{
    p_ip:ip,p_kind:kind,p_page:page,p_source:source,p_target:target
   });
-  if(result?.blocked)return reply({blocked:true,error:'IP access restricted'},403);
-  if(result?.rate_limited)return reply({rate_limited:true},429);
+  // Observation-only rate cap: never restrict gameplay or site access.
+  if(result?.rate_limited)return reply({ok:true,recorded:false,reason:'telemetry_rate_cap'});
   if(!result?.recorded)return reply({error:'Monitoring unavailable'},503);
   if(kind==='view')await rpc('quiz_track_page_view',{p_page:page,p_source:source});
-  return reply({ok:true});
+  return reply({ok:true,recorded:true});
  }catch(e){
   console.error('IP monitor backend error',String(e).slice(0,120));
   return reply({error:'Monitoring temporarily unavailable'},503);
