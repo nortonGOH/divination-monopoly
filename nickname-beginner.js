@@ -57,6 +57,21 @@
   if(!promptDialog.open)promptDialog.showModal();
   promptInput.focus();
  };
+ // Intercept at document capture phase, even when the spin button is moved by section ordering.
+ // This runs before legacy button listeners and also covers the keyboard-activated Polaris target.
+ document.addEventListener('click',event=>{
+  const target=event.target?.closest?.('#spinBtn,#polaris-trigger');
+  if(!target||window.quizMemberToken?.()||active())return;
+  event.preventDefault();event.stopImmediatePropagation();
+  window.quizNicknameFocus();
+ },true);
+ document.addEventListener('keydown',event=>{
+  if(event.key!=='Enter'&&event.key!==' ')return;
+  const target=event.target?.closest?.('#polaris-trigger');
+  if(!target||window.quizMemberToken?.()||active())return;
+  event.preventDefault();event.stopImmediatePropagation();
+  window.quizNicknameFocus();
+ },true);
  async function request(action,options={}){
   if(!token)throw Error('請先設定暱稱。');
   const r=await fetch(base+'/functions/v1/quiz-nickname-beginner',{
