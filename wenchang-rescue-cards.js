@@ -47,7 +47,7 @@
     if (cls) el.className = cls;
     return el;
   };
-  const intro = make('p','選擇需要的協助：免費卡只使用公開題面；「文昌解惑」才會向伺服器申請解鎖答案。','wenchang-intro');
+  const intro = make('p','文昌星救援卡僅提供已註冊電子郵件並登入的會員；暱稱＋IP 訪客不適用。免費卡只使用公開題面，文昌解惑需驗證會員後解鎖。','wenchang-intro');
   const grid = make('div',null,'wenchang-card-grid');
   grid.setAttribute('role','group');
   grid.setAttribute('aria-label','救援卡片選擇');
@@ -88,6 +88,12 @@
     return element;
   };
   function showCard(id) {
+    if(window.quizEmailMemberSession?.() !== true){
+      selected='';
+      detail.hidden=false;
+      detail.replaceChildren(make('p','救援卡僅供已註冊電子郵件並登入的會員使用；暱稱與 IP 登記不具救援權限。'));
+      return;
+    }
     selected=id;
     for (const [key,choice] of choices) choice.setAttribute('aria-expanded',String(key===id));
     detail.replaceChildren();
