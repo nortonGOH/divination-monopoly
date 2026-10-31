@@ -19,7 +19,7 @@ BEGIN
  IF v_admin IS NULL OR coalesce(auth.jwt()->>'is_anonymous','false')='true'
  OR NOT EXISTS(SELECT 1 FROM public.quiz_admins WHERE user_id=v_admin)
  THEN RAISE EXCEPTION 'Administrator required' USING errcode='42501'; END IF;
- IF p_ip IS NULL OR masklen(p_ip)<>CASE WHEN family(p_ip)=4 THEN 32 ELSE 128 END
+ IF p_ip IS NULL OR masklen(p_ip)<>(CASE WHEN family(p_ip)=4 THEN 32 ELSE 128 END)
  OR p_action NOT IN ('block','unblock') OR v_reason IS NULL
  OR length(v_reason) NOT BETWEEN 2 AND 200
  THEN RAISE EXCEPTION 'Invalid IP/action/reason' USING errcode='22023'; END IF;
