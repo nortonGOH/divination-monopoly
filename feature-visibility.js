@@ -40,6 +40,29 @@ async function refreshBlocks(){
  const data=await response.json();applyBlocks(data?.blocks||{});
  }catch(error){console.warn('首頁區塊設定讀取失敗',error);applyBlocks({});}
 }
+// Reorder only sibling sections in the right-hand content column.
+const orderedKeys=['daily_knowledge_front','learning_journal','spin_challenge','quiz','wenchang'];
+const orderedSelectors={daily_knowledge_front:'#dailyKnowledgeCarousel',learning_journal:'.learning-hub',spin_challenge:'#spinChallengeBlock',quiz:'.information > .quiz-section',wenchang:'#wenchangCard'};
+function applyOrder(order){
+ if(!Array.isArray(order)||order.length!==orderedKeys.length||new Set(order).size!==orderedKeys.length||order.some(k=>!orderedKeys.includes(k)))return;
+ const aside=document.querySelector('.information');if(!aside)return;
+ const nodes=order.map(k=>document.querySelector(orderedSelectors[k]));
+ if(nodes.some(n=>!n||n===aside||!aside.contains(n)))return;
+ const anchor=aside.querySelector(':scope > .notes');
+ for(const node of nodes){if(anchor)aside.insertBefore(node,anchor);else aside.append(node);}
+}
+let savedOrder=orderedKeys.slice();
+async function refreshOrder(){
+ if(!base||!key)return;
+ try{
+ const response=await fetch(base+'/rest/v1/rpc/quiz_public_homepage_order',{method:'POST',headers:{apikey:key,'Content-Type':'application/json'},body:'{}',cache:'no-store'});
+ if(!response.ok)throw Error('order unavailable');
+ const value=await response.json();
+ if(Array.isArray(value)){savedOrder=value;applyOrder(savedOrder);}
+ }catch(error){console.warn('區塊排序讀取失敗',error);}
+}
+window.quizRefreshHomepageOrder=refreshOrder;
+window.addEventListener('load',()=>{void refreshOrder();});
 window.quizRefreshHomepageBlocks=refreshBlocks;
 window.quizHomepageBlocksReady=refreshBlocks();
 window.quizRefreshFeatureVisibility=refresh;window.quizFeatureVisibilityReady=refresh();

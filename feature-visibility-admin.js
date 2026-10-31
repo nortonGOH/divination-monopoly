@@ -45,5 +45,44 @@ save.onclick=async()=>{
  finally{save.disabled=false;}
 };
 close.onclick=()=>dialog.close();
+// Dedicated order editor; keep it separate from visibility toggles and their revisions.
+const orderBtn=el('button','首頁區塊排序');orderBtn.type='button';orderBtn.className='outline-btn';bar.append(orderBtn);
+const orderDialog=el('dialog');orderDialog.style.cssText='width:min(600px,calc(100vw - 24px));max-height:88dvh;overflow:auto;padding:22px;border:1px solid #cbbd9e;border-radius:14px;background:#fffaf0';
+const orderTitle=el('h2','首頁區塊排序'),orderTip=el('p','使用上移／下移調整右側內容區塊順序，不會更動內容、資料或顯示開關。'),orderStatus=el('p');
+orderStatus.setAttribute('role','status');
+const orderList=el('div');orderList.style.cssText='display:grid;gap:8px;margin:12px 0';
+const orderSave=el('button','儲存排序'),orderClose=el('button','關閉');orderSave.type=orderClose.type='button';
+orderDialog.append(orderTitle,orderTip,orderStatus,orderList,orderSave,orderClose);document.body.append(orderDialog);
+const orderNames={daily_knowledge_front:'每日知識解析卡（首頁輪播）',learning_journal:'學習修行簿',spin_challenge:'抽宿挑戰',quiz:'數術問答',wenchang:'文昌星救援卡'};
+const orderKeys=Object.keys(orderNames);
+let orderValue=orderKeys.slice(),orderRevision=null;
+function renderOrder(){
+ orderList.replaceChildren();
+ orderValue.forEach((key,i)=>{
+  const row=el('div');row.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px;border:1px solid #d4c29f;border-radius:8px';
+  row.append(el('span',(i+1)+'．'+orderNames[key]));
+  const controls=el('div');controls.style.cssText='display:flex;gap:5px';
+  for(const [label,offset] of [['上移',-1],['下移',1]]){
+   const b=el('button',label);b.type='button';b.disabled=i+offset<0||i+offset>=orderValue.length;
+   b.onclick=()=>{const other=i+offset;[orderValue[i],orderValue[other]]=[orderValue[other],orderValue[i]];renderOrder();};
+   controls.append(b);
+  }
+  row.append(controls);orderList.append(row);
+ });
+}
+orderBtn.onclick=async()=>{
+ if(!token()){if(typeof displayBankToast==='function')displayBankToast('請先完成管理員登入');return;}
+ orderDialog.showModal();orderSave.disabled=true;orderStatus.textContent='正在讀取排序…';
+ try{const data=await rpc('quiz_admin_homepage_order');orderValue=Array.isArray(data.order)&&data.order.length===orderKeys.length?data.order:orderKeys.slice();orderRevision=data.revision;renderOrder();orderSave.disabled=false;orderStatus.textContent='可使用上移及下移調整順序。';}
+ catch(error){orderStatus.textContent='讀取失敗：'+error.message;}
+};
+orderSave.onclick=async()=>{
+ if(orderRevision===null)return;
+ orderSave.disabled=true;orderStatus.textContent='儲存中…';
+ try{const data=await rpc('quiz_admin_save_homepage_order',{p_order:orderValue,p_expected_revision:orderRevision});orderRevision=data.revision;await window.quizRefreshHomepageOrder?.();orderStatus.textContent='排序已儲存並套用。';}
+ catch(error){orderStatus.textContent='儲存失敗：'+error.message+'（請重新開啟讀取）';}
+ finally{orderSave.disabled=false;}
+};
+orderClose.onclick=()=>orderDialog.close();
 window.addEventListener('quiz-admin-session-changed',()=>{if(!token()&&dialog.open){revision=null;dialog.close();}});
 })();
