@@ -12,6 +12,14 @@ CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid
 CREATE OR REPLACE FUNCTION auth.jwt() RETURNS jsonb
  LANGUAGE sql STABLE AS $$
  SELECT coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb $$;
+-- Simulate the existing production daily counter to verify service_role grants.
+CREATE OR REPLACE FUNCTION public.quiz_track_page_view(p_page text,p_source text)
+RETURNS void LANGUAGE plpgsql AS $
+BEGIN
+ IF p_page NOT IN ('home','atlas') OR p_source IS NULL THEN
+  RAISE EXCEPTION 'bad test dimensions'; END IF;
+END; $;
+REVOKE ALL ON FUNCTION public.quiz_track_page_view(text,text) FROM PUBLIC,anon,authenticated;
 INSERT INTO auth.users VALUES('00000000-0000-0000-0000-000000000001');
 INSERT INTO public.quiz_admins VALUES('00000000-0000-0000-0000-000000000001');
 \i database/ip-monitor-schema.sql
