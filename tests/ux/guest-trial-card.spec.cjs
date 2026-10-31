@@ -11,7 +11,7 @@ async function boot(page){
   const req=route.request(),u=new URL(req.url());
   if(u.hostname==='127.0.0.1'){
    if(u.pathname==='/config.js')return route.fulfill({status:200,contentType:'application/javascript',
-    body:`window.QUIZ_AUTH_CONFIG={supabaseUrl:'${MOCK}',publishableKey:'mock-public-key',turnstileSiteKey:''};`});
+    body:`window.QUIZ_AUTH_CONFIG={supabaseUrl:'${MOCK}',publishableKey:'mock-public-key-1234567890',turnstileSiteKey:''};`});
    return route.continue();
   }
   if(u.hostname!=='mock-nickname-trial.supabase.co')return route.abort();
