@@ -39,6 +39,10 @@ async function boot(page){
  await expect.poll(()=>page.evaluate(()=>questionBank.length)).toBe(2);
  await page.locator('#nicknameBeginnerInput').fill('模態測試者');
  await page.getByRole('button',{name:'用暱稱挑戰初階'}).click();
+ // The banner also mentions nickname mode before the async join has succeeded.
+ // Wait for the server-acknowledged session and enabled wheel before spinning.
+ await expect(page.locator('#nicknameBeginnerStatus')).toContainText('暱稱 模態測試者');
+ await expect(page.locator('#spinBtn')).toBeEnabled();
  await expect(page.locator('#trialBanner')).toContainText('暱稱挑戰');
  return {calls};
 }
