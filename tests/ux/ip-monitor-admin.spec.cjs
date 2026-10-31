@@ -38,10 +38,11 @@ test('admin can inspect anomaly, manually block and unblock IP while guests cann
   return reply(200,[]);
  });
  await page.goto('/');
+ await page.evaluate(()=>document.getElementById('bankDialog').showModal());
  await expect(page.getByRole('button',{name:'IP 流量監控'})).toBeVisible();
  await page.getByRole('button',{name:'IP 流量監控'}).click();
  expect(calls.some(x=>x.endpoint.endsWith('quiz_admin_ip_monitor_report'))).toBe(false);
- await page.evaluate(()=>{adminAccessToken='mock-admin-token';document.getElementById('bankDialog').showModal();});
+ await page.evaluate(()=>{adminAccessToken='mock-admin-token';});
  await page.getByRole('button',{name:'IP 流量監控'}).click();
  await expect(page.getByRole('heading',{name:'IP 監控與異常流量警示'})).toBeVisible();
  await expect(page.locator('#ipMonitorDialog')).toContainText('203.0.113.42');
