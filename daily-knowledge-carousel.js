@@ -36,8 +36,9 @@ function render(){
 function sync(){const d=today();if(d!==date){date=d;selected=pick(d);index=0;render();}}
 function advance(step){sync();index=(index+step+3)%3;render();}
 function start(){if(timer)clearInterval(timer);timer=setInterval(()=>{if(document.hidden||section.hidden)return;advance(1)},8500);}
-const visibility=()=>{const flags=window.quizFeatureVisibility;section.hidden=!flags||flags.daily_knowledge_visible!==true;if(!section.hidden&&pool.length>=3)sync();section.hidden=section.hidden||pool.length<3;};
+const visibility=()=>{const flags=window.quizFeatureVisibility;section.hidden=window.quizHomepageBlockVisibility?.daily_knowledge_front===false||!flags||flags.daily_knowledge_visible!==true;if(!section.hidden&&pool.length>=3)sync();section.hidden=section.hidden||pool.length<3;};
 window.addEventListener('quiz-feature-visibility-changed',visibility);
+window.addEventListener('quiz-homepage-blocks-changed',visibility);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)sync();});
 async function loadPublic(){
  if(!base||!key){section.hidden=true;return;}
