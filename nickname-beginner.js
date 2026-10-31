@@ -20,7 +20,7 @@
  label.append(input);
  const join=document.createElement('button');join.type='button';join.textContent='用暱稱挑戰初階';
  const leave=document.createElement('button');leave.type='button';leave.textContent='退出暱稱模式';leave.hidden=true;
- const status=document.createElement('span');status.id='nicknameBeginnerStatus';status.setAttribute('role','status');
+ const status=document.createElement('span');status.id='nicknameBeginnerStatus';status.setAttribute('role','alert');status.setAttribute('aria-live','assertive');
  status.style.cssText='font-size:.83rem;width:100%;line-height:1.6';
  box.append(label,join,leave,status);host.append(box);
  const emit=()=>window.dispatchEvent(new Event('quiz-nickname-state-changed'));
@@ -35,7 +35,7 @@
    body:JSON.stringify({action,token,...options}),cache:'no-store'
   });
   const data=await r.json().catch(()=>({}));
-  if(!r.ok)throw Error(data.error||'暱稱服務暫時無法使用');
+  if(!r.ok){const error=Error(data.error||'暱稱服務暫時無法使用');error.code=data.code||'';throw error;}
   return data;
  }
  function controls(){
@@ -64,9 +64,17 @@
    x=>x.toString(16).padStart(2,'0')).join('');
   try{
    profile=await request('join',{nickname});
+   input.removeAttribute('aria-invalid');
    try{localStorage.setItem(sessionKey,token);}catch(_){}
    emit();controls();window.dispatchEvent(new Event('quiz-leaderboard-refresh'));
-  }catch(e){token=original;status.textContent='加入暱稱模式失敗：'+e.message;}
+  }catch(e){
+   token=original;
+   if(e.code==='nickname_taken'){
+    input.setAttribute('aria-invalid','true');
+    status.textContent='⚠ 暱名「'+nickname+'」已有人使用，請更換其他名稱。';
+    input.focus();
+   }else status.textContent='加入暱稱模式失敗：'+e.message;
+  }
   finally{pending=false;join.disabled=false;}
  }
  window.quizNicknameSubmit=async(question_id,answer_index)=>{
@@ -77,6 +85,10 @@
  };
  join.addEventListener('click',()=>void joinNickname());
  input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();void joinNickname();}});
+ input.addEventListener('input',()=>{
+  input.removeAttribute('aria-invalid');
+  if(status.textContent.includes('已有人使用'))status.textContent='請輸入其他暱名後重新登錄。';
+ });
  leave.addEventListener('click',()=>{
   profile=null;token='';input.value='';
   try{localStorage.removeItem(sessionKey);}catch(_){}
