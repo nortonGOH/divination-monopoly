@@ -66,8 +66,8 @@
       !completed.has(q.id) &&
       q.mansion===mansion && (level==='all'||(q.difficulty||'中階')===level) &&
       (requestedType==='all'||(typeof inferKnowledgeType==='function' && inferKnowledgeType(q)===requestedType)) &&
-      Array.isArray(q.options) && q.options.length===4 &&
-      Number.isInteger(Number(q.answer)) && Number(q.answer)>=0 && Number(q.answer)<=3
+      // Public quiz questions omit the answer; only the server grades submissions.
+      Array.isArray(q.options) && q.options.length===4
     );
     $('quizScope').textContent='目前星宿：'+mansion;
     $('quizAvailable').textContent=levelLabel+' · 本宿 '+playable.length+' 題四選一';
