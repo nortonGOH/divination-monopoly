@@ -7,6 +7,10 @@ CREATE TABLE IF NOT EXISTS public.quiz_nickname_players (
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
+-- The database index enforces uniqueness atomically, including concurrent sign-ups.
+-- Leading/trailing spaces and letter case do not create another player.
+CREATE UNIQUE INDEX IF NOT EXISTS quiz_nickname_players_unique_name
+ ON public.quiz_nickname_players ((lower(btrim(nickname))));
 ALTER TABLE public.quiz_nickname_players ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.quiz_nickname_players FROM PUBLIC, anon, authenticated;
 GRANT SELECT, INSERT, UPDATE ON public.quiz_nickname_players TO service_role;
