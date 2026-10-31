@@ -30,7 +30,7 @@ async function rpc(name,payload={}){
 }
 async function load(){
  save.disabled=true;status.textContent='正在讀取設定…';
- try{const x=await rpc('quiz_admin_homepage_blocks');blockRevision=x.revision;revision=x.revision;for(const [key,input] of Object.entries(blockInputs))input.checked=x.blocks?.[key]!==false;save.disabled=false;status.textContent='設定已載入。';}
+ try{const x=await rpc('quiz_admin_homepage_blocks');blockRevision=x.revision;revision=x.revision;for(const [key,input] of Object.entries(blockInputs)){const legacy={guestbook:x.guestbook_visible,leaderboard:x.leaderboard_visible,daily_knowledge:x.daily_knowledge_visible};input.checked=typeof x.blocks?.[key]==='boolean'?x.blocks[key]:legacy[key]!==false;}save.disabled=false;status.textContent='設定已載入。';}
  catch(e){revision=null;status.textContent='讀取失敗：'+e.message;}
 }
 open.onclick=()=>{if(!token()){if(typeof displayBankToast==='function')displayBankToast('請先完成管理員登入');return;}dialog.showModal();void load();};
