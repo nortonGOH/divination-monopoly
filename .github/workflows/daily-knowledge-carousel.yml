@@ -1,0 +1,22 @@
+name: Daily knowledge carousel validation
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'daily-knowledge-carousel.js'
+      - 'feature-visibility-admin.js'
+      - 'database/daily-knowledge-carousel-visibility.sql'
+      - 'tests/daily-knowledge-carousel.test.cjs'
+      - '.github/workflows/daily-knowledge-carousel.yml'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check daily-knowledge-carousel.js && node --check feature-visibility-admin.js
+      - run: node --test tests/daily-knowledge-carousel.test.cjs
