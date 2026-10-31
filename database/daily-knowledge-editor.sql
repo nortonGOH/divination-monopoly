@@ -17,7 +17,7 @@ revoke all on public.quiz_daily_knowledge_cards from PUBLIC, anon, authenticated
 
 -- Seed the nine existing publicly disclosed notes unchanged; never seed question answers.
 insert into public.quiz_daily_knowledge_cards (id,title,body,caution,source_label,source_url)
-select md5('intro-public:'+v.seed_key)::uuid,v.title,v.body,v.caution,v.source_label,v.source_url
+select md5('intro-public:'||v.seed_key)::uuid,v.title,v.body,v.caution,v.source_label,v.source_url
 from (values
 ('classification-0','數術文獻與歷史分類','《漢書·藝文志》區分六藝、諸子、詩賦、兵書、術數與方技等著錄類別。','「山醫命卜相」適合用作部分後世傳統的描述，不能直接當成《漢書》原有的五分法。','《漢書》卷三十〈藝文志〉','https://ctext.org/han-shu/yi-wen-zhi'),
 ('classification-1','數術文獻與歷史分類','〈術數略〉列有天文、曆譜、五行、蓍龜、雜占、形法；〈方技略〉另列醫經、經方、房中、神仙。','「山醫命卜相」適合用作部分後世傳統的描述，不能直接當成《漢書》原有的五分法。','《漢書》卷三十〈藝文志〉','https://ctext.org/han-shu/yi-wen-zhi'),
