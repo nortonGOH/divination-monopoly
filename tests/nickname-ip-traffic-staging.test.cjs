@@ -25,3 +25,20 @@ test('raw IP table has no direct visitor read permission',()=>{
  assert.match(sql,/ENABLE ROW LEVEL SECURITY/i);
  assert.match(sql,/REVOKE ALL ON public\.quiz_traffic_ip_events FROM PUBLIC, anon, authenticated/i);
 });
+
+test('Wenchang rescue cards require signed-in email membership',()=>{
+ const cards=read('wenchang-rescue-cards.js');
+ const player=read('quiz-challenge-v7.js');
+ const sql=read('database/wenchang-email-member-only.sql');
+ assert.match(player,/window\.quizEmailMemberSession=\(\)=>Boolean\(playerToken && playerEmail\)/);
+ assert.match(cards,/window\.quizEmailMemberSession\?\.\(\) !== true/);
+ assert.match(cards,/暱稱與 IP 登記不具救援權限/);
+ assert.match(sql,/u\.email_confirmed_at IS NOT NULL/);
+ assert.match(sql,/is_anonymous/);
+ for(const fn of ['quiz_wenchang_status','quiz_wenchang_question_access','quiz_wenchang_reveal']){
+  assert.match(sql,new RegExp('CREATE OR REPLACE FUNCTION public\\.'+fn+'\\('));
+ }
+ const count=(sql.match(/PERFORM public\.quiz_require_email_member\(\);/g)||[]).length;
+ assert.equal(count,3,'All three server RPCs must enforce email membership');
+ assert.match(sql,/GRANT EXECUTE ON FUNCTION public\.quiz_wenchang_reveal\(text\) TO authenticated/);
+});
