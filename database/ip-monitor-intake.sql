@@ -40,3 +40,6 @@ REVOKE ALL ON FUNCTION public.quiz_ip_monitor_record(inet,text,text,text,text)
  FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION public.quiz_ip_monitor_record(inet,text,text,text,text)
  TO service_role;
+
+-- Legacy daily totals are now written by the monitoring Edge Function, not the browser.
+GRANT EXECUTE ON FUNCTION public.quiz_track_page_view(text,text) TO service_role;
