@@ -49,6 +49,8 @@ Deno.serve(async req=>{
   });
   const result=await res.json().catch(()=>({}));
   if(!res.ok){
+   if(result?.code==='23505')
+    return respond({error:'此暱名已被使用，請更換其他名稱。',code:'nickname_taken'},409);
    if(result?.code==='42501')return respond({error:'中、高階必須註冊會員才能作答'},403);
    console.error('Nickname RPC rejected request',res.status,String(result?.code||'').slice(0,25));
    return respond({error:'暱稱挑戰暫時無法使用'},res.status===400?400:503);
