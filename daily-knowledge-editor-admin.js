@@ -9,8 +9,8 @@ const title=el('h2','每日知識解析卡：內容與顯示管理'),status=el('
 const show=el('input');show.type='checkbox';const showLabel=el('label',' 顯示每日知識解析卡（三則輪播）');showLabel.prepend(show);
 const saveVisibility=el('button','儲存顯示設定');saveVisibility.type='button';
 const newButton=el('button','新增卡片');newButton.type='button';
-const cardList=el('div');cardList.style.cssText='display:grid;gap:7px;margin:12px 0';cardList.setAttribute('aria-label','卡片標題清單');
-const listHeading=el('h3','現有卡片（點選標題檢視或修改）');
+const cardList=el('select');cardList.id='dailyKnowledgeCardPicker';cardList.setAttribute('aria-label','選擇現有卡片');cardList.style.cssText='display:block;width:100%;max-width:100%;padding:11px;margin:10px 0 16px;border:1px solid #cbbd9e;border-radius:9px;background:#fffdf8;font:inherit';
+const listHeading=el('label','現有卡片（選擇標題檢視或修改）');listHeading.htmlFor=cardList.id;
 const form=el('form');form.hidden=true;form.style.cssText='display:grid;gap:10px';
 function field(label,tag,max){const l=el('label',label),v=el(tag);v.maxLength=max;v.style.cssText='display:block;width:100%;padding:8px;border:1px solid #beae91;border-radius:7px';l.append(v);form.append(l);return v;}
 // The API still requires a knowledge type. Preserve it internally, without a visible dropdown.
@@ -34,10 +34,11 @@ async function rpc(fn,data={}){
  return json;
 }
 function loadCard(c,creating=false){current=c||null;typeSelect.value=c?.knowledge_type||(types.includes('通識')?'通識':types[0]||'');name.value=c?.title||'';content.value=c?.body||'';caution.value=c?.caution||'';source.value=c?.source_label||'';url.value=c?.source_url||'';active.checked=c?.is_active!==false;preview.hidden=true;form.hidden=!c&&!creating;cardListRender();}
-function cardListRender(){cardList.replaceChildren();for(const c of cards){const entry=el('button',(c.is_active?'● ':'○ ')+c.title);entry.type='button';entry.style.cssText='text-align:left;padding:10px;border:1px solid #cbbd9e;border-radius:8px;background:'+(current?.id===c.id?'#e6f0e9':'#fffdf8')+';cursor:pointer';entry.setAttribute('aria-pressed',String(current?.id===c.id));entry.onclick=()=>loadCard(c);cardList.append(entry);}if(!cards.length)cardList.append(el('p','目前沒有卡片，請點選新增卡片。'));}
+function cardListRender(){cardList.replaceChildren();const placeholder=el('option',cards.length?'請選擇卡片標題':'目前沒有卡片，請點選新增卡片');placeholder.value='';cardList.append(placeholder);for(const c of cards){const entry=el('option',(c.is_active?'● ':'○ ')+c.title);entry.value=c.id;cardList.append(entry);}cardList.value=current?.id||'';}
 async function load(){status.textContent='讀取中…';save.disabled=saveVisibility.disabled=true;
  try{const data=await rpc('quiz_admin_daily_knowledge_list');cards=data.cards||[];types=data.types||[];settingsRevision=data.settings_revision;show.checked=data.visible===true;loadCard(null);status.textContent='已載入 '+cards.length+' 則；目前啟用 '+cards.filter(c=>c.is_active).length+' 則。';save.disabled=saveVisibility.disabled=false;}
  catch(e){status.textContent='讀取失敗：'+e.message;}}
+cardList.onchange=()=>{const chosen=cards.find(c=>String(c.id)===cardList.value);loadCard(chosen||null);};
 newButton.onclick=()=>{loadCard(null,true);name.focus();};
 view.onclick=()=>{preview.hidden=false;preview.textContent='數術類型：'+(typeSelect.value||'尚未分類')+'\n'+name.value+'\n\n'+content.value+'\n\n'+(caution.value?'研究提醒：'+caution.value+'\n':'')+'來源：'+source.value+'\n'+url.value;};
 save.onclick=async()=>{save.disabled=true;status.textContent='正在儲存卡片…';try{
