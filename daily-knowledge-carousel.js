@@ -1,10 +1,7 @@
 (()=>{'use strict';
 const cfg=window.QUIZ_AUTH_CONFIG||{},base=String(cfg.supabaseUrl||'').replace(/\/$/,''),key=String(cfg.publishableKey||'');
-const curriculum=window.NUMEROLOGY_CURRICULUM;
-const topics=(curriculum?.topics||[]).filter(x=>x.access_tier==='intro'&&Array.isArray(x.points));
-const sources=curriculum?.sources||{};
-const pool=topics.flatMap(t=>t.points.map((p,i)=>({id:t.id+'-'+i,title:t.title,content:p,source:(t.sources||[]).map(k=>sources[k]).filter(Boolean),caution:t.caution||''})));
-if(pool.length<3)return;
+// Public editorial cards are fetched separately; no member-only or answer-key content is used.
+let pool=[];
 const section=document.createElement('section');section.id='dailyKnowledgeCarousel';section.className='daily-knowledge-carousel';section.hidden=true;
 section.setAttribute('aria-label','每日知識解析卡');
 const style=document.createElement('style');style.textContent=`
@@ -45,8 +42,18 @@ function advance(step){sync();index=(index+step+3)%3;render();}
 function start(){if(timer)clearInterval(timer);timer=setInterval(()=>{if(document.hidden||section.hidden||!playing)return;advance(1)},8500);}
 previous.onclick=()=>advance(-1);next.onclick=()=>advance(1);
 pause.onclick=()=>{playing=!playing;pause.textContent=playing?'暫停輪播':'繼續輪播';};
-const visibility=()=>{const flags=window.quizFeatureVisibility;section.hidden=!flags||flags.daily_knowledge_visible!==true;if(!section.hidden)sync();};
+const visibility=()=>{const flags=window.quizFeatureVisibility;section.hidden=!flags||flags.daily_knowledge_visible!==true;if(!section.hidden&&pool.length>=3)sync();section.hidden=section.hidden||pool.length<3;};
 window.addEventListener('quiz-feature-visibility-changed',visibility);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)sync();});
-sync();visibility();start();
+async function loadPublic(){
+ if(!base||!key){section.hidden=true;return;}
+ try{
+ const response=await fetch(base+'/rest/v1/rpc/quiz_public_daily_knowledge_cards',{method:'POST',headers:{apikey:key,'Content-Type':'application/json'},body:'{}',cache:'no-store'});
+ if(!response.ok)throw Error('card read failed');
+ const data=await response.json();if(!Array.isArray(data?.cards))throw Error('invalid cards');
+ pool=data.cards.map(x=>({id:x.id,title:x.title,content:x.content,caution:x.caution||'',source:[{label:x.source_label,url:x.source_url}]}));
+ date='';sync();visibility();
+ }catch(_){section.hidden=true;}
+}
+visibility();start();void loadPublic();
 })();

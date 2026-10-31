@@ -1,0 +1,22 @@
+name: Daily knowledge editor isolation tests
+on:
+  pull_request:
+    paths:
+      - 'daily-knowledge-carousel.js'
+      - 'daily-knowledge-editor-admin.js'
+      - 'feature-visibility-admin.js'
+      - 'database/daily-knowledge-editor.sql'
+      - 'tests/daily-knowledge-editor.test.cjs'
+      - '.github/workflows/daily-knowledge-editor.yml'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check daily-knowledge-carousel.js && node --check daily-knowledge-editor-admin.js && node --check feature-visibility-admin.js
+      - run: node --test tests/daily-knowledge-editor.test.cjs
