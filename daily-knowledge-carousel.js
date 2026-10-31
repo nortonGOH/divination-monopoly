@@ -1,10 +1,7 @@
 (()=>{'use strict';
 const cfg=window.QUIZ_AUTH_CONFIG||{},base=String(cfg.supabaseUrl||'').replace(/\/$/,''),key=String(cfg.publishableKey||'');
-const curriculum=window.NUMEROLOGY_CURRICULUM;
-const topics=(curriculum?.topics||[]).filter(x=>x.access_tier==='intro'&&Array.isArray(x.points));
-const sources=curriculum?.sources||{};
-let pool=topics.flatMap(t=>t.points.map((p,i)=>({id:t.id+'-'+i,title:t.title,content:p,source:(t.sources||[]).map(k=>sources[k]).filter(Boolean),caution:t.caution||''})));
-
+// Public editorial cards are fetched separately; no member-only or answer-key content is used.
+let pool=[];
 const section=document.createElement('section');section.id='dailyKnowledgeCarousel';section.className='daily-knowledge-carousel';section.hidden=true;
 section.setAttribute('aria-label','每日知識解析卡');
 const style=document.createElement('style');style.textContent=`
