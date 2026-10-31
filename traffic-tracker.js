@@ -30,7 +30,7 @@
  document.addEventListener('click',event=>{
   const button=event.target?.closest?.('button,a,[role="button"]');
   if(!button)return;
-  // No URLs, email addresses, user-entered values, or option text are sent.
+  // Only predefined control IDs or generic element categories are sent.
   const target=safeIds.has(button.id)?button.id:(button.tagName==='A'?'link':'button');
   void record('click',target);
  },{passive:true});
