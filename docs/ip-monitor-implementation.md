@@ -21,7 +21,7 @@
 2. 確認資料庫 RLS、測試非管理員不得存取原始 IP、人工鎖定與解鎖、到期行為、80/40 門檻；執行 Supabase Security Advisor。
 3. 在隔離 Supabase 專案部署 `quiz-ip-monitor`（verify_jwt=false；API 在函式內驗證來源、輸入和邊緣 IP）與變更後的 `quiz-guest-trial`（verify_jwt=false），以 Mock 與真實 HTTP 測試 200/403/429。
 4. 驗證現有 5 次試玩計數、每日流量彙總及會員系統未回歸；對不同 IP、共享 IP、無法辨識 IP、頻繁請求作邊界測試。
-5. 測試成功後才依序安裝正式 SQL → Edge Functions → 合併／部署前端。**未驗證切勿先部署新版試玩 Edge Function，否則因缺少新 RPC 會導致所有試玩故障。**
+5. 測試成功後先部署正式四個 SQL（含將既有每日統計 RPC 的 EXECUTE 授權給 service_role），再部署 Edge Functions，接著合併／部署前端；最後確認新事件進庫後才執行 `database/ip-monitor-cutover.sql`，撤銷匿名用戶直呼舊計數 RPC 的權限。**未驗證切勿先部署新版試玩 Edge Function，否則因缺少新 RPC 會導致所有試玩故障。**
 
 ## 測試範圍限制
 GitHub Actions 的 PostgreSQL 17 使用自建的 auth 介面模擬 Supabase 身分規則。通過代表資料庫邏輯在隔離環境可運作，**不等於已確認正式 Supabase Edge 網關、真實來源 IP 標頭與正式使用者路徑**。
