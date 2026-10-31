@@ -36,6 +36,11 @@ jobs:
           node-version: '22'
       - name: Test browser/edge security invariants
         run: node --test tests/ip-monitor/ip-monitor.test.cjs
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Check both Edge Function TypeScript modules
+        run: deno check supabase/functions/quiz-ip-monitor/index.ts supabase/functions/quiz-guest-trial/index.ts
       - name: Test database access, lock, unlock, alerts in isolated Postgres
         env:
           PGPASSWORD: testonly
