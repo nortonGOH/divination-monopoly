@@ -1,0 +1,21 @@
+name: Combined knowledge and announcement popup
+on:
+  pull_request:
+    paths:
+      - 'quiz-update-notice.js'
+      - 'daily-knowledge-carousel.js'
+      - 'feature-visibility.js'
+      - 'tests/combined-popup.test.cjs'
+      - '.github/workflows/combined-popup.yml'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check quiz-update-notice.js && node --check daily-knowledge-carousel.js && node --check feature-visibility.js
+      - run: node --test tests/combined-popup.test.cjs tests/quiz-update-notice.test.cjs

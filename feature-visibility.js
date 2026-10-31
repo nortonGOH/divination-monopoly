@@ -21,5 +21,5 @@ async function refresh(){
   apply(data);
  }catch(_){apply({guestbook_visible:true,leaderboard_visible:true});}
 }
-window.quizRefreshFeatureVisibility=refresh;void refresh();
+window.quizRefreshFeatureVisibility=refresh;window.quizFeatureVisibilityReady=refresh();
 })();

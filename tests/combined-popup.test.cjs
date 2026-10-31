@@ -1,0 +1,6 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs'),path=require('node:path');
+const read=p=>fs.readFileSync(path.join(__dirname,'..',p),'utf8');
+test('shared popup scripts parse and use existing notice dialog',()=>{new vm.Script(read('quiz-update-notice.js'));new vm.Script(read('daily-knowledge-carousel.js'));const s=read('quiz-update-notice.js');assert.match(s,/quizUpdateNoticeDialog/);assert.match(s,/quizPopupKnowledge/);assert.match(s,/Promise.allSettled/);assert.match(s,/if\(!showNotice&&!item\)return/);});
+test('random popup card comes from exactly three day selected approved cards',()=>{const s=read('daily-knowledge-carousel.js');assert.match(s,/selected\.length!==3/);assert.match(s,/Math\.floor\(Math\.random\(\)\*selected\.length\)/);assert.match(s,/quiz_public_daily_knowledge_cards/);assert.match(s,/Asia\/Taipei/);});
+test('respects administrator display switch and does not show private answers',()=>{const s=read('quiz-update-notice.js');assert.match(s,/daily_knowledge_visible===true/);assert.match(s,/window\.quizDailyKnowledgeReady/);assert.match(s,/window\.quizFeatureVisibilityReady/);assert.doesNotMatch(s,/correct_answer|quiz_questions|ip_digest/);});

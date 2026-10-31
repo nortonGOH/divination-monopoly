@@ -12,19 +12,43 @@
  const message=document.createElement('p');message.style.whiteSpace='pre-wrap';message.style.lineHeight='1.75';
  const close=document.createElement('button');close.type='button';close.textContent='知道了，開始挑戰';close.style.cssText='padding:11px 16px;min-height:44px;cursor:pointer';close.addEventListener('click',()=>dialog.close());
  dialog.append(title,message,intro,list,close);document.body.append(dialog);
- fetch(base+'/functions/v1/quiz-update-notice',{method:'POST',headers:{'Content-Type':'application/json',apikey:String(cfg.publishableKey||'')},body:'{}',cache:'no-store'})
- .then(r=>{if(!r.ok)throw Error('notice');return r.json();})
- .then(data=>{
-   if(data.show!==true)return;
-   title.textContent=String(data.title||'近期題庫更新公告');
-   message.textContent=String(data.body||'');message.hidden=!message.textContent;
-   intro.hidden=data.show_banks===false;
-   list.hidden=data.show_banks===false;
+ const knowledge=document.createElement('section');knowledge.id='quizPopupKnowledge';knowledge.style.cssText='margin:16px 0;padding:15px;border:1px solid #ccb58d;border-radius:12px;background:#fffdf6';
+ const knowledgeTitle=document.createElement('h3');knowledgeTitle.textContent='✦ 今日知識解析卡';
+ const knowledgeBody=document.createElement('p');knowledgeBody.style.lineHeight='1.8';
+ const knowledgeCaution=document.createElement('p');knowledgeCaution.style.fontSize='.84rem';
+ const knowledgeSource=document.createElement('p');
+ knowledge.append(knowledgeTitle,knowledgeBody,knowledgeCaution,knowledgeSource);
+ dialog.insertBefore(knowledge,close);
+ const noticeRequest=fetch(base+'/functions/v1/quiz-update-notice',{method:'POST',headers:{'Content-Type':'application/json',apikey:String(cfg.publishableKey||'')},body:'{}',cache:'no-store'})
+  .then(r=>{if(!r.ok)throw Error('notice');return r.json();}).catch(()=>({show:false}));
+ const ready=Promise.allSettled([noticeRequest,window.quizFeatureVisibilityReady||Promise.resolve(),window.quizDailyKnowledgeReady||Promise.resolve()]);
+ ready.then(results=>{
+   const data=results[0].status==='fulfilled'?results[0].value:{show:false};
+   const showNotice=data?.show===true;
+   const canShowCard=window.quizFeatureVisibility?.daily_knowledge_visible===true;
+   const item=canShowCard?window.quizPickDailyKnowledgeForPopup?.():null;
+   if(!showNotice&&!item)return;
+   title.textContent=showNotice?String(data.title||'近期題庫更新公告'):'每日知識解析卡';
+   message.textContent=showNotice?String(data.body||''):'';
+   message.hidden=!message.textContent;
+   intro.hidden=!showNotice||data.show_banks===false;
+   list.hidden=!showNotice||data.show_banks===false;
    list.replaceChildren();
-   for(const item of data.banks.slice(0,12)){
-    const row=document.createElement('li');row.textContent=String(item.name)+'：'+Number(item.changed_count||0)+' 題有新增或修訂紀錄';list.append(row);
+   if(showNotice){for(const bank of (Array.isArray(data.banks)?data.banks:[]).slice(0,12)){
+     const row=document.createElement('li');row.textContent=String(bank.name)+'：'+Number(bank.changed_count||0)+' 題有新增或修訂紀錄';list.append(row);
+   }}
+   knowledge.hidden=!item;
+   if(item){
+     knowledgeTitle.textContent='✦ '+String(item.title||'今日知識解析卡');
+     knowledgeBody.textContent=String(item.content||'');
+     knowledgeCaution.textContent=item.caution?'研究提醒：'+item.caution:'';
+     knowledgeSource.replaceChildren();
+     for(const source of item.source||[]){
+       if(!source?.url||!/^https:\/\//i.test(source.url))continue;
+       const link=document.createElement('a');link.href=source.url;link.target='_blank';link.rel='noopener noreferrer';link.textContent=source.label||'參考文獻';knowledgeSource.append(link);
+     }
    }
    if(!dialog.open)dialog.showModal();
    close.focus();
- }).catch(()=>{});
+ });
 })();

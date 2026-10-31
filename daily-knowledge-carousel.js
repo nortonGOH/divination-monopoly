@@ -55,5 +55,13 @@ async function loadPublic(){
  date='';sync();visibility();
  }catch(_){section.hidden=true;}
 }
-visibility();start();void loadPublic();
+// Expose only today's three approved public notes for the shared homepage popup.
+window.quizPickDailyKnowledgeForPopup=()=>{
+ if(pool.length<3)return null;
+ sync();
+ if(selected.length!==3)return null;
+ return selected[Math.floor(Math.random()*selected.length)]||null;
+};
+visibility();start();
+window.quizDailyKnowledgeReady=loadPublic();
 })();
