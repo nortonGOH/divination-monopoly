@@ -1,4 +1,4 @@
-/* Beginner nickname mode: no registration, server-graded answers, ranked scores. */
+/* Beginner and intermediate nickname mode: no registration, server-graded answers, ranked scores. */
 (()=>{
  'use strict';
  const cfg=window.QUIZ_AUTH_CONFIG||{};
@@ -13,12 +13,12 @@
  if(!/^[a-f0-9]{64}$/.test(token))token='';
  const box=document.createElement('div');box.className='nickname-beginner-box';
  box.style.cssText='display:flex;align-items:center;gap:8px;flex-wrap:wrap;width:100%;margin:6px 0';
- const label=document.createElement('label');label.textContent='初階暱稱（免註冊） ';
+ const label=document.createElement('label');label.textContent='初／中階暱稱（免註冊） ';
  const input=document.createElement('input');input.id='nicknameBeginnerInput';
  input.placeholder='2–18 字中英文、數字';input.maxLength=18;input.autocomplete='nickname';
  input.style.cssText='min-height:40px;border:1px solid #bba981;border-radius:8px;padding:8px';
  label.append(input);
- const join=document.createElement('button');join.type='button';join.textContent='用暱稱挑戰初階';
+ const join=document.createElement('button');join.type='button';join.textContent='用暱稱挑戰初／中階';
  const leave=document.createElement('button');leave.type='button';leave.textContent='退出暱稱模式';leave.hidden=true;
  const status=document.createElement('span');status.id='nicknameBeginnerStatus';status.setAttribute('role','alert');status.setAttribute('aria-live','assertive');
  status.style.cssText='font-size:.83rem;width:100%;line-height:1.6';
@@ -29,15 +29,15 @@
  window.quizNicknameProfile=()=>profile;
  const promptDialog=document.createElement('dialog');promptDialog.id='nicknameBeginnerPrompt';
  promptDialog.style.cssText='width:min(470px,calc(100vw - 24px));padding:24px;border:2px solid #c5a56f;border-radius:16px;background:#fffaf0;color:#273832;max-height:85dvh;overflow:auto';
- const promptTitle=document.createElement('h2');promptTitle.textContent='請先設定初階挑戰暱稱';
- const promptMessage=document.createElement('p');promptMessage.textContent='免註冊即可使用暱稱挑戰初階題庫，成績可列入暱稱排行榜；中階、高階挑戰須註冊並登入會員。';
+ const promptTitle=document.createElement('h2');promptTitle.textContent='請先設定初／中階挑戰暱稱';
+ const promptMessage=document.createElement('p');promptMessage.textContent='免註冊即可使用暱稱挑戰初／中階題庫，成績可列入暱稱排行榜；中階、高階挑戰須註冊並登入會員。';
  const promptForm=document.createElement('form');promptForm.style.cssText='display:grid;gap:12px';promptForm.noValidate=true;
- const promptLabel=document.createElement('label');promptLabel.textContent='初階暱稱（免註冊）';
+ const promptLabel=document.createElement('label');promptLabel.textContent='初／中階暱稱（免註冊）';
  const promptInput=document.createElement('input');promptInput.type='text';promptInput.id='nicknameBeginnerPromptInput';promptInput.maxLength=18;promptInput.minLength=2;promptInput.required=true;promptInput.placeholder='2–18 字中英文、數字';promptInput.autocomplete='nickname';promptInput.style.cssText='display:block;width:100%;margin-top:6px;padding:11px;border:1px solid #bba981;border-radius:8px;font:inherit';
  promptLabel.append(promptInput);
  const promptError=document.createElement('p');promptError.setAttribute('role','alert');promptError.style.cssText='color:#913b30;margin:0;min-height:1.4em';
  const promptActions=document.createElement('div');promptActions.style.cssText='display:flex;gap:10px;flex-wrap:wrap';
- const promptSubmit=document.createElement('button');promptSubmit.type='submit';promptSubmit.textContent='設定暱稱並開始初階挑戰';
+ const promptSubmit=document.createElement('button');promptSubmit.type='submit';promptSubmit.textContent='設定暱稱並開始初／中階挑戰';
  const promptCancel=document.createElement('button');promptCancel.type='button';promptCancel.textContent='取消';
  promptActions.append(promptSubmit,promptCancel);promptForm.append(promptLabel,promptError,promptActions);
  promptDialog.append(promptTitle,promptMessage,promptForm);document.body.append(promptDialog);
@@ -86,17 +86,17 @@
   const signedIn=Boolean(window.quizMemberToken?.());
   box.hidden=signedIn;
   leave.hidden=!profile;
-  join.textContent=profile?'更新暱稱':'用暱稱挑戰初階';
+  join.textContent=profile?'更新暱稱':'用暱稱挑戰初／中階';
   const difficulty=document.getElementById('quizDifficulty');
   if(difficulty){
-   for(const option of difficulty.options)option.disabled=!signedIn&&option.value!=='初階';
-   if(!signedIn&&difficulty.value!=='初階'){
+   for(const option of difficulty.options)option.disabled=!signedIn&&!['初階','中階'].includes(option.value);
+   if(!signedIn&&!['初階','中階'].includes(difficulty.value)){
     difficulty.value='初階';difficulty.dispatchEvent(new Event('change',{bubbles:true}));
    }
   }
   if(profile)status.textContent='暱稱 '+profile.nickname+'｜答對 '+profile.correct_attempts+
    '／'+profile.total_attempts+' 題｜成績列入前五名競賽；相同來源 IP 僅供管理員觀測。';
-  else status.textContent='初階可用暱稱直接挑戰；中、高階需註冊登入。';
+  else status.textContent='初階與中階可用暱稱直接挑戰；高階需註冊登入。';
  }
  async function joinNickname(){
   if(pending)return;
@@ -122,7 +122,7 @@
   finally{pending=false;join.disabled=false;}
  }
  window.quizNicknameSubmit=async(question_id,answer_index)=>{
-  if(!active())throw Error('請先用暱稱加入初階挑戰。');
+  if(!active())throw Error('請先用暱稱加入初階或中階挑戰。');
   const result=await request('answer',{question_id,answer_index});
   if(result.accepted){
    profile={...profile,...result};
@@ -158,7 +158,7 @@
      button.disabled=true;if(i===index)button.classList.add(result.correct?'correct':'wrong');
     });
     document.getElementById('answerFeedback').textContent=result.correct?
-     '✓ 初階答對！已計入暱稱排行榜。':'✕ 初階答錯。此模式不提供文昌星救援。';
+     '✓ '+(document.getElementById('quizDifficulty')?.value||'初階')+'答對！已計入暱稱排行榜。':'✕ 答錯。暱稱模式不提供文昌星救援。';
     document.getElementById('quizScore').textContent=
      '暱稱已答 '+result.total_attempts+' 題 · 答對 '+result.correct_attempts+' 題';
    }else if(result.reason==='already_answered'){
