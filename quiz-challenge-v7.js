@@ -34,7 +34,7 @@ async function trialApi(action,extras={}){
 }
 function showTrialBanner(error=''){
   if(!trialBanner)return;
-  if(!playerToken){trialBanner.dataset.state='nickname';trialBanner.textContent=window.quizNicknameActive?.()?'初階暱稱挑戰｜已納入排行榜；中、高階須註冊。':'初階開放暱稱挑戰｜請輸入暱稱；中、高階須註冊。';return;}
+  if(!playerToken){trialBanner.dataset.state='nickname';trialBanner.textContent=window.quizNicknameActive?.()?'初／中階暱稱挑戰｜已納入排行榜；高階須註冊。':'初、中階開放暱稱挑戰｜請輸入暱稱；高階須註冊。';return;}
   if(playerToken){
     trialBanner.dataset.state='member';
     trialBanner.textContent='會員正式挑戰模式｜試玩 IP 額度不影響註冊會員答題。';
@@ -319,7 +319,7 @@ function drawState(){
  }
  showTrialBanner(trialError);
  const nicknameReady=Boolean(!playerToken&&window.quizNicknameActive?.());
- summary.textContent=playerToken?`${playerNickname||'尚未設定暱稱'}｜參戰 ${playerState?.total_attempts??0} 次｜答對 ${playerState?.correct_attempts??0} 次｜成功率 ${Number(playerState?.success_rate??0).toFixed(1)}%｜當期答錯 ${playerState?.wrong_count??0}/5${locked?'｜暫停至 '+dateText(playerState.locked_until):''}`:nicknameReady?'暱稱初階｜'+(window.quizNicknameProfile?.()?.nickname||'玩家')+'｜答對 '+(window.quizNicknameProfile?.()?.correct_attempts||0)+' 題｜中、高階須註冊。':'請輸入暱稱參與初階挑戰；中、高階須註冊會員。';
+ summary.textContent=playerToken?`${playerNickname||'尚未設定暱稱'}｜參戰 ${playerState?.total_attempts??0} 次｜答對 ${playerState?.correct_attempts??0} 次｜成功率 ${Number(playerState?.success_rate??0).toFixed(1)}%｜當期答錯 ${playerState?.wrong_count??0}/5${locked?'｜暫停至 '+dateText(playerState.locked_until):''}`:nicknameReady?'暱稱初／中階｜'+(window.quizNicknameProfile?.()?.nickname||'玩家')+'｜答對 '+(window.quizNicknameProfile?.()?.correct_attempts||0)+' 題｜高階須註冊。':'請輸入暱稱參與初階／中階挑戰；高階須註冊會員。';
  logoutBtn.hidden=!playerToken;signInBtn.hidden=!!playerToken;profileBtn.hidden=!playerToken;
  if(locked){alertBox.hidden=false;}else{alertBox.hidden=true;alertBox.textContent='';}
  renderCooldown();
@@ -579,7 +579,7 @@ answerQuestion=async function(index){
  if(busy)return;
  if(!playerToken){
    if(!window.quizNicknameActive?.()){
-     $('answerFeedback').textContent='請先輸入暱稱，才能參與初階挑戰。';window.quizNicknameFocus?.();return;
+     $('answerFeedback').textContent='請先輸入暱稱，才能參與初階或中階挑戰。';window.quizNicknameFocus?.();return;
    }
    // The nickname module replaces this handler after initialization.
    $('answerFeedback').textContent='暱稱答題尚未就緒，請重新整理。';return;
