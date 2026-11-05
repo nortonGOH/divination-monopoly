@@ -30,7 +30,7 @@
  const promptDialog=document.createElement('dialog');promptDialog.id='nicknameBeginnerPrompt';
  promptDialog.style.cssText='width:min(470px,calc(100vw - 24px));padding:24px;border:2px solid #c5a56f;border-radius:16px;background:#fffaf0;color:#273832;max-height:85dvh;overflow:auto';
  const promptTitle=document.createElement('h2');promptTitle.textContent='請先設定初／中階挑戰暱稱';
- const promptMessage=document.createElement('p');promptMessage.textContent='免註冊即可使用暱稱挑戰初／中階題庫，成績可列入暱稱排行榜；中階、高階挑戰須註冊並登入會員。';
+ const promptMessage=document.createElement('p');promptMessage.textContent='免註冊設定暱稱後，可選擇挑戰初階或中階題庫，成績可列入暱稱排行榜；只有高階挑戰須註冊並登入會員。';
  const promptForm=document.createElement('form');promptForm.style.cssText='display:grid;gap:12px';promptForm.noValidate=true;
  const promptLabel=document.createElement('label');promptLabel.textContent='初／中階暱稱（免註冊）';
  const promptInput=document.createElement('input');promptInput.type='text';promptInput.id='nicknameBeginnerPromptInput';promptInput.maxLength=18;promptInput.minLength=2;promptInput.required=true;promptInput.placeholder='2–18 字中英文、數字';promptInput.autocomplete='nickname';promptInput.style.cssText='display:block;width:100%;margin-top:6px;padding:11px;border:1px solid #bba981;border-radius:8px;font:inherit';
