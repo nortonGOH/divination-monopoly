@@ -59,7 +59,7 @@
     const mansion=MANSIONS[index]?.name;
     const requestedType=typeof window.quizFiveArtsSelection==='function'?window.quizFiveArtsSelection():'all';
     // No selected challenge type means a mixed random draw across all three difficulties.
-    const level=window.quizMemberToken?.()?(requestedType==='all'?'all':($('quizDifficulty')?.value||'初階')):'初階';
+    const level=window.quizMemberToken?.()?(requestedType==='all'?'all':($('quizDifficulty')?.value||'初階')):(['初階','中階'].includes($('quizDifficulty')?.value)?$('quizDifficulty').value:'初階');
     const levelLabel=level==='all'?'隨機初／中／高階':level;
     const completed=window.quizCompletedIds||new Set();
     const playable=questionBank.filter(q =>
@@ -80,7 +80,7 @@
     const nicknameAllowed=Boolean(!window.quizMemberToken?.() && window.quizNicknameActive?.());
     const memberAllowed=Boolean(window.quizMemberToken?.() && window.quizPlayerMayChallenge?.());
     if(!nicknameAllowed && !memberAllowed) {
-      hideQuestion('請先輸入初階暱稱，或註冊登入會員才能參加挑戰。');
+      hideQuestion('請先設定初階或中階挑戰暱稱，或註冊登入會員才能參加挑戰。');
       return;
     }
     if(!playable.length){
