@@ -116,12 +116,12 @@ const mapBtn=el('button','首頁地圖版面／恢復');mapBtn.type='button';map
 const mapDialog=el('dialog');mapDialog.id='homepageLayoutDialog';
 mapDialog.style.cssText='width:min(570px,calc(100vw - 24px));max-height:86dvh;overflow:auto;padding:22px;border:1px solid #cbbd9e;border-radius:14px;background:#fffaf0';
 const mapTitle=el('h2','首頁版面切換與恢復');
-const mapTip=el('p','可切換「仙俠地圖索引」或恢復原本的「四象章回卡片」。本功能不刪除題庫、成績、暱稱、學習修行簿與關卡進度。');
+const mapTip=el('p','可切換「三部八景二十四神」道教身神文獻地圖，或恢復原本的「四象二十八宿章回卡片」。北斗二十八宿抽題、會員、題庫和關卡紀錄都不會刪除。');
 const mapStatus=el('p');mapStatus.setAttribute('role','status');
 const mapOptions=el('div');mapOptions.style.cssText='display:grid;gap:10px;margin:16px 0';
 const mapRadios={};
 for(const [mode,heading,help] of [
- ['map','仙俠地圖索引','四象地圖、二十八宿路線與關卡節點；手機可水平捲動。'],
+ ['map','道教三部八景・二十四神地圖','依《雲笈七籤》卷三十一展示上中下三部各八位身神；點擊節點查看典籍。'],
  ['classic','原版章回卡片','恢復四章四象卡片與每章七關列表的既有版面。']
 ]){
  const label=el('label');label.style.cssText='display:flex;gap:12px;align-items:flex-start;padding:13px;border:1px solid #d4c39f;background:#fffdf7;border-radius:10px';
@@ -143,7 +143,7 @@ async function loadMapSetting(){
   if(!['classic','map'].includes(result.mode))throw Error('未知版面設定');
   mapMode=result.mode;mapRevision=result.revision;mapRadios[mapMode].checked=true;
   mapSave.disabled=mapRestore.disabled=false;
-  mapStatus.textContent=mapMode==='map'?'目前使用仙俠地圖索引版面。':'目前使用原版章回卡片。';
+  mapStatus.textContent=mapMode==='map'?'目前使用道教三部八景二十四神地圖。':'目前使用原版章回卡片。';
  }catch(error){mapRevision=null;mapStatus.textContent='讀取失敗：'+error.message;}
 }
 mapBtn.onclick=()=>{if(!token()){if(typeof displayBankToast==='function')displayBankToast('請先完成管理員登入');return;}mapDialog.showModal();void loadMapSetting();};
@@ -154,7 +154,7 @@ async function saveMap(mode){
   const result=await rpc('quiz_admin_save_homepage_layout',{p_mode:mode,p_expected_revision:mapRevision});
   mapRevision=result.revision;mapMode=result.mode;mapRadios[mapMode].checked=true;
   await window.quizRefreshHomepageLayout?.();
-  mapStatus.textContent=mapMode==='classic'?'已恢復原版章回卡片；題庫及紀錄未變更。':'已套用仙俠地圖索引版面。';
+  mapStatus.textContent=mapMode==='classic'?'已恢復原版章回卡片；題庫及紀錄未變更。':'已套用道教三部八景二十四神地圖。';
  }catch(error){mapStatus.textContent='儲存失敗：'+error.message+'。請關閉並重新開啟以讀取最新版設定。';mapRevision=null;}
  finally{mapSave.disabled=mapRestore.disabled=mapRevision===null;}
 }
