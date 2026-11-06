@@ -40,8 +40,42 @@
  const promptSubmit=document.createElement('button');promptSubmit.type='submit';promptSubmit.textContent='設定暱稱並開始初／中階挑戰';
  const promptCancel=document.createElement('button');promptCancel.type='button';promptCancel.textContent='取消';
  promptActions.append(promptSubmit,promptCancel);promptForm.append(promptLabel,promptError,promptActions);
- promptDialog.append(promptTitle,promptMessage,promptForm);document.body.append(promptDialog);
+ // Give visitors a choice: use a guest nickname or the existing member account.
+ const promptMember=document.createElement('div');
+ promptMember.style.cssText='border-top:1px solid #d7c6a7;margin-top:18px;padding-top:15px;display:grid;gap:10px';
+ const promptMemberIntro=document.createElement('p');
+ promptMemberIntro.textContent='想保留會員挑戰資格，或挑戰高階題庫？可直接註冊或登入會員。';
+ promptMemberIntro.style.cssText='margin:0;font-size:.9rem;line-height:1.65;color:#425951';
+ const promptMemberActions=document.createElement('div');
+ promptMemberActions.style.cssText='display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px';
+ const promptRegister=document.createElement('button');
+ promptRegister.type='button';promptRegister.textContent='註冊會員';
+ const promptLogin=document.createElement('button');
+ promptLogin.type='button';promptLogin.textContent='會員登入';
+ for(const button of [promptRegister,promptLogin]){
+  button.style.cssText='padding:10px 8px;border:1px solid #9b8154;border-radius:9px;background:#f7f0df;color:#283d38;font:inherit;font-weight:700;cursor:pointer';
+ }
+ promptMemberActions.append(promptRegister,promptLogin);
+ promptMember.append(promptMemberIntro,promptMemberActions);
+ promptDialog.append(promptTitle,promptMessage,promptForm,promptMember);document.body.append(promptDialog);
  promptCancel.onclick=()=>promptDialog.close();
+ function openMemberFromPrompt(mode){
+  if(pending){promptError.textContent='暱稱驗證中，請稍後再選擇會員操作。';return;}
+  if(typeof window.quizOpenMemberAuth!=='function'){
+   promptError.textContent='會員登入介面尚未就緒，請重新整理網頁後重試。';return;
+  }
+  promptDialog.close();
+  try{
+   if(!window.quizOpenMemberAuth(mode)){
+    promptDialog.showModal();promptError.textContent='會員系統正在處理其他操作，請稍後再試。';
+   }
+  }catch(_){
+   if(!promptDialog.open)promptDialog.showModal();
+   promptError.textContent='無法開啟會員介面，請稍後重試。';
+  }
+ }
+ promptRegister.addEventListener('click',()=>openMemberFromPrompt('signup'));
+ promptLogin.addEventListener('click',()=>openMemberFromPrompt('login'));
  promptForm.addEventListener('submit',async event=>{
   event.preventDefault();if(pending)return;
   const nickname=promptInput.value.trim();
