@@ -87,7 +87,10 @@
   // Open immediately when the four-option question has actually been rendered.
   // The wheel-finished listener below remains as a backwards-compatible fallback.
   window.addEventListener('quiz-question-ready',()=>{
-    if(canResume())openQuestion();
+    if(canResume()){
+      if(blocked.open)blocked.close();
+      openQuestion();
+    }
   });
   // Do not show an empty question dialog when the current stage is blocked
   // or no question matches the selected category/difficulty.
