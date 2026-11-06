@@ -4,10 +4,10 @@
 const layout=document.querySelector('#mainContent');
 if(!layout||typeof MANSIONS==='undefined'||MANSIONS.length!==28)return;
 const chapters=[
- {title:'青龍篇・啟程',tag:'第一章｜青龍七宿',story:'暮雲初開，旅人循東方七宿尋得第一卷星圖。答對一關，便點亮下一處星路。'},
- {title:'玄武篇・問道',tag:'第二章｜玄武七宿',story:'踏入北方水境，以觀象與辨義修習心法；守關試煉，須以知識破除迷障。'},
- {title:'白虎篇・試劍',tag:'第三章｜白虎七宿',story:'西行越過秋夜星野，古老試劍石只認經過查證的答案。'},
- {title:'朱雀篇・歸真',tag:'第四章｜朱雀七宿',story:'南方七宿映照歸途，完成最後七關，便收集完整二十八宿星圖。'}
+ {title:'青龍篇・啟程',tag:'第一章｜青龍七宿',icon:'🐉',beast:'qinglong',story:'暮雲初開，旅人循東方七宿尋得第一卷星圖。答對一關，便點亮下一處星路。'},
+ {title:'玄武篇・問道',tag:'第二章｜玄武七宿',icon:'🐢🐍',beast:'xuanwu',story:'踏入北方水境，以觀象與辨義修習心法；守關試煉，須以知識破除迷障。'},
+ {title:'白虎篇・試劍',tag:'第三章｜白虎七宿',icon:'🐅',beast:'baihu',story:'西行越過秋夜星野，古老試劍石只認經過查證的答案。'},
+ {title:'朱雀篇・歸真',tag:'第四章｜朱雀七宿',icon:'🐦‍🔥',beast:'zhuque',story:'南方七宿映照歸途，完成最後七關，便收集完整二十八宿星圖。'}
 ];
 const el=(tag,txt='',cls='')=>{const e=document.createElement(tag);e.textContent=txt;if(cls)e.className=cls;return e;};
 const section=el('section','','adventure-journey');section.id='adventureJourney';section.setAttribute('aria-labelledby','adventureHeading');
@@ -94,7 +94,10 @@ function render(){
  chaptersUI.replaceChildren();
  chapters.forEach((chapter,i)=>{
   const button=el('button','','adventure-chapter');button.type='button';button.setAttribute('aria-pressed',String(chapterIndex===i));
-  button.append(el('span',chapter.tag),el('strong',chapter.title));
+  button.dataset.beast=chapter.beast;
+  const icon=el('span',chapter.icon,'adventure-chapter-icon');icon.setAttribute('aria-hidden','true');
+  if(chapter.beast==='xuanwu')icon.classList.add('adventure-chapter-icon-paired');
+  button.append(icon,el('span',chapter.tag),el('strong',chapter.title));
   button.addEventListener('click',()=>{chapterIndex=i;render();});chaptersUI.append(button);
  });
  story.textContent=chapters[chapterIndex].story;stages.replaceChildren();
