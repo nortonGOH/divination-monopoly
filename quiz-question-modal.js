@@ -41,8 +41,16 @@
   const content=document.createElement('div');
   content.className='quiz-question-dialog-content';
   dialog.append(header,content);
-  panel.before(dialog);
+  // The quiz block may be hidden by homepage visibility settings. Keep the
+  // original question panel in place while idle, and portal the SAME native
+  // dialog to the document body for the duration of a challenge.
+  const dialogHome=document.createComment('quiz question modal home');
+  panel.before(dialogHome);
+  dialogHome.after(dialog);
   content.append(panel);
+  function portal(node){
+    if(node.parentElement!==document.body)document.body.append(node);
+  }
 
   const resume=document.createElement('button');
   resume.type='button';
@@ -50,7 +58,11 @@
   resume.className='outline-btn quiz-question-resume';
   resume.textContent='↗ 返回本次題目';
   resume.hidden=true;
-  note.after(resume);
+  // The return button must remain reachable even when quiz is hidden.
+  const resumeHost=document.getElementById('spinChallengeBlock')||
+    document.querySelector('#adventureJourney .adventure-story-status');
+  if(resumeHost)resumeHost.after(resume);
+  else note.after(resume);
 
   const canResume=()=>!panel.hidden && typeof activeQuestion!=='undefined' &&
     Boolean(activeQuestion) && (typeof spinning==='undefined'||!spinning);
@@ -68,6 +80,7 @@
     title.textContent=spinMode==='main'?(mainStage!==null&&(mainStage+1)%7===0?'四象守關試煉':'星宿通關試煉'):'秘境星宿遭遇';
     subtitle.textContent=(scope?.textContent||'本次星宿')+(spinMode==='main'?' · 答對解鎖下一關':' · 自由探索不推進主線')+' · 請選擇正確答案';
     resume.hidden=true;
+    portal(dialog);
     if(!dialog.open)dialog.showModal();
     const target=panel.querySelector('.answer-btn:not(:disabled)');
     (target||close).focus({preventScroll:true});
@@ -75,6 +88,8 @@
   close.addEventListener('click',()=>dialog.close());
   resume.addEventListener('click',openQuestion);
   dialog.addEventListener('close',()=>{
+    // Restore the original DOM location for quiz controllers and accessibility.
+    if(dialogHome.parentNode)dialogHome.after(dialog);
     updateResume();
     // Returning to the wheel never changes the current question or score.
     if(document.activeElement===document.body)spin.focus({preventScroll:true});
@@ -107,7 +122,8 @@
   blockedClose.className='outline-btn';
   blockedClose.addEventListener('click',()=>blocked.close());
   blocked.append(blockedTitle,blockedReason,blockedClose);
-  section.append(blocked);
+  // Unavailable notices must also be visible with a hidden quiz sidebar.
+  document.body.append(blocked);
   function showBlocked(reason){
     if(canResume())return; // Never replace a valid question with a warning.
     blockedReason.textContent=reason||'目前沒有符合篩選條件的題目，請調整挑戰類型或難度後再試。';
