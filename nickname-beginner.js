@@ -33,11 +33,17 @@
   const ready=Boolean(window.quizPlayerMayChallenge?.());
   if(!ready)return;
   pendingChallenge=false;
-  queueMicrotask(()=>{
+  const resume=()=>{
    if(!window.quizPlayerMayChallenge?.()||promptDialog.open)return;
    const button=document.getElementById('spinBtn');
    if(button&&!button.disabled)button.click();
-  });
+  };
+  // A successful login may still be finishing profile setup inside the
+  // member dialog; do not spin beneath an open account form.
+  const memberDialog=document.querySelector('dialog.player-dialog');
+  if(memberDialog?.open){
+   memberDialog.addEventListener('close',()=>queueMicrotask(resume),{once:true});
+  }else queueMicrotask(resume);
  }
  window.quizNicknameActive=active;
  window.quizNicknameProfile=()=>profile;
