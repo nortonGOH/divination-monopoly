@@ -111,5 +111,56 @@ orderSave.onclick=async()=>{
  finally{orderSave.disabled=false;}
 };
 orderClose.onclick=()=>orderDialog.close();
-window.addEventListener('quiz-admin-session-changed',()=>{if(!token()){if(dialog.open){revision=null;dialog.close();}if(orderDialog.open){orderRevision=null;orderDialog.close();}}});
+// Reversible, global homepage map / chapter layout setting. Only admins may write.
+const mapBtn=el('button','首頁地圖版面／恢復');mapBtn.type='button';mapBtn.className='outline-btn';bar.append(mapBtn);
+const mapDialog=el('dialog');mapDialog.id='homepageLayoutDialog';
+mapDialog.style.cssText='width:min(570px,calc(100vw - 24px));max-height:86dvh;overflow:auto;padding:22px;border:1px solid #cbbd9e;border-radius:14px;background:#fffaf0';
+const mapTitle=el('h2','首頁版面切換與恢復');
+const mapTip=el('p','可切換「仙俠地圖索引」或恢復原本的「四象章回卡片」。本功能不刪除題庫、成績、暱稱、學習修行簿與關卡進度。');
+const mapStatus=el('p');mapStatus.setAttribute('role','status');
+const mapOptions=el('div');mapOptions.style.cssText='display:grid;gap:10px;margin:16px 0';
+const mapRadios={};
+for(const [mode,heading,help] of [
+ ['map','仙俠地圖索引','四象地圖、二十八宿路線與關卡節點；手機可水平捲動。'],
+ ['classic','原版章回卡片','恢復四章四象卡片與每章七關列表的既有版面。']
+]){
+ const label=el('label');label.style.cssText='display:flex;gap:12px;align-items:flex-start;padding:13px;border:1px solid #d4c39f;background:#fffdf7;border-radius:10px';
+ const radio=el('input');radio.type='radio';radio.name='homepage-layout-mode';radio.value=mode;mapRadios[mode]=radio;
+ const content=el('div');const headingNode=el('strong',heading),small=el('div',help);small.style.cssText='font-size:.82rem;color:#6d6b62;margin-top:5px;line-height:1.6';
+ content.append(headingNode,small);label.append(radio,content);mapOptions.append(label);
+}
+const mapActions=el('div');mapActions.style.cssText='display:flex;flex-wrap:wrap;gap:9px';
+const mapSave=el('button','套用所選版面'),mapRestore=el('button','恢復原版面'),mapClose=el('button','關閉');
+for(const button of [mapSave,mapRestore,mapClose])button.type='button';
+mapRestore.className='outline-btn';mapClose.className='outline-btn';
+mapActions.append(mapSave,mapRestore,mapClose);
+mapDialog.append(mapTitle,mapTip,mapStatus,mapOptions,mapActions);document.body.append(mapDialog);
+let mapRevision=null,mapMode=null;
+async function loadMapSetting(){
+ mapSave.disabled=mapRestore.disabled=true;mapStatus.textContent='正在讀取版面設定…';
+ try{
+  const result=await rpc('quiz_admin_homepage_layout');
+  if(!['classic','map'].includes(result.mode))throw Error('未知版面設定');
+  mapMode=result.mode;mapRevision=result.revision;mapRadios[mapMode].checked=true;
+  mapSave.disabled=mapRestore.disabled=false;
+  mapStatus.textContent=mapMode==='map'?'目前使用仙俠地圖索引版面。':'目前使用原版章回卡片。';
+ }catch(error){mapRevision=null;mapStatus.textContent='讀取失敗：'+error.message;}
+}
+mapBtn.onclick=()=>{if(!token()){if(typeof displayBankToast==='function')displayBankToast('請先完成管理員登入');return;}mapDialog.showModal();void loadMapSetting();};
+async function saveMap(mode){
+ if(mapRevision===null)return;
+ mapSave.disabled=mapRestore.disabled=true;mapStatus.textContent='正在儲存版面設定…';
+ try{
+  const result=await rpc('quiz_admin_save_homepage_layout',{p_mode:mode,p_expected_revision:mapRevision});
+  mapRevision=result.revision;mapMode=result.mode;mapRadios[mapMode].checked=true;
+  await window.quizRefreshHomepageLayout?.();
+  mapStatus.textContent=mapMode==='classic'?'已恢復原版章回卡片；題庫及紀錄未變更。':'已套用仙俠地圖索引版面。';
+ }catch(error){mapStatus.textContent='儲存失敗：'+error.message+'。請關閉並重新開啟以讀取最新版設定。';mapRevision=null;}
+ finally{mapSave.disabled=mapRestore.disabled=mapRevision===null;}
+}
+mapSave.onclick=()=>void saveMap(mapRadios.map.checked?'map':'classic');
+mapRestore.onclick=()=>{if(!window.confirm('確定將所有訪客的首頁恢復為原版章回卡片嗎？此操作不刪除任何資料。'))return;void saveMap('classic');};
+mapClose.onclick=()=>mapDialog.close();
+
+window.addEventListener('quiz-admin-session-changed',()=>{if(!token()){if(dialog.open){revision=null;dialog.close();}if(orderDialog.open){orderRevision=null;orderDialog.close();}if(mapDialog.open){mapRevision=null;mapDialog.close();}}});
 })();

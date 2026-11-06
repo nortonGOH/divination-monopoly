@@ -24,7 +24,55 @@ const story=el('p','','adventure-story');
 const stages=el('div','','adventure-stages');stages.setAttribute('aria-label','二十八宿關卡');
 const status=el('p','','adventure-story-status');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
 const disclaimer=el('p','劇情、修行關卡與守關稱謂為原創遊戲設定，並非古代星占或道教文獻原文。旅程進度僅保存在本裝置；正式排行榜及答題成績仍由伺服器核實。','adventure-disclaimer');
-section.append(meter,chaptersUI,story,stages,status,disclaimer);layout.before(section);
+const mapScroll=el('div','','adventure-map-scroll');
+const mapScene=el('div','','adventure-map-scene');
+const mapRoute=document.createElementNS('http://www.w3.org/2000/svg','svg');
+mapRoute.setAttribute('viewBox','0 0 1000 700');
+mapRoute.setAttribute('preserveAspectRatio','none');
+mapRoute.setAttribute('aria-hidden','true');
+mapRoute.classList.add('adventure-map-routes');
+const stageCoords=[
+ [115,172],[220,158],[325,183],[383,245],[326,319],[219,296],[120,342],
+ [125,468],[225,442],[330,461],[392,523],[330,589],[219,576],[117,617],
+ [605,620],[708,580],[818,594],[894,526],[818,458],[712,444],[609,463],
+ [609,342],[710,302],[816,323],[896,245],[816,179],[713,162],[611,184]
+];
+for(let chapter=0;chapter<4;chapter++){
+ const path=document.createElementNS('http://www.w3.org/2000/svg','polyline');
+ path.setAttribute('points',stageCoords.slice(chapter*7,chapter*7+7).map(p=>p.join(',')).join(' '));
+ path.classList.add('adventure-route-line','adventure-route-'+chapter);
+ mapRoute.append(path);
+}
+const mapCompass=el('div','北 ↑　東 ←　✦　→ 西　↓ 南','adventure-map-compass');
+mapScene.append(mapRoute,mapCompass,chaptersUI,story,stages);
+mapScroll.append(mapScene);
+section.append(meter,mapScroll,status,disclaimer);layout.before(section);
+let layoutMode='classic';
+function setLayoutMode(value){
+ layoutMode=value==='map'?'map':'classic';
+ section.dataset.layout=layoutMode;
+ mapScroll.setAttribute('aria-label',layoutMode==='map'?'四象二十八宿仙俠地圖，可左右捲動':'四象章回與關卡');
+ render();
+}
+window.quizApplyHomepageLayout=setLayoutMode;
+async function refreshLayout(){
+ const cfg=window.QUIZ_AUTH_CONFIG||{};
+ const base=String(cfg.supabaseUrl||'').replace(/\/$/,'');
+ const key=String(cfg.publishableKey||'');
+ if(!base||!key){setLayoutMode('classic');return;}
+ try{
+  const result=await fetch(base+'/rest/v1/rpc/quiz_public_homepage_layout',{
+   method:'POST',headers:{apikey:key,'Content-Type':'application/json'},
+   body:'{}',cache:'no-store'
+  });
+  if(!result.ok)throw Error('版面設定讀取失敗');
+  const data=await result.json();
+  if(!['classic','map'].includes(data?.mode))throw Error('未知版面設定');
+  setLayoutMode(data.mode);
+ }catch(error){console.warn('首頁版面設定：'+error.message);setLayoutMode('classic');}
+}
+window.quizRefreshHomepageLayout=refreshLayout;
+
 // The North Star is the RPG compass; preserve the original SVG wheel and spin animation.
 const wheelCard=layout.querySelector('.wheel-card');
 const wheelHeader=wheelCard?.querySelector('.wheel-header');
@@ -94,6 +142,7 @@ function render(){
  chaptersUI.replaceChildren();
  chapters.forEach((chapter,i)=>{
   const button=el('button','','adventure-chapter');button.type='button';button.setAttribute('aria-pressed',String(chapterIndex===i));
+  button.dataset.region=String(i);
   button.dataset.beast=chapter.beast;
   const icon=el('span',chapter.icon,'adventure-chapter-icon');icon.setAttribute('aria-hidden','true');
   if(chapter.beast==='xuanwu')icon.classList.add('adventure-chapter-icon-paired');
@@ -101,9 +150,13 @@ function render(){
   button.addEventListener('click',()=>{chapterIndex=i;render();});chaptersUI.append(button);
  });
  story.textContent=chapters[chapterIndex].story;stages.replaceChildren();
- for(let i=chapterIndex*7;i<chapterIndex*7+7;i++){
+ story.setAttribute('aria-label',chapters[chapterIndex].title+'劇情');
+ for(let i=(layoutMode==='map'?0:chapterIndex*7);i<(layoutMode==='map'?28:chapterIndex*7+7);i++){
   const completed=i<passed,available=i===passed,m=MANSIONS[i];
   const button=el('button','','adventure-stage');button.type='button';
+  button.dataset.region=String(Math.floor(i/7));
+  button.style.setProperty('--map-x',String(stageCoords[i][0]/10)+'%');
+  button.style.setProperty('--map-y',String(stageCoords[i][1]/7)+'%');
   button.dataset.state=completed?'complete':available?'current':'locked';button.disabled=!completed&&!available;
   button.setAttribute('aria-label','第 '+(i+1)+' 關 '+m.name+'，'+(completed?'已通過':available?'可挑戰':'尚未解鎖'));
   button.append(el('span',i===chapterIndex*7+6?'第 '+(i+1)+' 關 · 守關':'第 '+(i+1)+' 關','adventure-stage-number'),
@@ -184,5 +237,5 @@ window.addEventListener('quiz-answer-graded',event=>{
 });
 window.addEventListener('quiz-member-session-changed',()=>{reconcile();render();});
 window.addEventListener('quiz-nickname-state-changed',()=>{reconcile();render();});
-render();say('星路羅盤預設「主線試煉」：點北極星會定位第一個尚未通關的星宿；切換「秘境探索」可公平隨機抽宿。');
+render();void refreshLayout();say('星路羅盤預設「主線試煉」：點北極星會定位第一個尚未通關的星宿；切換「秘境探索」可公平隨機抽宿。');
 })();
