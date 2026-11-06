@@ -475,7 +475,16 @@ backBtn.addEventListener('click',()=>{
  if(busy)return;
  password.value='';confirmPassword.value='';recoveryAccessToken=null;setDialogMode('login');email.focus();
 });
-signInBtn.addEventListener('click',()=>{setDialogMode('login');showDlg();});
+// Shared entrypoint for the member sign-in button and the nickname prompt.
+// Registration and login continue to use the same Supabase Auth dialog.
+window.quizOpenMemberAuth=(mode='login')=>{
+ if(busy||!['login','signup'].includes(mode))return false;
+ setDialogMode(mode);
+ showDlg();
+ email.focus();
+ return true;
+};
+signInBtn.addEventListener('click',()=>{window.quizOpenMemberAuth('login');});
 const profileBtn=node('button','修改暱稱');profileBtn.type='button';profileBtn.hidden=true;actions.append(profileBtn);
 profileBtn.addEventListener('click',()=>{setDialogMode('profile');showDlg();nickname.focus();});
 saveProfileBtn.addEventListener('click',async()=>{
