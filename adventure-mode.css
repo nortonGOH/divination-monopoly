@@ -283,3 +283,68 @@ html[data-adventure-view="map"] #mainContent > .wheel-card > .wheel-footer{
   grid-column:1;
  }
 }
+
+
+/* Daoist Three Sections / Eight Scenes: 24 body spirits (Yunji Qiqian, juan 31).
+   The former 28-mansion RPG route remains intact in classic mode.
+   Only the atlas index is replaced in the map view. */
+.dao-body-atlas{display:none}
+.adventure-journey[data-layout="map"] .adventure-chapters,
+.adventure-journey[data-layout="map"] .adventure-stages,
+.adventure-journey[data-layout="map"] .adventure-story,
+.adventure-journey[data-layout="map"] .adventure-map-routes,
+.adventure-journey[data-layout="map"] .adventure-progress-wrap{display:none!important}
+.adventure-journey[data-layout="map"] .adventure-map-scene{min-width:1160px;width:100%;min-height:805px;
+ background:radial-gradient(ellipse at 50% 46%,#d3b77e72 0%,transparent 36%),linear-gradient(145deg,#f1e6cc,#d7c7a7)}
+.adventure-journey[data-layout="map"] .adventure-map-scene:after{content:"三部八景 · 身中二十四神";letter-spacing:.25em}
+.adventure-journey[data-layout="map"] .dao-body-atlas{
+ display:flex;flex-direction:column;justify-content:space-around;
+ min-height:805px;padding:22px 28px 42px;box-sizing:border-box;
+ position:relative;z-index:2;color:#263f3a;
+}
+.dao-body-notice{margin:0 auto 5px;text-align:center;max-width:900px;
+ font-size:.85rem;line-height:1.7;color:#594b37;background:#fff9e6d9;border:1px solid #d2b989;
+ border-radius:11px;padding:8px 15px}
+.dao-body-layer{position:relative;min-height:165px;padding:10px 12px;
+ border:1px solid #a8916b78;border-radius:18px;background:#fffaf022;
+}
+.dao-body-layer[data-part="upper"]{--dao-accent:#438978;--dao-soft:#e3f3e8}
+.dao-body-layer[data-part="middle"]{--dao-accent:#9c6c3f;--dao-soft:#f4e2c7}
+.dao-body-layer[data-part="lower"]{--dao-accent:#606f95;--dao-soft:#e5eaf6}
+.dao-layer-heading{display:flex;align-items:baseline;gap:15px;margin:0 0 11px;
+ color:#4b4639;font-weight:700}
+.dao-layer-heading strong{color:var(--dao-accent);font-size:1.18rem}
+.dao-layer-heading small{font-size:.76rem;font-weight:500}
+.dao-layer-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) 268px repeat(4,minmax(0,1fr));gap:8px}
+.dao-spirit-node{min-width:0;min-height:80px;border-radius:12px;padding:7px 4px;cursor:pointer;
+ border:1.5px solid var(--dao-accent);color:#33433b;
+ background:linear-gradient(150deg,#fffcf4,var(--dao-soft));
+ display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+ box-shadow:0 2px 8px #52401e18;font:inherit;transition:transform .14s ease,box-shadow .14s ease}
+.dao-spirit-node:nth-child(5){grid-column:6}
+.dao-spirit-node .dao-spirit-index{font-size:.65rem;color:#776b56}
+.dao-spirit-node strong{font-size:.88rem;line-height:1.3;text-align:center;word-break:keep-all}
+.dao-spirit-node small{font-size:.74rem;color:#4d695f;text-align:center}
+.dao-spirit-node:hover{transform:translateY(-2px);box-shadow:0 6px 14px #52401e37}
+.dao-spirit-node:focus-visible{outline:3px solid #aa6c29;outline-offset:3px}
+.dao-body-source{font-size:.75rem;color:#62543b;background:#fff9e1cb;border-radius:10px;
+ line-height:1.6;margin:0;padding:7px 12px;text-align:center}
+.adventure-journey[data-layout="map"] .adventure-map-wheel{
+ z-index:4;top:49%;width:240px;height:240px}
+.dao-spirit-dialog{border:1px solid #b39b75;border-radius:16px;padding:0;color:#263c38;
+ width:min(540px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;
+ background:#fffbf2;box-shadow:0 22px 64px #14263269}
+.dao-spirit-dialog::backdrop{background:#0e1d2ab8}
+.dao-spirit-dialog-head{display:flex;justify-content:space-between;gap:12px;align-items:center;
+ padding:15px 19px;border-bottom:1px solid #e3d7b9}
+.dao-spirit-dialog-head h2{margin:0;color:#76502c;font-size:1.35rem}
+.dao-spirit-close{border:1px solid #b9a581;background:#f4e6cc;padding:9px 13px;border-radius:8px;cursor:pointer;font:inherit}
+.dao-spirit-details{padding:11px 20px;line-height:1.8}
+.dao-spirit-details p{margin:8px 0}
+.dao-spirit-disclaimer{font-size:.82rem;color:#675b4d;border-top:1px solid #e4d6bb;padding-top:12px}
+.dao-spirit-reference{padding:12px 20px 17px;border-top:1px solid #e5dac3;margin:0;font-size:.85rem}
+.dao-spirit-reference a{color:#356a5e}
+@media(max-width:940px){
+ .adventure-journey[data-layout="map"] .adventure-map-scene{width:1160px;min-width:1160px}
+}
+@media(prefers-reduced-motion:reduce){.dao-spirit-node{transition:none}}
