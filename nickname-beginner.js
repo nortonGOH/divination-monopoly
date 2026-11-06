@@ -153,6 +153,8 @@
   try{
    const result=await window.quizNicknameSubmit(activeQuestion.id,index);
    if(result.accepted){
+    // The same event is emitted only after verified server grading.
+    window.dispatchEvent(new CustomEvent('quiz-answer-graded',{detail:{correct:result.correct,questionId:activeQuestion.id}}));
     questionAnswered=true;answeredCount++;if(result.correct)correctCount++;
     [...document.getElementById('answerOptions').children].forEach((button,i)=>{
      button.disabled=true;if(i===index)button.classList.add(result.correct?'correct':'wrong');

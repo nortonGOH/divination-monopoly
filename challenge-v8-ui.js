@@ -96,6 +96,21 @@
     showQuestionPanel();
   };
 
+  // The chapter quest reuses the existing server-graded quiz without faking a wheel spin.
+  window.quizAdventureOpenStage=function(index){
+    if(spinning||!Number.isInteger(index)||index<0||index>=MANSIONS.length)return false;
+    if(typeof window.quizPlayerMayChallenge==='function'&&!window.quizPlayerMayChallenge())return false;
+    const mansion=MANSIONS[index].name;
+    const requestedType=typeof window.quizFiveArtsSelection==='function'?window.quizFiveArtsSelection():'all';
+    const difficulty=$('quizDifficulty')?.value||'初階';
+    const level=window.quizMemberToken?.()?(requestedType==='all'?'all':difficulty):(['初階','中階'].includes(difficulty)?difficulty:'初階');
+    const eligible=questionBank.some(q=>q.mansion===mansion&&(level==='all'||(q.difficulty||'中階')===level) &&
+      (requestedType==='all'||(typeof inferKnowledgeType==='function'&&inferKnowledgeType(q)===requestedType)) &&
+      Array.isArray(q.options)&&q.options.length===4&&!(window.quizCompletedIds||new Set()).has(q.id));
+    if(!eligible)return false;
+    wheelReady=true;renderInfo(index);selectQuizForMansion(index);
+    return Boolean(activeQuestion&&activeQuestion.mansion===mansion);
+  };
   const oldFinish=finishSpin;
   finishSpin=function(slotIndex){
     const cell=BOARD_SLOTS[slotIndex];
