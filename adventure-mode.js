@@ -54,7 +54,10 @@ for(const [i,targetIndex] of [3,10,20,21].entries()){
  mapRoute.append(connector);
 }
 const mapCompass=el('div','北 ↑　東 ←　✦　→ 西　↓ 南','adventure-map-compass');
-mapScene.append(mapRoute,mapCompass,chaptersUI,story,stages);
+const mapWheel=el('div','','adventure-map-wheel');
+mapWheel.setAttribute('role','group');
+mapWheel.setAttribute('aria-label','北斗七星互動圓盤，點擊北極星開始挑戰');
+mapScene.append(mapRoute,mapCompass,mapWheel,chaptersUI,story,stages);
 mapScroll.append(mapScene);
 section.append(meter,mapScroll,status,disclaimer);layout.before(section);
 let layoutMode='classic';
@@ -62,17 +65,18 @@ function setLayoutMode(value){
  layoutMode=value==='map'?'map':'classic';
  section.dataset.layout=layoutMode;
  document.documentElement.dataset.adventureView=layoutMode;
- // Move the SAME original SVG wheel element, never clone it. Its spin handlers,
- // Polaris click target, quiz events, admin visibility and live state all persist.
- if(wheelCard){
-  if(layoutMode==='map'&&wheelCard.parentElement!==mapScene){
-   mapScene.append(wheelCard);
-  }else if(layoutMode==='classic'&&wheelCard.parentElement!==layout){
-   layout.insertBefore(wheelCard,layout.querySelector('.information'));
+ // Relocate ONLY the original SVG wheel container to the map, not the
+ // header, play-mode buttons, story log, or entire wheel card. Restore the
+ // same node at its exact original position when switching to classic.
+ if(wheelWrap && wheelHomeAnchor){
+  if(layoutMode==='map' && wheelWrap.parentElement!==mapWheel){
+   mapWheel.append(wheelWrap);
+  }else if(layoutMode==='classic' && wheelWrap.parentElement!==wheelCard){
+   wheelHomeAnchor.after(wheelWrap);
   }
-  wheelCard.setAttribute('aria-label',layoutMode==='map'?
-   '四象星路地圖中央的北斗七星互動羅盤':'二十八星宿與北斗七星互動圓盤');
  }
+ wheelCard?.setAttribute('aria-label',layoutMode==='map'?
+  '北斗星路羅盤操作選項與探索紀事':'二十八星宿與北斗七星互動圓盤');
  mapScroll.setAttribute('aria-label',layoutMode==='map'?'四象二十八宿仙俠地圖，中央可操作北斗羅盤，可左右捲動':'四象章回與關卡');
  render();
 }
@@ -97,6 +101,9 @@ window.quizRefreshHomepageLayout=refreshLayout;
 
 // The North Star is the RPG compass; preserve the original SVG wheel and spin animation.
 const wheelCard=layout.querySelector('.wheel-card');
+const wheelWrap=wheelCard?.querySelector('.wheel-wrap');
+const wheelHomeAnchor=wheelWrap?document.createComment('restore original wheel position'):null;
+if(wheelWrap&&wheelHomeAnchor)wheelWrap.before(wheelHomeAnchor);
 const wheelHeader=wheelCard?.querySelector('.wheel-header');
 const modes=el('div','','adventure-wheel-modes');
 modes.setAttribute('role','group');
