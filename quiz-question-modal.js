@@ -84,11 +84,42 @@
     if(event.target===dialog)dialog.close();
   });
 
+  // Open immediately when the four-option question has actually been rendered.
+  // The wheel-finished listener below remains as a backwards-compatible fallback.
+  window.addEventListener('quiz-question-ready',()=>{
+    if(canResume())openQuestion();
+  });
+  // Do not show an empty question dialog when the current stage is blocked
+  // or no question matches the selected category/difficulty.
+  const blocked=document.createElement('dialog');
+  blocked.className='quiz-question-dialog';
+  blocked.id='quizChallengeUnavailableDialog';
+  const blockedTitle=document.createElement('h2');
+  blockedTitle.textContent='目前無法開啟本次試煉';
+  const blockedReason=document.createElement('p');
+  blockedReason.setAttribute('role','status');
+  blockedReason.style.cssText='line-height:1.8;white-space:pre-wrap';
+  const blockedClose=document.createElement('button');
+  blockedClose.type='button';blockedClose.textContent='返回調整條件';
+  blockedClose.className='outline-btn';
+  blockedClose.addEventListener('click',()=>blocked.close());
+  blocked.append(blockedTitle,blockedReason,blockedClose);
+  section.append(blocked);
+  function showBlocked(reason){
+    if(canResume())return; // Never replace a valid question with a warning.
+    blockedReason.textContent=reason||'目前沒有符合篩選條件的題目，請調整挑戰類型或難度後再試。';
+    if(!blocked.open)blocked.showModal();
+    blockedClose.focus({preventScroll:true});
+  }
+  window.addEventListener('quiz-question-unavailable',event=>showBlocked(event.detail?.reason));
+  window.addEventListener('challenge-spin-blocked',event=>showBlocked(event.detail?.reason));
   // The official wheel event fires after the authoritative question selection;
   // a special square or an empty eligible pool does not open a blank modal.
   window.addEventListener('challenge-spin-finished',event=>{
-    if(event.detail?.cell?.type==='mansion' && canResume())openQuestion();
-    else{
+    if(event.detail?.cell?.type==='mansion' && canResume()){
+      if(blocked.open)blocked.close();
+      if(!dialog.open)openQuestion();
+    }else{
       if(dialog.open)dialog.close();
       resume.hidden=true;
     }
