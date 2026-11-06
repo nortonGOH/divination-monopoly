@@ -46,7 +46,7 @@ const groups=[
 const make=(tag,value='',cls='')=>{const node=document.createElement(tag);node.textContent=value;if(cls)node.className=cls;return node;};
 const atlas=make('div','','dao-body-atlas');
 atlas.setAttribute('aria-label','三部八景二十四神身神地圖');
-const notice=make('p','上、中、下三部各八景，共二十四神。點擊身神可查看經文記載；中央北斗圓盤仍屬原有二十八宿抽題遊戲。','dao-body-notice');
+const notice=make('p','循三部八景登訪二十四位身神；點擊神位可查看文獻。中央北斗羅盤仍為原有二十八宿問答遊戲。','dao-body-notice');
 atlas.append(notice);
 const dialog=document.createElement('dialog');dialog.className='dao-spirit-dialog';dialog.id='daoSpiritDialog';dialog.setAttribute('aria-labelledby','daoSpiritTitle');
 const header=make('div','','dao-spirit-dialog-head');
@@ -85,7 +85,7 @@ for(const group of groups){
  layer.append(grid);atlas.append(layer);
 }
 const foot=make('p','','dao-body-source');
-foot.append(document.createTextNode('文獻底本：《雲笈七籤》卷三十一〈太微帝君太一造形紫元內二十四神回元經〉。本圖為文獻索引，區位排列為現代視覺設計，不主張復原古代原圖。'));
+foot.append(document.createTextNode('文獻底本：《雲笈七籤》卷三十一〈太微帝君太一造形紫元內二十四神回元經〉。山境圖為藝術性示意，圖片內題字並非校勘底本；請以互動節點和原典為準。本圖不主張復原古代原圖。'));
 atlas.append(foot);
 scene.append(atlas);
 const original={heading:heading.textContent,kicker:kicker?.textContent,description:description?.textContent};
