@@ -93,3 +93,108 @@
 @media(max-width:620px){.adventure-chapter[data-beast]{min-height:148px;padding:11px 5px}
   .adventure-chapter[data-beast] .adventure-chapter-icon{width:64px;height:64px;font-size:2.15rem}
   .adventure-chapter[data-beast] .adventure-chapter-icon-paired{font-size:1.48rem}}
+
+
+/* Original illustrated fantasy atlas UI: no copyrighted game assets.
+   Classic layout remains unmodified when data-layout="classic". */
+.adventure-map-scroll{width:100%}
+.adventure-map-scene{width:100%}
+.adventure-map-routes,.adventure-map-compass{display:none}
+.adventure-journey[data-layout="map"]{
+ background:linear-gradient(155deg,#172c37,#233a40);
+}
+.adventure-journey[data-layout="map"] .adventure-map-scroll{
+ overflow-x:auto;overflow-y:hidden;overscroll-behavior-inline:contain;
+ border:1px solid #b8a77e;border-radius:18px;scrollbar-color:#aa9364 #d8c9a6;
+}
+.adventure-journey[data-layout="map"] .adventure-map-scene{
+ position:relative;min-width:840px;min-height:700px;isolation:isolate;
+ background:
+  radial-gradient(ellipse at 21% 26%,rgba(55,111,93,.3) 0%,transparent 31%),
+  radial-gradient(ellipse at 20% 72%,rgba(60,103,132,.37) 0%,transparent 30%),
+  radial-gradient(ellipse at 77% 72%,rgba(132,113,68,.35) 0%,transparent 33%),
+  radial-gradient(ellipse at 78% 24%,rgba(166,93,65,.3) 0%,transparent 28%),
+  repeating-linear-gradient(135deg,transparent 0 32px,rgba(69,77,68,.035) 33px 34px),
+  linear-gradient(130deg,#efe0bc,#d6c098 55%,#eee0ba);
+ box-shadow:inset 0 0 35px rgba(66,50,23,.28);color:#2e403d;
+}
+.adventure-journey[data-layout="map"] .adventure-map-scene:before{
+ content:"";position:absolute;inset:3%;z-index:0;pointer-events:none;
+ border:2px solid rgba(105,86,54,.38);border-radius:35% 8% 28% 10% / 12% 32% 8% 30%;
+ box-shadow:inset 0 0 0 1px rgba(241,232,198,.5);
+}
+.adventure-journey[data-layout="map"] .adventure-map-scene:after{
+ content:"山　✦　雲　✦　海";position:absolute;bottom:12px;left:0;right:0;
+ color:#715f44a8;text-align:center;font-size:.75rem;letter-spacing:.9em;pointer-events:none;
+}
+.adventure-journey[data-layout="map"] .adventure-map-compass{
+ display:block;position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);
+ z-index:1;color:#756142c0;font-size:.8rem;white-space:nowrap;pointer-events:none;
+}
+.adventure-journey[data-layout="map"] .adventure-map-routes{
+ display:block;position:absolute;inset:0;width:100%;height:100%;
+ pointer-events:none;z-index:1;overflow:visible;
+}
+.adventure-journey[data-layout="map"] .adventure-route-line{
+ fill:none;stroke:#9d855c;stroke-width:3;stroke-dasharray:6 8;stroke-linejoin:round;opacity:.75;
+}
+.adventure-journey[data-layout="map"] .adventure-route-0{stroke:#448e7f}
+.adventure-journey[data-layout="map"] .adventure-route-1{stroke:#577fa1}
+.adventure-journey[data-layout="map"] .adventure-route-2{stroke:#a88a53}
+.adventure-journey[data-layout="map"] .adventure-route-3{stroke:#b66a55}
+.adventure-journey[data-layout="map"] .adventure-chapters,
+.adventure-journey[data-layout="map"] .adventure-stages{display:contents}
+.adventure-journey[data-layout="map"] .adventure-chapter[data-beast]{
+ position:absolute;min-height:0;width:30%;max-width:280px;height:83px;z-index:3;
+ flex-direction:row;gap:9px;padding:7px 9px;overflow:hidden;text-align:left;justify-content:flex-start;
+ border-radius:14px;background:#203c41;color:#fff4de;box-shadow:0 6px 15px #24302e38;
+}
+.adventure-journey[data-layout="map"] .adventure-chapter[data-region="0"]{top:3.4%;left:5%}
+.adventure-journey[data-layout="map"] .adventure-chapter[data-region="1"]{top:50.6%;left:5%}
+.adventure-journey[data-layout="map"] .adventure-chapter[data-region="2"]{top:50.6%;right:5%}
+.adventure-journey[data-layout="map"] .adventure-chapter[data-region="3"]{top:3.4%;right:5%}
+.adventure-journey[data-layout="map"] .adventure-chapter .adventure-chapter-icon{
+ width:54px;height:54px;font-size:2rem;
+}
+.adventure-journey[data-layout="map"] .adventure-chapter .adventure-chapter-icon-paired{font-size:1.25rem}
+.adventure-journey[data-layout="map"] .adventure-chapter > span:not(.adventure-chapter-icon){
+ font-size:.7rem;
+}
+.adventure-journey[data-layout="map"] .adventure-chapter > strong{font-size:.9rem}
+.adventure-journey[data-layout="map"] .adventure-chapter{flex-wrap:wrap;align-content:center}
+.adventure-journey[data-layout="map"] .adventure-story{
+ position:absolute;top:44.6%;left:39%;width:22%;padding:8px 10px;z-index:3;
+ color:#43504b;background:#fdf6e6c9;border:1px solid #bea479;border-radius:9px;
+ font-size:.75rem;line-height:1.5;max-height:110px;overflow:auto;text-align:center;
+}
+.adventure-journey[data-layout="map"] .adventure-stage{
+ position:absolute;left:var(--map-x);top:var(--map-y);
+ transform:translate(-50%,-50%);width:65px;min-height:62px;height:62px;z-index:2;
+ padding:5px 2px;gap:1px;background:#f7edc8;border:2px solid #8a774d;color:#39413a;
+ border-radius:15px;box-shadow:0 5px 9px #66502f30;
+}
+.adventure-journey[data-layout="map"] .adventure-stage[data-region="0"]{border-color:#377c69}
+.adventure-journey[data-layout="map"] .adventure-stage[data-region="1"]{border-color:#5b7f9b}
+.adventure-journey[data-layout="map"] .adventure-stage[data-region="2"]{border-color:#a68d5b}
+.adventure-journey[data-layout="map"] .adventure-stage[data-region="3"]{border-color:#ba745d}
+.adventure-journey[data-layout="map"] .adventure-stage .adventure-stage-number{color:#685734;font-size:.64rem}
+.adventure-journey[data-layout="map"] .adventure-stage .adventure-stage-name{color:#2c3c36;font-size:.74rem}
+.adventure-journey[data-layout="map"] .adventure-stage .adventure-stage-state{font-size:.65rem;color:#3d564c}
+.adventure-journey[data-layout="map"] .adventure-stage[data-state="current"]{
+ background:#f4d997;border-color:#b87a27;box-shadow:0 0 0 3px #f2e0ac,0 0 17px #d5983d80;
+}
+.adventure-journey[data-layout="map"] .adventure-stage[data-state="complete"]{
+ background:#d5eddc;border-color:#398876;opacity:1;
+}
+.adventure-journey[data-layout="map"] .adventure-stage[data-state="locked"]{
+ opacity:.55;background:#ddd0b7;
+}
+.adventure-journey[data-layout="map"] .adventure-stage:focus-visible{outline:3px solid #ab581e;outline-offset:2px}
+@media(max-width:920px){
+ .adventure-journey[data-layout="map"] .adventure-map-scene{width:920px;min-width:920px}
+ .adventure-journey[data-layout="map"] .adventure-map-scroll{scroll-snap-type:x proximity}
+}
+@media(prefers-reduced-motion:reduce){
+ .adventure-journey[data-layout="map"] .adventure-stage,
+ .adventure-journey[data-layout="map"] .adventure-chapter{transition:none}
+}
