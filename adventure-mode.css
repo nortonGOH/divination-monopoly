@@ -38,3 +38,34 @@
 .adventure-encounter-title{color:#f5ce86;display:block;margin-bottom:6px;font-size:.84rem;letter-spacing:.06em}
 .adventure-encounter-text{line-height:1.85;margin:0;font-size:.88rem;white-space:pre-line}
 @media(max-width:520px){.adventure-wheel-modes{grid-template-columns:1fr}.adventure-encounter{padding:12px}}
+
+
+/* Compact RPG quest compass: preserve the SVG 1000x1000 coordinate system
+   and the existing spin/answer handlers; only adjust the rendered dimensions.
+   Larger, visible one-character labels replace unreadable full names. */
+@media (min-width:941px){
+  #mainContent.layout{grid-template-columns:minmax(0,460px) minmax(0,1fr);gap:20px}
+  #mainContent .wheel-card{width:100%;max-width:460px;justify-self:center}
+  #mainContent .wheel-wrap{width:100%;max-width:410px}
+}
+@media (min-width:621px) and (max-width:940px){
+  #mainContent .wheel-card{width:100%;max-width:520px;justify-self:center}
+  #mainContent .wheel-wrap{width:100%;max-width:440px}
+}
+@media (max-width:620px){
+  #mainContent .wheel-card{width:100%;max-width:410px;justify-self:center}
+  #mainContent .wheel-wrap{width:100%;max-width:350px}
+  #mainContent .wheel-header{flex-wrap:wrap;gap:4px 12px}
+  #mainContent .wheel-footer{line-height:1.6}
+}
+/* With a 410px wheel, three-character labels would render around 8px. */
+#mainContent .wheel-card .mansion-sector .full-name{display:none}
+#mainContent .wheel-card .mansion-sector .short-name{display:block;font-size:43px}
+#mainContent .wheel-card .mansion-sector .sector-index{display:none}
+#mainContent .wheel-card #star-labels .star-name{display:none}
+#mainContent .wheel-card #star-labels .star-number{display:block;font-size:29px}
+#mainContent .wheel-card .direction-text{font-size:29px}
+@media (max-width:620px){
+  #mainContent .wheel-card .mansion-sector .short-name{font-size:47px}
+  #mainContent .wheel-card #star-labels .star-number{font-size:33px}
+}
