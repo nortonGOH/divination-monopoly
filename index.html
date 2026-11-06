@@ -227,7 +227,7 @@
     @media(max-width:550px){.learning-map-dialog{width:calc(100vw - 12px);max-height:calc(100dvh - 12px);border-radius:12px}.learning-map-dialog-bar{padding:9px 12px}.learning-map-dialog-bar strong{font-size:.9rem}.learning-map-dialog-close{padding:8px 10px}.learning-map-atlas-panel{padding:8px}}
   </style>
   <link rel="stylesheet" href="./site-ux.css">
-  <link rel="stylesheet" href="./adventure-mode.css?v=20261106-wheel-only">
+  <link rel="stylesheet" href="./adventure-mode.css?v=20261106-24mountains-face">
   <link rel="stylesheet" href="./guestbook.css">
   <link rel="stylesheet" href="./trial-wenchang-ui.css">
   <link rel="stylesheet" href="./quiz-question-modal.css">
@@ -263,11 +263,11 @@
   </details>
   <main class="layout" id="mainContent" tabindex="-1">
     <section class="wheel-card" aria-label="二十八星宿與北斗七星互動圓盤">
-      <div class="wheel-header"><span>二十八宿＋四特殊格 · 32格圓盤</span><strong>上南　下北　左東　右西</strong></div>
+      <div class="wheel-header"><span>二十四山外觀刻度 · 每山十五度</span><strong>上南　下北　左東　右西</strong></div>
       <div class="wheel-wrap">
         <svg id="skyWheel" viewBox="0 0 1000 1000" role="group" aria-labelledby="wheelTitle wheelDesc">
-          <title id="wheelTitle">三十二格挑戰圓盤與北斗七星</title>
-          <desc id="wheelDesc">上方是南方朱雀七宿，下方是北方玄武七宿，左方是東方青龍七宿，右方是西方白虎七宿；北極星固定中央，北斗繞北極星逆時針旋轉，斗口指極，瑤光指向停止的星宿。</desc>
+          <title id="wheelTitle">北斗七星羅盤・二十四山外觀刻度</title>
+          <desc id="wheelDesc">外圈為二十四山，每山十五度；子在下方正北，午在上方正南，卯在左方正東，酉在右方正西。外觀刻度不影響原本內部二十八宿與四特殊事件的三十二格抽題機制；北極星固定中央，北斗逆時針旋轉。</desc>
           <defs>
             <radialGradient id="night" cx="50%" cy="45%" r="65%"><stop offset="0%" stop-color="#223f56"/><stop offset="100%" stop-color="#0f2030"/></radialGradient>
             <filter id="glow" x="-120%" y="-120%" width="340%" height="340%"><feGaussianBlur stdDeviation="4"/></filter>
@@ -275,6 +275,7 @@
           </defs>
           <circle cx="500" cy="500" r="474" fill="#f6f0e4" stroke="#bdab8d" stroke-width="2"/>
           <g id="sectors"></g>
+          <g id="mountain24-face" pointer-events="none" aria-hidden="true"></g>
           <circle cx="500" cy="500" r="326" fill="url(#night)" stroke="#b88d53" stroke-width="3"/>
           <g id="night-dots" opacity=".6" aria-hidden="true"></g>
           <g fill="none" stroke="#8a8e83" opacity=".16" stroke-width="1.3" pointer-events="none">
@@ -315,7 +316,7 @@
         <span class="key"><i class="swatch" style="background:#ac8538"></i>西方七宿</span>
         <span class="key"><i class="swatch" style="background:#4274a8"></i>北方七宿</span>
       </div>
-      <p class="wheel-footer">北極星是星路羅盤的啟動點：主線試煉會指向下一個待通關星宿；秘境探索則隨機抽取 28 宿或 4 個特殊事件。北極星固定天心、北斗逆時針旋轉；星官與位置為教學示意。</p>
+      <p class="wheel-footer">外圈二十四山僅為羅盤視覺刻度（每山15°；子北午南、卯東酉西），不代表抽題目標。北極星仍可啟動原本主線試煉與秘境探索：維持二十八宿及四個特殊事件共32格的選題機制，北斗照常旋轉。</p>
     </section>
 
     <aside class="information" aria-label="星宿資訊與數術問答">
@@ -557,6 +558,26 @@ BOARD_SLOTS.forEach((slot,i)=>{
 });
 const specialCss=svgEl('style',{},'.special-sector text{fill:#4d3c63;font-weight:800}.special-sector.active path{stroke:#9d7637;stroke-width:6}');
 sectorLayer.appendChild(specialCss);
+
+// VISUAL ONLY: Twenty-four mountain divisions (15 degrees each).
+// The original BOARD_SLOTS array, its 32 click sectors, event handlers,
+// spin pointer, grading and quest logic remain unchanged underneath.
+// Screen orientation deliberately follows the site's traditional
+// "south above, north below, east left, west right" convention.
+const MOUNTAINS_24=['壬','子','癸','丑','艮','寅','甲','卯','乙','辰','巽','巳',
+                    '丙','午','丁','未','坤','申','庚','酉','辛','戌','乾','亥'];
+const mountainFace=document.getElementById('mountain24-face');
+MOUNTAINS_24.forEach((mountain,i)=>{
+  const center=75+i*15; // 子 = 90° / bottom = north; 午 = 270° / top = south.
+  const start=center-7.5,end=center+7.5;
+  const quadrant=Math.floor(i/6);
+  const node=svgEl('g',{class:'mountain24-division mountain24-quadrant-'+quadrant});
+  node.appendChild(svgEl('path',{d:polygonWedge(start,end,364,460),class:'mountain24-wedge'}));
+  const point=toXY(412,center);
+  node.appendChild(svgEl('text',{x:point.x.toFixed(2),y:(point.y+13).toFixed(2),
+    class:'mountain24-label','text-anchor':'middle'},mountain));
+  mountainFace.appendChild(node);
+});
 
 // 2026新版：北極星固定於盤心，北斗繞北極星逆時針旋動；斗口朝向北極星。
 // 此為便於互動閱讀的示意幾何，不是精確赤經／赤緯測繪。
