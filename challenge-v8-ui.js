@@ -80,11 +80,15 @@
     const nicknameAllowed=Boolean(!window.quizMemberToken?.() && window.quizNicknameActive?.());
     const memberAllowed=Boolean(window.quizMemberToken?.() && window.quizPlayerMayChallenge?.());
     if(!nicknameAllowed && !memberAllowed) {
-      hideQuestion('請先設定初階或中階挑戰暱稱，或註冊登入會員才能參加挑戰。');
+      const reason='請先設定初階或中階挑戰暱稱，或註冊登入會員才能參加挑戰。';
+      hideQuestion(reason);
+      window.dispatchEvent(new CustomEvent('quiz-question-unavailable',{detail:{reason}}));
       return;
     }
     if(!playable.length){
-      hideQuestion('已抽中 '+mansion+'，目前「'+levelLabel+'」條件下沒有尚未作答的四選一題目，請更換條件或再抽宿。');
+      const reason='已抽中 '+mansion+'，目前「'+levelLabel+'」條件下沒有尚未作答的四選一題目，請更換條件或再抽宿。';
+      hideQuestion(reason);
+      window.dispatchEvent(new CustomEvent('quiz-question-unavailable',{detail:{reason}}));
       return;
     }
     const previous=activeQuestion?.id;
@@ -94,6 +98,9 @@
     showQuestion(selected,playable.length);
     $('quizAvailable').textContent=levelLabel+' · 本宿 '+playable.length+' 題四選一';
     showQuestionPanel();
+    // Send an explicit ready signal AFTER the selected question is visible;
+    // the modal no longer relies only on the wheel's finish timing.
+    window.dispatchEvent(new CustomEvent('quiz-question-ready',{detail:{questionId:selected.id,mansion}}));
   };
 
   // Both the direct chapter selector and the main-quest wheel share this gate.

@@ -25,6 +25,26 @@
  box.append(label,join,leave,status);host.append(box);
  const emit=()=>window.dispatchEvent(new Event('quiz-nickname-state-changed'));
  const active=()=>Boolean(profile?.nickname)&&!window.quizMemberToken?.();
+ // Remember an interrupted Polaris / wheel action until the visitor's
+ // nickname has been verified, or until their member login succeeds.
+ let pendingChallenge=false;
+ function requestChallengeResume(){
+  if(!pendingChallenge)return;
+  const ready=Boolean(window.quizPlayerMayChallenge?.());
+  if(!ready)return;
+  pendingChallenge=false;
+  const resume=()=>{
+   if(!window.quizPlayerMayChallenge?.()||promptDialog.open)return;
+   const button=document.getElementById('spinBtn');
+   if(button&&!button.disabled)button.click();
+  };
+  // A successful login may still be finishing profile setup inside the
+  // member dialog; do not spin beneath an open account form.
+  const memberDialog=document.querySelector('dialog.player-dialog');
+  if(memberDialog?.open){
+   memberDialog.addEventListener('close',()=>queueMicrotask(resume),{once:true});
+  }else queueMicrotask(resume);
+ }
  window.quizNicknameActive=active;
  window.quizNicknameProfile=()=>profile;
  const promptDialog=document.createElement('dialog');promptDialog.id='nicknameBeginnerPrompt';
@@ -58,7 +78,12 @@
  promptMemberActions.append(promptRegister,promptLogin);
  promptMember.append(promptMemberIntro,promptMemberActions);
  promptDialog.append(promptTitle,promptMessage,promptForm,promptMember);document.body.append(promptDialog);
- promptCancel.onclick=()=>promptDialog.close();
+ promptCancel.onclick=()=>{pendingChallenge=false;promptDialog.close();};
+ promptDialog.addEventListener('cancel',()=>{pendingChallenge=false;});
+ // The existing member UI sets a token only after server authentication.
+ window.addEventListener('quiz-member-session-changed',()=>{
+  if(window.quizMemberToken?.())requestChallengeResume();
+ });
  function openMemberFromPrompt(mode){
   if(pending){promptError.textContent='暱稱驗證中，請稍後再選擇會員操作。';return;}
   if(typeof window.quizOpenMemberAuth!=='function'){
@@ -82,7 +107,16 @@
   if(!validNickname(nickname)){promptError.textContent='請輸入 2–18 字中英文、數字、底線或連字號。';promptInput.focus();return;}
   promptSubmit.disabled=true;promptError.textContent='正在驗證暱稱…';
   input.value=nickname;
-  try{await joinNickname();if(active()){promptDialog.close();}else{promptError.textContent=status.textContent||'暱稱設定失敗，請再試一次。';}}
+  try{
+   await joinNickname();
+   if(active()){
+    promptDialog.close();
+    // Continue the original North Star challenge; no second click required.
+    requestChallengeResume();
+   }else{
+    promptError.textContent=status.textContent||'暱稱設定失敗，請再試一次。';
+   }
+  }
   finally{promptSubmit.disabled=false;}
  });
  window.quizNicknameFocus=()=>{
@@ -97,6 +131,7 @@
   const target=event.target?.closest?.('#spinBtn,#polaris-trigger');
   if(!target||window.quizMemberToken?.()||active())return;
   event.preventDefault();event.stopImmediatePropagation();
+  pendingChallenge=true;
   window.quizNicknameFocus();
  },true);
  document.addEventListener('keydown',event=>{
@@ -104,6 +139,7 @@
   const target=event.target?.closest?.('#polaris-trigger');
   if(!target||window.quizMemberToken?.()||active())return;
   event.preventDefault();event.stopImmediatePropagation();
+  pendingChallenge=true;
   window.quizNicknameFocus();
  },true);
  async function request(action,options={}){
