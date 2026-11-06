@@ -200,8 +200,8 @@
 }
 
 
-/* The SAME interactive 32-slot SVG wheel serves as the central hub of the map.
-   Reversible DOM relocation is handled in adventure-mode.js. */
+/* Map mode relocates only the original SVG wheel. The play controls and
+   encounter log remain in the original panel beneath the adventure map. */
 html[data-adventure-view="map"] #mainContent.layout{
  grid-template-columns:minmax(0,1fr)!important;
 }
@@ -209,61 +209,77 @@ html[data-adventure-view="map"] #mainContent > .information{
  width:100%;max-width:none;min-width:0;
 }
 .adventure-journey[data-layout="map"] .adventure-map-compass{display:none}
-.adventure-journey[data-layout="map"] .adventure-map-scene > .wheel-card{
- box-sizing:border-box;position:absolute;left:50%;top:47%;
- transform:translate(-50%,-50%);z-index:5;
- width:252px;max-width:252px;min-width:0;padding:9px 9px 11px;
- margin:0;border:2px solid #b89a61;border-radius:23px;
- background:linear-gradient(155deg,#fff8e5,#ecdec1);
- box-shadow:0 0 0 8px #eed39b66,0 11px 24px #493a244f;
- color:#314144;overflow:visible;
+.adventure-journey[data-layout="map"] .adventure-map-wheel{
+ box-sizing:border-box;
+ position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);
+ z-index:5;width:240px;height:240px;min-width:0;
+ padding:6px;border-radius:50%;
+ background:linear-gradient(160deg,#f7e8bd,#d4b575);
+ border:3px solid #a98447;
+ box-shadow:0 0 0 7px #e6cc9773,0 9px 22px #46372255;
 }
-.adventure-journey[data-layout="map"] .adventure-map-scene > .wheel-card::before{
- content:"✦ 星路中樞・北斗羅盤";display:block;text-align:center;
- font-size:.83rem;font-weight:800;letter-spacing:.05em;
- line-height:1.6;color:#6e5131;
+.adventure-journey[data-layout="map"] .adventure-map-wheel .wheel-wrap{
+ width:100%;max-width:none;margin:0;position:relative;
 }
-.adventure-journey[data-layout="map"] .adventure-map-scene > .wheel-card .wheel-header,
-.adventure-journey[data-layout="map"] .adventure-map-scene > .wheel-card .quad-legend,
-.adventure-journey[data-layout="map"] .adventure-map-scene > .wheel-card .wheel-footer{
+.adventure-journey[data-layout="map"] .adventure-map-wheel .wheel-wrap svg{
+ display:block;width:100%;height:auto;touch-action:manipulation;overflow:visible;
+}
+.adventure-journey[data-layout="map"] .adventure-map-wheel .mansion-sector .full-name{
  display:none;
 }
-.adventure-journey[data-layout="map"] .adventure-map-scene > .wheel-card .wheel-wrap{
- width:100%;max-width:204px;margin:3px auto;
+.adventure-journey[data-layout="map"] .adventure-map-wheel .mansion-sector .short-name{
+ display:block;font-size:44px;
 }
-.adventure-journey[data-layout="map"] .adventure-map-scene > .wheel-card .wheel-wrap svg{
- width:100%;height:auto;display:block;touch-action:manipulation;
+.adventure-journey[data-layout="map"] .adventure-map-wheel .sector-index{display:none}
+.adventure-journey[data-layout="map"] .adventure-map-wheel #star-labels .star-name{display:none}
+.adventure-journey[data-layout="map"] .adventure-map-wheel #star-labels .star-number{
+ display:block;font-size:30px;
 }
-.adventure-journey[data-layout="map"] .adventure-map-scene > .wheel-card .adventure-wheel-modes{
- grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin:5px 0 4px;
+.adventure-journey[data-layout="map"] .adventure-map-wheel .direction-text{font-size:30px}
+.adventure-journey[data-layout="map"] .adventure-route-link{
+ stroke-width:3.5;stroke-dasharray:4 8;opacity:.9;
 }
-.adventure-journey[data-layout="map"] .adventure-map-scene > .wheel-card .adventure-mode-button{
- font-size:.68rem;min-height:35px;padding:5px 1px;letter-spacing:0;
- border-radius:9px;
+/* Leave the original controls accessible outside the map. The wheel card
+   becomes a compact operations panel, not a duplicate map component. */
+html[data-adventure-view="map"] #mainContent > .wheel-card{
+ box-sizing:border-box;width:100%;max-width:none;min-width:0;
+ display:grid;grid-template-columns:minmax(190px,1fr) minmax(0,2fr);
+ align-items:start;gap:8px 16px;padding:15px 20px;
 }
-.adventure-journey[data-layout="map"] .adventure-map-scene > .wheel-card .adventure-wheel-hint{
- color:#6d5c40;font-size:.65rem;line-height:1.45;
- margin:4px 1px 2px;
+html[data-adventure-view="map"] #mainContent > .wheel-card > .wheel-header{
+ grid-column:1/-1;padding:0;margin:0;
 }
-.adventure-journey[data-layout="map"] .adventure-map-scene > .wheel-card .adventure-encounter{
- margin:4px 0 0;padding:7px 9px;border-radius:10px;
- font-size:.69rem;max-height:100px;overflow-y:auto;
+html[data-adventure-view="map"] #mainContent > .wheel-card > .wheel-header span,
+html[data-adventure-view="map"] #mainContent > .wheel-card > .wheel-header strong{
+ display:none;
 }
-.adventure-journey[data-layout="map"] .adventure-map-scene > .wheel-card .adventure-encounter-title{
- font-size:.67rem;margin-bottom:3px;
+html[data-adventure-view="map"] #mainContent > .wheel-card > .wheel-header::before{
+ content:"星路羅盤・操作設定";display:block;color:#6a5534;
+ font-size:1rem;font-weight:800;letter-spacing:.06em;
 }
-.adventure-journey[data-layout="map"] .adventure-map-scene > .wheel-card .adventure-encounter-text{
- font-size:.67rem;line-height:1.5;
+html[data-adventure-view="map"] #mainContent > .wheel-card > .adventure-wheel-modes{
+ grid-column:1;margin:0;
+}
+html[data-adventure-view="map"] #mainContent > .wheel-card > .adventure-wheel-hint{
+ grid-column:2;margin:2px 0;
+}
+html[data-adventure-view="map"] #mainContent > .wheel-card > .adventure-encounter{
+ grid-column:1/-1;margin:0;padding:10px 13px;
+}
+html[data-adventure-view="map"] #mainContent > .wheel-card > .quad-legend,
+html[data-adventure-view="map"] #mainContent > .wheel-card > .wheel-footer{
+ display:none;
 }
 .adventure-journey[data-layout="map"] .adventure-story{
  top:auto;bottom:3.5%;left:39%;width:22%;max-height:83px;
  line-height:1.42;padding:7px 9px;
 }
-.adventure-journey[data-layout="map"] .adventure-route-link{
- stroke-width:3.5;stroke-dasharray:4 8;opacity:.9;
-}
-@media(max-width:920px){
- .adventure-journey[data-layout="map"] .adventure-map-scroll{
-  scroll-padding-inline:18px;
+@media(max-width:680px){
+ html[data-adventure-view="map"] #mainContent > .wheel-card{
+  grid-template-columns:1fr;gap:10px;padding:14px;
+ }
+ html[data-adventure-view="map"] #mainContent > .wheel-card > .adventure-wheel-modes,
+ html[data-adventure-view="map"] #mainContent > .wheel-card > .adventure-wheel-hint{
+  grid-column:1;
  }
 }
