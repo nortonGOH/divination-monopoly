@@ -33,7 +33,7 @@
   const note=document.createElement('p');
   note.className='v8-empty-note';
   note.setAttribute('role','status');
-  note.textContent='請先選擇難度，再點「抽宿挑戰」。只有抽中星宿時才會出現該宿的四選一題目。';
+  note.textContent='可在北斗羅盤選擇「主線試煉」或「秘境探索」，點擊北極星啟動。星宿試煉會開啟對應的四選一題目。';
   quiz.insertBefore(note, panel);
   let wheelReady=false;
 
@@ -96,9 +96,9 @@
     showQuestionPanel();
   };
 
-  // The chapter quest reuses the existing server-graded quiz without faking a wheel spin.
-  window.quizAdventureOpenStage=function(index){
-    if(spinning||!Number.isInteger(index)||index<0||index>=MANSIONS.length)return false;
+  // Both the direct chapter selector and the main-quest wheel share this gate.
+  window.quizAdventureCanChallengeStage=function(index){
+    if(!Number.isInteger(index)||index<0||index>=MANSIONS.length)return false;
     if(typeof window.quizPlayerMayChallenge==='function'&&!window.quizPlayerMayChallenge())return false;
     const mansion=MANSIONS[index].name;
     const requestedType=typeof window.quizFiveArtsSelection==='function'?window.quizFiveArtsSelection():'all';
@@ -107,9 +107,13 @@
     const eligible=questionBank.some(q=>q.mansion===mansion&&(level==='all'||(q.difficulty||'中階')===level) &&
       (requestedType==='all'||(typeof inferKnowledgeType==='function'&&inferKnowledgeType(q)===requestedType)) &&
       Array.isArray(q.options)&&q.options.length===4&&!(window.quizCompletedIds||new Set()).has(q.id));
-    if(!eligible)return false;
+    return eligible;
+  };
+  // Direct chapter entry remains compatible with older integrations.
+  window.quizAdventureOpenStage=function(index){
+    if(spinning||!window.quizAdventureCanChallengeStage(index))return false;
     wheelReady=true;renderInfo(index);selectQuizForMansion(index);
-    return Boolean(activeQuestion&&activeQuestion.mansion===mansion);
+    return Boolean(activeQuestion&&activeQuestion.mansion===MANSIONS[index].name);
   };
   const oldFinish=finishSpin;
   finishSpin=function(slotIndex){

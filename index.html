@@ -221,7 +221,7 @@
     @media(max-width:550px){.learning-map-dialog{width:calc(100vw - 12px);max-height:calc(100dvh - 12px);border-radius:12px}.learning-map-dialog-bar{padding:9px 12px}.learning-map-dialog-bar strong{font-size:.9rem}.learning-map-dialog-close{padding:8px 10px}.learning-map-atlas-panel{padding:8px}}
   </style>
   <link rel="stylesheet" href="./site-ux.css">
-  <link rel="stylesheet" href="./adventure-mode.css?v=20261106-chapters">
+  <link rel="stylesheet" href="./adventure-mode.css?v=20261106-wheel-rpg">
   <link rel="stylesheet" href="./guestbook.css">
   <link rel="stylesheet" href="./trial-wenchang-ui.css">
   <link rel="stylesheet" href="./quiz-question-modal.css">
@@ -288,8 +288,8 @@
             <path d="M500 468 V485 M500 515 V532 M468 500 H485 M515 500 H532" stroke="#a4d9ed" stroke-width="1.7" opacity=".9"/>
             <text x="500" y="550" text-anchor="middle">北極星 · 天極示意</text>
           </g>
-          <g id="polaris-trigger" role="button" tabindex="0" aria-label="點擊北極星，抽取二十八宿知識挑戰">
-            <title>點擊北極星 · 抽宿挑戰</title>
+          <g id="polaris-trigger" role="button" tabindex="0" aria-label="點擊北極星，啟動星路主線試煉或秘境探索">
+            <title>點擊北極星 · 啟動星路羅盤</title>
             <circle cx="500" cy="500" r="47" fill="#d8f4ff" fill-opacity="0.001" stroke="#91d2f0" stroke-opacity="0" stroke-width="2" pointer-events="all" />
           </g>
           <g id="directions" pointer-events="none">
@@ -306,7 +306,7 @@
         <span class="key"><i class="swatch" style="background:#ac8538"></i>西方七宿</span>
         <span class="key"><i class="swatch" style="background:#4274a8"></i>北方七宿</span>
       </div>
-      <p class="wheel-footer">點擊北極星或「抽宿挑戰」即可開始。北極星固定天心，北斗逆時針旋轉，瑤光（破軍）指向選中的星宿。（位置為示意）</p>
+      <p class="wheel-footer">北極星是星路羅盤的啟動點：主線試煉會指向下一個待通關星宿；秘境探索則隨機抽取 28 宿或 4 個特殊事件。北極星固定天心、北斗逆時針旋轉；星官與位置為教學示意。</p>
     </section>
 
     <aside class="information" aria-label="星宿資訊與數術問答">
@@ -503,10 +503,10 @@ for(let q=0;q<4;q++){
 }
 const SLOT=360/BOARD_SLOTS.length;
 const SPECIAL_CARDS=[
-  {name:'機會 I',message:'得到一次重新抽宿的機會。此格不計入答題或答錯次數。'},
-  {name:'命運 I',message:'命運格：可以調整初／中／高階難度，再次抽宿。此格不計入答題。'},
-  {name:'機會 II',message:'得到一次自主選宿的機會：可點選任何一個星宿練習，或再抽一次。'},
-  {name:'命運 II',message:'命運格：保持目前難度，重新抽取下一宿。此格不計入答題。'}
+  {name:'機會 I',message:'機緣・雲笈殘卷：你在古道發現未解的星圖。可再次探索或切回主線定位；本事件不計分，也不贈送文昌點數。'},
+  {name:'命運 I',message:'命數・迷霧古道：星途被霧氣遮蔽。可調整可用難度再啟動羅盤；本事件不計分。'},
+  {name:'機會 II',message:'機緣・星官指引：你可查閱二十八宿圖鑑或再度探索。這是劇情事件，不會直接解鎖主線關卡。'},
+  {name:'命運 II',message:'命數・星門迴轉：北斗指引你重尋星路。保持目前條件再探索一次；本事件不計分。'}
 ];
 // SVG 螢幕座標：0° 指右，90° 指下；角度增加為順時針。
 // 角宿在原箕宿位置（左上）；沿 SVG 負角度方向（視覺逆時針）排列 28 宿。
@@ -852,7 +852,7 @@ function finishSpin(slotIndex){
   inspection=null;
   const cell=BOARD_SLOTS[slotIndex];
   spinBtn.disabled=false;
-  spinBtn.textContent='✦　再次抽宿挑戰';
+  spinBtn.textContent='✦　按我或北極星開始挑戰';
   if(cell.type==='mansion'){
     const targetIndex=cell.mansionIndex;
     lastResult=targetIndex;
@@ -883,7 +883,21 @@ function spin(){
   spinBtn.disabled=true;
   spinBtn.textContent='北斗旋運中…';
   setStatus('正在抽取星宿 · 北斗逆時針旋運中','spin');
-  const slotIndex=fairRandomInt(BOARD_SLOTS.length);
+  const plan=window.quizAdventureWheelPlan?.()||{mode:'explore'};
+  if(plan.blocked){
+    spinning=false;
+    spinBtn.disabled=false;
+    spinBtn.textContent='✦　按我或北極星開始挑戰';
+    setStatus(plan.reason||'目前無法開始試煉','');
+    window.dispatchEvent(new CustomEvent('challenge-spin-blocked',{detail:{reason:plan.reason||''}}));
+    return;
+  }
+  const slotIndex=Number.isInteger(plan.slotIndex)&&plan.slotIndex>=0&&plan.slotIndex<BOARD_SLOTS.length
+    ?plan.slotIndex:fairRandomInt(BOARD_SLOTS.length);
+  window.dispatchEvent(new CustomEvent('challenge-spin-started',{detail:{
+    slotIndex,mode:plan.mode==='main'?'main':'explore',
+    stageIndex:Number.isInteger(plan.stageIndex)?plan.stageIndex:null
+  }}));
   const target=normalize(sectorCenter(slotIndex)-POINTER_NATIVE);
   const current=normalize(currentRotation);
   const antiClockwiseDelta=normalize(current-target);
@@ -1161,13 +1175,13 @@ initializeBank();
 
 </script>
 <script src="./quiz-open-qa.js"></script>
-<script src="./quiz-challenge-v7.js?v=20261106-intermediate"></script>
+<script src="./quiz-challenge-v7.js?v=20261106-wheel-rpg"></script>
 <script src="./nickname-beginner.js?v=20261106-intermediate"></script>
 <script src="./wenchang-rescue-cards.js"></script>
-<script src="./challenge-v8-ui.js?v=20261106-intermediate"></script>
+<script src="./challenge-v8-ui.js?v=20261106-wheel-rpg"></script>
 <script src="./challenge-v9-library-bank.js"></script>
 <script src="./challenge-v10-fivearts.js"></script>
-<script src="./adventure-mode.js?v=20261106-chapters"></script>
+<script src="./adventure-mode.js?v=20261106-wheel-rpg"></script>
 <script src="./feature-visibility.js"></script>
 <script src="./challenge-v12-leaderboard.js"></script>
 <script src="./challenge-v15-admin-users.js"></script>

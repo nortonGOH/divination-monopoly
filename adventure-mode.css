@@ -27,3 +27,14 @@
 .adventure-disclaimer{color:#c2d2d0;font-size:.76rem;line-height:1.7;margin:11px 0 0}
 @media(max-width:950px){.adventure-stages{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:620px){.adventure-chapters{grid-template-columns:repeat(2,minmax(0,1fr))}.adventure-stages{grid-template-columns:repeat(2,minmax(0,1fr))}.adventure-progress-wrap{grid-template-columns:1fr}.adventure-account-note{text-align:left}}
+
+/* RPG compass mode switch and event log, inside the original 32-slot wheel card. */
+.adventure-wheel-modes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:12px 0 6px}
+.adventure-mode-button{border-radius:12px;border:1px solid #b6a17d;background:linear-gradient(155deg,#f8f2e5,#e9e0cf);color:#33433e;font:inherit;font-weight:750;letter-spacing:.04em;min-height:47px;cursor:pointer}
+.adventure-mode-button[aria-pressed="true"]{background:linear-gradient(155deg,#304d58,#203942);border-color:#a58345;color:#ffe3a7;box-shadow:0 0 0 2px #cfb47c4d}
+.adventure-mode-button:focus-visible{outline:3px solid #a67832;outline-offset:2px}
+.adventure-wheel-hint{line-height:1.7;font-size:.82rem;color:#655a4c;margin:4px 0 12px}
+.adventure-encounter{border:1px solid #b9a27b;border-radius:14px;padding:14px 16px;margin-top:14px;background:linear-gradient(150deg,#173441,#274b4b);color:#f4e4c4}
+.adventure-encounter-title{color:#f5ce86;display:block;margin-bottom:6px;font-size:.84rem;letter-spacing:.06em}
+.adventure-encounter-text{line-height:1.85;margin:0;font-size:.88rem;white-space:pre-line}
+@media(max-width:520px){.adventure-wheel-modes{grid-template-columns:1fr}.adventure-encounter{padding:12px}}

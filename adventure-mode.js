@@ -25,7 +25,46 @@ const stages=el('div','','adventure-stages');stages.setAttribute('aria-label','�
 const status=el('p','','adventure-story-status');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
 const disclaimer=el('p','劇情、修行關卡與守關稱謂為原創遊戲設定，並非古代星占或道教文獻原文。旅程進度僅保存在本裝置；正式排行榜及答題成績仍由伺服器核實。','adventure-disclaimer');
 section.append(meter,chaptersUI,story,stages,status,disclaimer);layout.before(section);
+// The North Star is the RPG compass; preserve the original SVG wheel and spin animation.
+const wheelCard=layout.querySelector('.wheel-card');
+const wheelHeader=wheelCard?.querySelector('.wheel-header');
+const modes=el('div','','adventure-wheel-modes');
+modes.setAttribute('role','group');
+modes.setAttribute('aria-label','北斗星路羅盤玩法');
+const questMode=el('button','','adventure-mode-button');
+const exploreMode=el('button','','adventure-mode-button');
+const wheelTip=el('p','','adventure-wheel-hint');
+const encounter=el('div','','adventure-encounter');
+encounter.setAttribute('role','status');
+encounter.setAttribute('aria-live','polite');
+const encounterKicker=el('strong','✧ 星路羅盤紀事','adventure-encounter-title');
+const encounterText=el('p','主線試煉會讓瑤光指向下一個待通關的星宿。','adventure-encounter-text');
+encounter.append(encounterKicker,encounterText);
+modes.append(questMode,exploreMode);
+if(wheelHeader){wheelHeader.after(modes,wheelTip);}
+wheelCard?.append(encounter);
 let chapterIndex=0,activeStage=null,passed=0,currentKey=null;
+let wheelMode='main',lastSpinMode='main',lastSpinStage=null;
+const wheelButton=document.getElementById('spinBtn');
+const polaris=document.getElementById('polaris-trigger');
+function updateModes(){
+ questMode.textContent='⚔ 主線試煉';questMode.type='button';
+ exploreMode.textContent='✧ 秘境探索';exploreMode.type='button';
+ questMode.setAttribute('aria-pressed',String(wheelMode==='main'));
+ exploreMode.setAttribute('aria-pressed',String(wheelMode==='explore'));
+ wheelTip.textContent=wheelMode==='main'?
+  '主線試煉：啟動北極星後，北斗定位到目前解鎖的星宿；答對現有題庫才會通關。':
+  '秘境探索：32 格公平隨機抽選，可能遇到星宿試煉或四個機緣／命數事件；探索不會推進主線。';
+}
+function switchMode(next){
+ if(next!=='main'&&next!=='explore')return;
+ wheelMode=next;activeStage=null;updateModes();
+ encounterText.textContent=next==='main'?'主線羅盤就緒；點北極星或下方按鈕，定位下一個待通關星宿。':
+  '秘境已開啟；點北極星或下方按鈕，隨機探索星宿與特殊事件。';
+}
+questMode.addEventListener('click',()=>switchMode('main'));
+exploreMode.addEventListener('click',()=>switchMode('explore'));
+updateModes();
 const prefix='quiz_xianxia_quest_v1:';
 function identity(){
  const token=window.quizMemberToken?.();
@@ -72,34 +111,75 @@ function render(){
 function enter(index){
  reconcile();
  if(index>passed){say('此關尚未解鎖，請先完成前一關。');return;}
+ if(index<passed){say('此關已通過。主線羅盤將指向下一個尚未通關的星宿；可切換秘境探索自由遊歷。');return;}
  if(!window.quizMemberToken?.()&&!window.quizNicknameActive?.()){
   say('請先設定暱稱。初階與中階可免註冊挑戰，高階須登入會員。');
   window.quizNicknameFocus?.();return;
  }
  if(!window.quizPlayerMayChallenge?.()){say('目前無法開始挑戰，請確認帳號或暱稱模式。');return;}
- if(typeof window.quizAdventureOpenStage!=='function'){say('題庫尚未準備完成，請稍後重新開啟。');return;}
- if(!window.quizAdventureOpenStage(index)){say('本宿在所選難度或數術類型下沒有可作答題目，請調整條件再試。');return;}
- activeStage=index;
- say('已進入第 '+(index+1)+' 關「'+MANSIONS[index].name+'」。請於數術問答答對一題，解鎖下一關。');
- document.getElementById('quizTitle')?.scrollIntoView({behavior:'smooth',block:'center'});
+ if(typeof window.quizAdventureCanChallengeStage!=='function'||!window.quizAdventureCanChallengeStage(index)){
+  say('本宿在所選難度或數術類型下沒有可作答題目，請調整條件再試。');return;
+ }
+ if(!wheelButton){say('星路羅盤按鈕尚未載入。');return;}
+ switchMode('main');
+ say('第 '+(index+1)+' 關「'+MANSIONS[index].name+'」就緒，正在啟動北斗定位。');
+ wheelButton.click();
+ document.getElementById('skyWheel')?.scrollIntoView({behavior:'smooth',block:'center'});
 }
+// Main-quest selection intentionally targets the next stage. Free exploration
+// leaves the original 32-cell unbiased random picker untouched.
+window.quizAdventureWheelPlan=()=>{
+ reconcile();
+ if(wheelMode!=='main')return {mode:'explore'};
+ if(passed>=28)return {mode:'main',blocked:true,reason:'四象二十八關已全部完成。可切換「秘境探索」繼續自由抽宿。'};
+ if(!currentKey)return {mode:'main',blocked:true,reason:'先設定暱稱或登入會員，才能開始主線試煉。'};
+ if(typeof window.quizAdventureCanChallengeStage!=='function')return {mode:'main',blocked:true,reason:'題庫尚未準備完成，請稍後重試。'};
+ if(!window.quizAdventureCanChallengeStage(passed))return {mode:'main',blocked:true,reason:'第 '+(passed+1)+' 關「'+MANSIONS[passed].name+'」沒有符合目前難度與類型的可用題目，請調整篩選條件。'};
+ return {mode:'main',slotIndex:passed+Math.floor(passed/7),stageIndex:passed};
+};
+window.addEventListener('challenge-spin-blocked',event=>{
+ activeStage=null;encounterText.textContent=event.detail?.reason||'主線試煉暫不可用。';
+ say(encounterText.textContent);
+});
+window.addEventListener('challenge-spin-started',event=>{
+ const detail=event.detail||{};
+ lastSpinMode=detail.mode==='main'?'main':'explore';
+ lastSpinStage=lastSpinMode==='main'&&Number.isInteger(detail.stageIndex)?detail.stageIndex:null;
+ activeStage=lastSpinStage;
+ encounterText.textContent=lastSpinMode==='main'?
+  '⚔ 北斗循星圖旋轉，正定位第 '+(lastSpinStage+1)+' 關「'+MANSIONS[lastSpinStage].name+'」。':
+  '✧ 北斗漫遊三垣四象的想像秘境，正在隨機探索三十二格。';
+});
+window.addEventListener('challenge-spin-finished',event=>{
+ const cell=event.detail?.cell;
+ if(!cell)return;
+ if(cell.type==='mansion'){
+  const index=cell.mansionIndex,m=MANSIONS[index];
+  if(lastSpinMode==='main'&&index===lastSpinStage){
+   encounterText.textContent='⚔ 第 '+(index+1)+' 關「'+m.name+'」已定位！請回答彈出的四選一題目；答對可解鎖後續星路。';
+  }else{
+   activeStage=null;
+   encounterText.textContent='✧ 遭遇「'+m.name+'」！這是自由探索試煉，答題成績依伺服器核實，但不影響主線解鎖。';
+  }
+ }else{
+  activeStage=null;
+  const eventCard=SPECIAL_CARDS[cell.specialIndex];
+  encounterText.textContent='✧ '+(eventCard?.name||'命數事件')+'：'+(eventCard?.message||'可重新啟動星路羅盤。');
+ }
+});
 window.addEventListener('quiz-answer-graded',event=>{
  reconcile();const detail=event.detail||{};
  if(!detail.correct||!detail.questionId||activeStage===null||activeStage!==passed)return;
  const question=typeof questionBank!=='undefined'&&Array.isArray(questionBank)?questionBank.find(q=>String(q.id)===String(detail.questionId)):null;
  if(!question||question.mansion!==MANSIONS[activeStage].name)return;
  const complete=activeStage;passed=Math.min(28,passed+1);activeStage=null;
+ encounterText.textContent='✦ 星關突破！已通過第 '+(complete+1)+' 關「'+MANSIONS[complete].name+'」，下一次主線旋轉將指向新的星宿。';
  if(currentKey){try{localStorage.setItem(prefix+currentKey,String(passed));}catch(_){}}
  const chapterCleared=passed>0&&passed%7===0;
  chapterIndex=Math.min(3,Math.floor(passed/7));render();
  say(chapterCleared?'✦ '+chapters[Math.floor(complete/7)].title+'全章通關！已解鎖下一章。':'✦ 第 '+(complete+1)+' 關通過！星路已開啟下一關。');
 });
-for(const id of ['spinBtn','polaris-trigger']){
- const node=document.getElementById(id);if(!node)continue;
- node.addEventListener('click',()=>{activeStage=null;},true);
- if(id==='polaris-trigger')node.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')activeStage=null;},true);
-}
 window.addEventListener('quiz-member-session-changed',()=>{reconcile();render();});
 window.addEventListener('quiz-nickname-state-changed',()=>{reconcile();render();});
-render();say('選擇青龍篇的第一關開始旅程；原有北斗自由抽宿仍可使用。');
+render();say('星路羅盤預設「主線試煉」：點北極星會定位第一個尚未通關的星宿；切換「秘境探索」可公平隨機抽宿。');
 })();

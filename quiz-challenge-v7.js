@@ -325,7 +325,7 @@ function drawState(){
  renderCooldown();
  const allowed=(!!playerToken && !locked)||nicknameReady;
  if(!spinning){
-   $('spinBtn').disabled=!allowed;
+   $('spinBtn').disabled=Boolean(playerToken&&locked);
    if(locked){$('spinBtn').textContent='🔒 挑戰暫停・查看解鎖時間';$('spinBtn').title='點擊可查看解鎖倒數與原因';}
    else if($('spinBtn').textContent.startsWith('🔒')){$('spinBtn').textContent='✦　再次抽宿挑戰';$('spinBtn').title='';}
    $('nextQuestionBtn').disabled=!allowed || $('nextQuestionBtn').disabled;

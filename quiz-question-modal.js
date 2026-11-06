@@ -57,9 +57,16 @@
   function updateResume(){
     resume.hidden=dialog.open||!canResume();
   }
+  let spinMode='explore',mainStage=null;
+  window.addEventListener('challenge-spin-started',event=>{
+    spinMode=event.detail?.mode==='main'?'main':'explore';
+    mainStage=Number.isInteger(event.detail?.stageIndex)?event.detail.stageIndex:null;
+  });
   function openQuestion(){
     if(!canResume())return;
-    subtitle.textContent=(scope?.textContent||'本次抽宿')+' · 請選擇正確答案';
+    kicker.textContent=spinMode==='main'?'星宿劍途 · 主線試煉':'星宿劍途 · 秘境探索';
+    title.textContent=spinMode==='main'?(mainStage!==null&&(mainStage+1)%7===0?'四象守關試煉':'星宿通關試煉'):'秘境星宿遭遇';
+    subtitle.textContent=(scope?.textContent||'本次星宿')+(spinMode==='main'?' · 答對解鎖下一關':' · 自由探索不推進主線')+' · 請選擇正確答案';
     resume.hidden=true;
     if(!dialog.open)dialog.showModal();
     const target=panel.querySelector('.answer-btn:not(:disabled)');
