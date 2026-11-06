@@ -283,3 +283,19 @@ html[data-adventure-view="map"] #mainContent > .wheel-card > .wheel-footer{
   grid-column:1;
  }
 }
+
+/* Twenty-four Mountains decorative face. The underlying 32 quiz cells stay
+   interactive; a narrow inner selection band remains visible for feedback. */
+#skyWheel #sectors .mansion-sector .full-name,
+#skyWheel #sectors .mansion-sector .short-name,
+#skyWheel #sectors .mansion-sector .sector-index{display:none!important}
+#skyWheel #mountain24-face{pointer-events:none}
+#skyWheel .mountain24-division{pointer-events:none}
+#skyWheel .mountain24-wedge{fill:#f5eee0;stroke:#bcaa8e;stroke-width:2}
+#skyWheel .mountain24-quadrant-0 .mountain24-wedge{fill:#dbe8f2}
+#skyWheel .mountain24-quadrant-1 .mountain24-wedge{fill:#d9ebdf}
+#skyWheel .mountain24-quadrant-2 .mountain24-wedge{fill:#f6dfd5}
+#skyWheel .mountain24-quadrant-3 .mountain24-wedge{fill:#f0e4c5}
+#skyWheel .mountain24-label{fill:#384454;font-weight:800;font-size:42px;letter-spacing:0}
+#skyWheel .mountain24-quadrant-2 .mountain24-label{fill:#803f35}
+#skyWheel .mountain24-quadrant-1 .mountain24-label{fill:#326d55}
