@@ -32,16 +32,26 @@ mapRoute.setAttribute('preserveAspectRatio','none');
 mapRoute.setAttribute('aria-hidden','true');
 mapRoute.classList.add('adventure-map-routes');
 const stageCoords=[
- [115,172],[220,158],[325,183],[383,245],[326,319],[219,296],[120,342],
- [125,468],[225,442],[330,461],[392,523],[330,589],[219,576],[117,617],
- [605,620],[708,580],[818,594],[894,526],[818,458],[712,444],[609,463],
- [609,342],[710,302],[816,323],[896,245],[816,179],[713,162],[611,184]
+ [115,172],[220,158],[300,183],[340,245],[304,319],[209,296],[120,342],
+ [125,468],[225,442],[300,461],[340,523],[300,589],[209,576],[117,617],
+ [660,620],[731,580],[818,594],[894,526],[818,458],[731,444],[660,463],
+ [660,342],[731,302],[816,323],[896,245],[816,179],[731,162],[660,184]
 ];
 for(let chapter=0;chapter<4;chapter++){
  const path=document.createElementNS('http://www.w3.org/2000/svg','polyline');
  path.setAttribute('points',stageCoords.slice(chapter*7,chapter*7+7).map(p=>p.join(',')).join(' '));
  path.classList.add('adventure-route-line','adventure-route-'+chapter);
  mapRoute.append(path);
+}
+// Four stylized star paths join the original routes to the actual interactive
+// Dipper compass in the middle of the adventure map.
+for(const [i,targetIndex] of [3,10,20,21].entries()){
+ const connector=document.createElementNS('http://www.w3.org/2000/svg','line');
+ connector.setAttribute('x1','500');connector.setAttribute('y1','350');
+ connector.setAttribute('x2',String(stageCoords[targetIndex][0]));
+ connector.setAttribute('y2',String(stageCoords[targetIndex][1]));
+ connector.classList.add('adventure-route-line','adventure-route-link','adventure-route-'+i);
+ mapRoute.append(connector);
 }
 const mapCompass=el('div','北 ↑　東 ←　✦　→ 西　↓ 南','adventure-map-compass');
 mapScene.append(mapRoute,mapCompass,chaptersUI,story,stages);
@@ -51,7 +61,19 @@ let layoutMode='classic';
 function setLayoutMode(value){
  layoutMode=value==='map'?'map':'classic';
  section.dataset.layout=layoutMode;
- mapScroll.setAttribute('aria-label',layoutMode==='map'?'四象二十八宿仙俠地圖，可左右捲動':'四象章回與關卡');
+ document.documentElement.dataset.adventureView=layoutMode;
+ // Move the SAME original SVG wheel element, never clone it. Its spin handlers,
+ // Polaris click target, quiz events, admin visibility and live state all persist.
+ if(wheelCard){
+  if(layoutMode==='map'&&wheelCard.parentElement!==mapScene){
+   mapScene.append(wheelCard);
+  }else if(layoutMode==='classic'&&wheelCard.parentElement!==layout){
+   layout.insertBefore(wheelCard,layout.querySelector('.information'));
+  }
+  wheelCard.setAttribute('aria-label',layoutMode==='map'?
+   '四象星路地圖中央的北斗七星互動羅盤':'二十八星宿與北斗七星互動圓盤');
+ }
+ mapScroll.setAttribute('aria-label',layoutMode==='map'?'四象二十八宿仙俠地圖，中央可操作北斗羅盤，可左右捲動':'四象章回與關卡');
  render();
 }
 window.quizApplyHomepageLayout=setLayoutMode;
