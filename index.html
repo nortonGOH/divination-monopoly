@@ -26,6 +26,12 @@
     h1{font-size:clamp(1.6rem,3.2vw,2.75rem);letter-spacing:.13em;margin:0;font-weight:700;line-height:1.28}
     .subtitle{margin:10px 0 0;color:var(--muted);font-size:.93rem;letter-spacing:.08em}
     .head-seal{border:1px solid var(--gold);color:#856637;border-radius:50%;width:69px;height:69px;flex:none;display:grid;place-items:center;font-size:1rem;letter-spacing:.1em;transform:rotate(-8deg)}
+    /* Independent admin entry: remains visible even when the quiz or quick-nav is disabled. */
+    .site-head-tools{display:flex;flex-direction:column;align-items:center;gap:10px;flex:none}
+    .site-head .admin-portal-btn{background:#fffaf0;border:1px solid #b69257;color:#5b4627;border-radius:10px;padding:9px 13px;min-height:42px;white-space:nowrap;font:inherit;font-size:.84rem;font-weight:700;cursor:pointer;box-shadow:0 3px 9px #654b2520}
+    .site-head .admin-portal-btn:hover{background:#f1e6cf;border-color:#916c31}
+    .site-head .admin-portal-btn:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+    @media(max-width:620px){.site-head{align-items:center;flex-wrap:wrap}.site-head-tools{margin-left:auto;flex-direction:row;gap:13px}.site-head .head-seal{width:48px;height:48px;font-size:.76rem}.site-head .admin-portal-btn{font-size:.83rem;padding:9px 12px}}
     .layout{display:grid;grid-template-columns:minmax(0,1.54fr) minmax(310px,.86fr);gap:22px;align-items:start}
     .wheel-card,.information{background:rgba(255,252,245,.9);border:1px solid var(--stroke);border-radius:17px;box-shadow:0 10px 32px #4d412710}
     .wheel-card{padding:12px 12px 16px;min-width:0}
@@ -235,7 +241,10 @@
       <h1>二十八宿 · 星宿劍途</h1>
       <p class="subtitle">行走四象二十八關，修習數術知識；亦可自由轉動北斗抽宿</p>
     </div>
-    <div class="head-seal" aria-hidden="true">斗宿</div>
+    <div class="site-head-tools">
+      <div class="head-seal" aria-hidden="true">斗宿</div>
+      <button class="admin-portal-btn" type="button" id="adminPortalBtn" aria-label="管理員登入或開啟數術題庫管理" aria-haspopup="dialog" aria-controls="loginDialog bankDialog">管理區登入</button>
+    </div>
   </header>
   <nav class="ux-quick-nav" aria-label="網站快速導覽">
     <a href="#spinBtn">開始挑戰</a>
@@ -957,6 +966,7 @@ el('loginForm').addEventListener('submit',async e=>{
     }catch(err){adminAccessToken=old;throw err;}
     closeLogin();
     el('manageBankBtn').textContent='管理題庫 · 已登入';
+    el('adminPortalBtn').textContent='管理區 · 已登入';
     window.dispatchEvent(new Event('quiz-admin-session-changed'));
     el('loginStatus').textContent='';
     openBank();
@@ -971,6 +981,7 @@ async function logout(){
   window.dispatchEvent(new Event('quiz-admin-session-changed'));
   if(old)try{const resp=await fetch(SUPABASE_URL+'/auth/v1/logout',{method:'POST',headers:{...cloudHeaders(),Authorization:'Bearer '+old}});if(!resp.ok)console.warn('登出請求回應',resp.status);}catch(e){console.warn('登出時網路連線中斷',e);}
   el('manageBankBtn').textContent='管理題庫';
+  el('adminPortalBtn').textContent='管理區登入';
   closeBank();
   window.quizRefreshOpenBank?.();
 }
@@ -1007,6 +1018,8 @@ async function openBank(){
 }
 function closeBank(){if(typeof dialog.close==='function')dialog.close();else dialog.removeAttribute('open');}
 el('manageBankBtn').addEventListener('click',openBank);
+// This button lives outside the independently hideable quiz and quick-nav sections.
+el('adminPortalBtn').addEventListener('click',openBank);
 el('closeBankBtn').addEventListener('click',closeBank);
 dialog.addEventListener('click',event=>{if(event.target===dialog)closeBank();});
 function setQuestionSaveStatus(message,state='info'){
