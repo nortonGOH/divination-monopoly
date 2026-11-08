@@ -299,3 +299,6 @@ html[data-adventure-view="map"] #mainContent > .wheel-card > .wheel-footer{
 #skyWheel .mountain24-label{fill:#384454;font-weight:800;font-size:42px;letter-spacing:0}
 #skyWheel .mountain24-quadrant-2 .mountain24-label{fill:#803f35}
 #skyWheel .mountain24-quadrant-1 .mountain24-label{fill:#326d55}
+
+/* The site masthead is the visible page title; retain this section heading only for accessibility. */
+.adventure-visually-hidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
