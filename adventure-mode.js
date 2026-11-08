@@ -11,8 +11,8 @@ const chapters=[
 ];
 const el=(tag,txt='',cls='')=>{const e=document.createElement(tag);e.textContent=txt;if(cls)e.className=cls;return e;};
 const section=el('section','','adventure-journey');section.id='adventureJourney';section.setAttribute('aria-labelledby','adventureHeading');
-const heading=el('h2','星宿劍途：四象二十八關');heading.id='adventureHeading';
-section.append(el('p','二十八宿星路 · 原創仙俠闖關','adventure-kicker'),heading,
+const heading=el('h2','星宿劍途：四象二十八關','adventure-visually-hidden');heading.id='adventureHeading';
+section.append(heading,
  el('p','從青龍起程，循玄武、白虎、朱雀四章逐關試煉。選擇已解鎖的星宿，回答數術題庫；只有經伺服器核實的正確答案，才會點亮下一關。','adventure-description'));
 const meter=el('div','','adventure-progress-wrap');
 const progressText=el('strong','','adventure-progress-text');
